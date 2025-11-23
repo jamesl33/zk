@@ -109,6 +109,7 @@ func (l *Lister) walk(
 // matches - TODO
 //
 // TODO (jamesl33): Extract out a 'Matcher' interface, to avoid duplication with searching.
+// TODO (jamesl33): Create a 'Printer' type, to avoid duplication in printing (also could support different types).
 func (l *Lister) matches(n *note.Note) (bool, error) {
 	// TODO
 	if l.options.name != "" {
