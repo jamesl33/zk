@@ -36,6 +36,7 @@ func (n *Note) Name() string {
 // Frontmatter - TODO
 //
 // TODO (jamesl33): This should be optimised.
+// TODO (jamesl33): The result of this should be cached, as it's used when listing then subsequently to display.
 func (n *Note) Frontmatter() (Frontmatter, error) {
 	re := regexp.MustCompile(`^---[\S\s]*?---`)
 

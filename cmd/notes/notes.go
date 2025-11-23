@@ -20,6 +20,8 @@ func NewNotes() *cobra.Command {
 		NewFind(),
 		// TODO
 		NewTagged(),
+		// TODO
+		NewPick(),
 	)
 
 	return &cmd
