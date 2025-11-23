@@ -19,6 +19,8 @@ import (
 )
 
 // ListOptions - TODO
+//
+// TODO (jamesl33): Add support for case-insensitive listing.
 type ListOptions struct {
 	// Fixed - TODO
 	Fixed bool

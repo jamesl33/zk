@@ -19,6 +19,8 @@ import (
 )
 
 // SearchOptions - TODO
+//
+// TODO (jamesl33): Add support for case-insensitive search.
 type SearchOptions struct {
 	// Fixed - TODO
 	Fixed bool
