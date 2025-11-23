@@ -2,7 +2,11 @@ package tags
 
 import (
 	"context"
+	"fmt"
+	"maps"
+	"slices"
 
+	"github.com/jamesl33/zk/internal/notes/lister"
 	"github.com/spf13/cobra"
 )
 
@@ -32,5 +36,45 @@ func NewList() *cobra.Command {
 
 // Run - TODO
 func (l *List) Run(ctx context.Context, args []string) error {
+	lister, err := lister.NewLister(
+		lister.WithPath("."),
+	)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	tags := make(map[string]struct{})
+
+	for n, err := range lister.Many(ctx) {
+		if err != nil {
+			return fmt.Errorf("%w", err) // TODO
+		}
+
+		fm, err := n.Frontmatter()
+		if err != nil {
+			return fmt.Errorf("%w", err) // TODO
+		}
+
+		// TODO
+		//
+		// TODO (jamesl33): Tidy this up.
+		for _, tag := range fm.Tags {
+			tags[tag] = struct{}{}
+		}
+	}
+
+	// TODO
+	keys := maps.Keys(tags)
+
+	// TODO
+	sorted := slices.Sorted(keys)
+
+	// TODO
+	compacted := slices.Compact(sorted)
+
+	for _, tag := range compacted {
+		fmt.Println(tag)
+	}
+
 	return nil
 }
