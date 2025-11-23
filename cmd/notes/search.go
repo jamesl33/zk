@@ -140,7 +140,7 @@ func (s *Search) search(ctx context.Context, query string, w io.Writer) error {
 			return fmt.Errorf("%w", err) // TODO
 		}
 
-		fmt.Fprintf(w, "%s\x00(%s)\x00%s\n", icolor.Yellow(fm.Title), icolor.Blue(rel), n.Name())
+		fmt.Fprintf(w, "%s\x00%s\n", icolor.Yellow(fm.Title), icolor.Blue(rel))
 	}
 
 	return nil
