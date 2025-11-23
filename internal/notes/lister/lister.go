@@ -8,6 +8,7 @@ import (
 	"iter"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/jamesl33/zk/internal/note"
@@ -132,5 +133,24 @@ func (l *Lister) matches(n *note.Note) (bool, error) {
 		return l.options.regex.MatchString(fm.Title), nil
 	}
 
+	if len(l.options.tagged) != 0 {
+		return l.tagged(fm.Tags, l.options.tagged), nil
+	}
+
+	if len(l.options.ntagged) != 0 {
+		return !l.tagged(fm.Tags, l.options.ntagged), nil
+	}
+
 	return true, nil
+}
+
+// tagged - TODO
+func (l *Lister) tagged(have, want []string) bool {
+	for _, tag := range want {
+		if !slices.Contains(have, tag) {
+			return false
+		}
+	}
+
+	return true
 }

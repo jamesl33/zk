@@ -22,6 +22,12 @@ type Options struct {
 
 	// regex - TODO
 	regex *regexp.Regexp
+
+	// tagged - TODO
+	tagged []string
+
+	// ntagged - TODO
+	ntagged []string
 }
 
 // WithPath - TODO
@@ -56,5 +62,19 @@ func WithGlob(glob glob.Glob) func(*Options) {
 func WithRegex(regex *regexp.Regexp) func(*Options) {
 	return func(o *Options) {
 		o.regex = regex
+	}
+}
+
+// WithTagged - TODO
+func WithTagged(tags []string) func(*Options) {
+	return func(o *Options) {
+		o.tagged = tags
+	}
+}
+
+// WithNotTagged - TODO
+func WithNotTagged(tags []string) func(*Options) {
+	return func(o *Options) {
+		o.ntagged = tags
 	}
 }
