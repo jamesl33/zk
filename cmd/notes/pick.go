@@ -43,8 +43,9 @@ func (l *Pick) Run(ctx context.Context, args []string) error {
 		ctx,
 		"fzf",
 		"--ansi",
-		`--delimiter=\x00`,
+		"--select-1",
 		"--with-nth={1} {2}",
+		`--delimiter=\x00`,
 	)
 
 	// TODO
