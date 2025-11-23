@@ -1,12 +1,9 @@
 package lister
 
 import (
-	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/gobwas/glob"
-	"github.com/jamesl33/zk/internal/note"
 )
 
 // Options - TODO
@@ -25,36 +22,6 @@ type Options struct {
 
 	// regex - TODO
 	regex *regexp.Regexp
-}
-
-// matches - TODO
-func (o Options) matches(n *note.Note) (bool, error) {
-	// TODO
-	if o.name != "" {
-		return o.name == n.Name(), nil
-	}
-
-	fm, err := n.Frontmatter()
-	if err != nil {
-		return false, fmt.Errorf("%w", err) // TODO
-	}
-
-	// TODO
-	if o.fixed != "" {
-		return strings.Contains(fm.Title, o.fixed), nil
-	}
-
-	// TODO
-	if o.glob != nil {
-		return o.glob.Match(fm.Title), nil
-	}
-
-	// TODO
-	if o.regex != nil {
-		return o.regex.MatchString(fm.Title), nil
-	}
-
-	return true, nil
 }
 
 // WithPath - TODO

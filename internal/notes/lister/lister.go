@@ -90,7 +90,7 @@ func (l *Lister) walk(
 	// TODO
 	n := note.NewNote(path)
 
-	match, err := l.options.matches(n)
+	match, err := l.matches(n)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
@@ -104,4 +104,34 @@ func (l *Lister) walk(
 	}
 
 	return nil
+}
+
+// matches - TODO
+func (l *Lister) matches(n *note.Note) (bool, error) {
+	// TODO
+	if l.options.name != "" {
+		return l.options.name == n.Name(), nil
+	}
+
+	fm, err := n.Frontmatter()
+	if err != nil {
+		return false, fmt.Errorf("%w", err) // TODO
+	}
+
+	// TODO
+	if l.options.fixed != "" {
+		return strings.Contains(fm.Title, l.options.fixed), nil
+	}
+
+	// TODO
+	if l.options.glob != nil {
+		return l.options.glob.Match(fm.Title), nil
+	}
+
+	// TODO
+	if l.options.regex != nil {
+		return l.options.regex.MatchString(fm.Title), nil
+	}
+
+	return true, nil
 }
