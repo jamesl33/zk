@@ -7,10 +7,12 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"regexp"
 	"syscall"
 
 	"github.com/gobwas/glob"
+	icolor "github.com/jamesl33/zk/internal/color"
 	"github.com/jamesl33/zk/internal/notes/lister"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -131,7 +133,12 @@ func (l *List) list(ctx context.Context, query string, w io.Writer) error {
 			return fmt.Errorf("%w", err) // TODO
 		}
 
-		fmt.Fprintf(w, "%s\x00%s\n", fm.Title, n.Name())
+		rel, err := filepath.Rel(".", n.Path)
+		if err != nil {
+			return fmt.Errorf("%w", err) // TODO
+		}
+
+		fmt.Fprintf(w, "%s\x00(%s)\x00%s\n", icolor.Yellow(fm.Title), icolor.Blue(rel), n.Name())
 	}
 
 	return nil
