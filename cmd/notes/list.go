@@ -7,9 +7,11 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"regexp"
 	"syscall"
 
-	"github.com/jamesl33/zk/internal/notes"
+	"github.com/gobwas/glob"
+	"github.com/jamesl33/zk/internal/notes/lister"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -19,11 +21,11 @@ type ListOptions struct {
 	// Fixed - TODO
 	Fixed bool
 
-	// Regex - TODO
-	Regex bool
-
 	// Glob - TODO
 	Glob bool
+
+	// Regex - TODO
+	Regex bool
 }
 
 // List - TODO
@@ -55,16 +57,16 @@ func NewList() *cobra.Command {
 	)
 
 	cmd.Flags().BoolVar(
-		&list.Regex,
-		"regex",
+		&list.Glob,
+		"glob",
 		false,
 		// TODO
 		"",
 	)
 
 	cmd.Flags().BoolVar(
-		&list.Glob,
-		"glob",
+		&list.Regex,
+		"regex",
 		false,
 		// TODO
 		"",
@@ -78,10 +80,10 @@ func (l *List) Run(ctx context.Context, args []string) error {
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGPIPE)
 	defer cancel()
 
-	var path string
+	query := "."
 
 	if len(args) >= 1 {
-		path = args[0]
+		query = args[0]
 	}
 
 	// TODO
@@ -90,7 +92,7 @@ func (l *List) Run(ctx context.Context, args []string) error {
 		g, gctx = errgroup.WithContext(ctx)
 	)
 
-	g.Go(func() error { defer w.Close(); return l.list(gctx, path, w) })
+	g.Go(func() error { defer w.Close(); return l.list(gctx, query, w) })
 
 	_, err := io.Copy(os.Stdout, r)
 
@@ -105,9 +107,21 @@ func (l *List) Run(ctx context.Context, args []string) error {
 // list - TODO
 //
 // TODO (jamesl33): Add human readable output.
-// TODO (jamesl33): Add support for listing with 'fd'.
-func (l *List) list(ctx context.Context, path string, w io.Writer) error {
-	for n, err := range notes.List(ctx, path) {
+func (l *List) list(ctx context.Context, query string, w io.Writer) error {
+	filter, err := l.filter(query)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	lister, err := lister.NewLister(
+		lister.WithPath("."),
+		filter,
+	)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	for n, err := range lister.Many(ctx) {
 		if err != nil {
 			return fmt.Errorf("%w", err) // TODO
 		}
@@ -117,8 +131,45 @@ func (l *List) list(ctx context.Context, path string, w io.Writer) error {
 			return fmt.Errorf("%w", err) // TODO
 		}
 
-		fmt.Fprintf(w, "%s\x00%s\n", fm.Title, n.Path)
+		fmt.Fprintf(w, "%s\x00%s\n", fm.Title, n.Name())
 	}
 
 	return nil
+}
+
+// filter - TODO
+func (l *List) filter(query string) (func(*lister.Options), error) {
+	if l.Fixed {
+		return lister.WithFixed(query), nil
+	}
+
+	if l.Glob {
+		return l.glob(query)
+	}
+
+	if l.Regex {
+		return l.regex(query)
+	}
+
+	return lister.WithPath(query), nil
+}
+
+// glob - TODO
+func (l *List) glob(query string) (func(*lister.Options), error) {
+	parsed, err := glob.Compile("*" + query + "*")
+	if err != nil {
+		return nil, fmt.Errorf("%w", err) // TODO
+	}
+
+	return lister.WithGlob(parsed), nil
+}
+
+// regex - TODO
+func (l *List) regex(query string) (func(*lister.Options), error) {
+	parsed, err := regexp.Compile(query)
+	if err != nil {
+		return nil, fmt.Errorf("%w", err) // TODO
+	}
+
+	return lister.WithRegex(parsed), nil
 }

@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"regexp"
+	"strings"
 
 	"go.yaml.in/yaml/v4"
 )
@@ -18,12 +20,17 @@ type Note struct {
 }
 
 // NewNote - TODO
-func NewNote(path string) (Note, error) {
+func NewNote(path string) *Note {
 	note := Note{
 		Path: path,
 	}
 
-	return note, nil
+	return &note
+}
+
+// Name - TODO
+func (n *Note) Name() string {
+	return strings.TrimSuffix(filepath.Base(n.Path), ".md")
 }
 
 // Frontmatter - TODO

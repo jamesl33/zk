@@ -11,6 +11,9 @@ type SearchOptions struct {
 	// Fixed - TODO
 	Fixed bool
 
+	// Glob - TODO
+	Glob bool
+
 	// Regex - TODO
 	Regex bool
 }
@@ -38,6 +41,14 @@ func NewSearch() *cobra.Command {
 	cmd.Flags().BoolVar(
 		&search.Fixed,
 		"fixed",
+		false,
+		// TODO
+		"",
+	)
+
+	cmd.Flags().BoolVar(
+		&search.Glob,
+		"glob",
 		false,
 		// TODO
 		"",

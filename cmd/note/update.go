@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/jamesl33/zk/internal/notes/lister"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +42,7 @@ func NewUpdate() *cobra.Command {
 //
 // TODO (jamesl33): We should update indexes post-update.
 func (u *Update) Run(ctx context.Context, args []string) error {
-	path, err := u.path(args)
+	path, err := u.path(ctx, args)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
@@ -77,7 +78,30 @@ func (u *Update) Run(ctx context.Context, args []string) error {
 }
 
 // path - TODO
-func (u *Update) path(args []string) (string, error) {
+func (u *Update) path(ctx context.Context, args []string) (string, error) {
+	name, err := u.name(args)
+	if err != nil {
+		return "", fmt.Errorf("%w", err) // TODO
+	}
+
+	lister, err := lister.NewLister(
+		lister.WithPath("."),
+		lister.WithName(name),
+	)
+	if err != nil {
+		return "", fmt.Errorf("%w", err) // TODO
+	}
+
+	n, err := lister.One(ctx)
+	if err != nil {
+		return "", fmt.Errorf("%w", err) // TODO
+	}
+
+	return n.Path, nil
+}
+
+// name - TODO
+func (u *Update) name(args []string) (string, error) {
 	// TODO
 	if args[0] != "-" {
 		return args[0], nil

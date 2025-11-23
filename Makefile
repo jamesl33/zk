@@ -18,6 +18,11 @@ build: generate
 	@go build -o build/zk
 
 # TODO
+.PHONY: install
+install:
+	@go install .
+
+# TODO
 .PHONY: test
 test:
 	@go test ./$(PACKAGE)/... -run=$(TESTS) -count=1 -covermode=atomic -coverprofile=coverage.out -failfast -shuffle=on 
