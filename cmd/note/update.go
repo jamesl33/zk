@@ -30,7 +30,7 @@ func NewUpdate() *cobra.Command {
 		// TODO
 		Use: "update",
 		// TODO
-		Args: cobra.ExactArgs(1),
+		Args: cobra.MaximumNArgs(1),
 		// TODO
 		RunE: func(cmd *cobra.Command, args []string) error { return update.Run(cmd.Context(), args) },
 	}
@@ -103,7 +103,7 @@ func (u *Update) path(ctx context.Context, args []string) (string, error) {
 // name - TODO
 func (u *Update) name(args []string) (string, error) {
 	// TODO
-	if args[0] != "-" {
+	if len(args) != 0 && args[0] != "-" {
 		return args[0], nil
 	}
 
