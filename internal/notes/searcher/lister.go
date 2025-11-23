@@ -1,4 +1,4 @@
-package lister
+package searcher
 
 import (
 	"context"
@@ -13,20 +13,20 @@ import (
 	"github.com/jamesl33/zk/internal/note"
 )
 
-// Lister - TODO
-type Lister struct {
+// Searcher - TODO
+type Searcher struct {
 	options Options
 }
 
-// NewLister - TODO
-func NewLister(opts ...func(o *Options)) (*Lister, error) {
+// NewSearcher - TODO
+func NewSearcher(opts ...func(o *Options)) (*Searcher, error) {
 	var o Options
 
 	for _, opt := range opts {
 		opt(&o)
 	}
 
-	lister := Lister{
+	lister := Searcher{
 		options: o,
 	}
 
@@ -34,8 +34,8 @@ func NewLister(opts ...func(o *Options)) (*Lister, error) {
 }
 
 // One - TODO
-func (l *Lister) One(ctx context.Context) (*note.Note, error) {
-	next, stop := iter.Pull2(l.Many(ctx))
+func (s *Searcher) One(ctx context.Context) (*note.Note, error) {
+	next, stop := iter.Pull2(s.Many(ctx))
 	defer stop()
 
 	n, err, ok := next()
@@ -51,10 +51,10 @@ func (l *Lister) One(ctx context.Context) (*note.Note, error) {
 }
 
 // Many - TODO
-func (l *Lister) Many(ctx context.Context) iter.Seq2[*note.Note, error] {
+func (s *Searcher) Many(ctx context.Context) iter.Seq2[*note.Note, error] {
 	return func(yield func(*note.Note, error) bool) {
-		err := filepath.WalkDir(l.options.path, func(path string, _ os.DirEntry, err error) error {
-			return l.walk(ctx, path, err, yield)
+		err := filepath.WalkDir(s.options.path, func(path string, _ os.DirEntry, err error) error {
+			return s.walk(ctx, path, err, yield)
 		})
 		if err == nil {
 			return
@@ -65,7 +65,7 @@ func (l *Lister) Many(ctx context.Context) iter.Seq2[*note.Note, error] {
 }
 
 // walk - TODO
-func (l *Lister) walk(
+func (s *Searcher) walk(
 	ctx context.Context,
 	path string,
 	err error,
@@ -89,7 +89,7 @@ func (l *Lister) walk(
 	// TODO
 	n := note.NewNote(path)
 
-	match, err := l.matches(n)
+	match, err := s.matches(n)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
@@ -106,30 +106,25 @@ func (l *Lister) walk(
 }
 
 // matches - TODO
-func (l *Lister) matches(n *note.Note) (bool, error) {
-	// TODO
-	if l.options.name != "" {
-		return l.options.name == n.Name(), nil
-	}
-
-	fm, err := n.Frontmatter()
+func (s *Searcher) matches(n *note.Note) (bool, error) {
+	body, err := n.Body()
 	if err != nil {
 		return false, fmt.Errorf("%w", err) // TODO
 	}
 
 	// TODO
-	if l.options.fixed != "" {
-		return strings.Contains(fm.Title, l.options.fixed), nil
+	if s.options.fixed != "" {
+		return strings.Contains(body, s.options.fixed), nil
 	}
 
 	// TODO
-	if l.options.glob != nil {
-		return l.options.glob.Match(fm.Title), nil
+	if s.options.glob != nil {
+		return s.options.glob.Match(body), nil
 	}
 
 	// TODO
-	if l.options.regex != nil {
-		return l.options.regex.MatchString(fm.Title), nil
+	if s.options.regex != nil {
+		return s.options.regex.MatchString(body), nil
 	}
 
 	return true, nil
