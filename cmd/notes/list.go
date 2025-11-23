@@ -21,6 +21,7 @@ import (
 // ListOptions - TODO
 //
 // TODO (jamesl33): Add support for case-insensitive listing.
+// TODO (jamesl33): Don't use boolean flags, use string flags then argument can be for the sub-directory.
 type ListOptions struct {
 	// Fixed - TODO
 	Fixed bool
