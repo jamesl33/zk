@@ -35,6 +35,8 @@ func NewPick() *cobra.Command {
 }
 
 // Run - TODO
+//
+// TODO (jamesl33): Better handle the case where no elements are piped into 'fzf'.
 func (p *Pick) Run(ctx context.Context, args []string) error {
 	var buffer bytes.Buffer
 
