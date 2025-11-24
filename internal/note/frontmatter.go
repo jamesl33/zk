@@ -1,7 +1,5 @@
 package note
 
-import "time"
-
 // Frontmatter - TODO
 type Frontmatter struct {
 	// Type - TODO
@@ -11,7 +9,7 @@ type Frontmatter struct {
 	Title string `yaml:"title,omitempty"`
 
 	// Date - TODO
-	Date time.Time `yaml:"date,omitempty"`
+	Date string `yaml:"date,omitempty"`
 
 	// Title - TODO
 	Tags []string `yaml:"tags,omitempty"`

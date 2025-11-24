@@ -28,6 +28,8 @@ func NewList() *cobra.Command {
 		// TODO
 		Use: "list",
 		// TODO
+		Args: cobra.MaximumNArgs(1),
+		// TODO
 		RunE: func(cmd *cobra.Command, args []string) error { return list.Run(cmd.Context(), args) },
 	}
 
