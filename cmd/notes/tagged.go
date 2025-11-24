@@ -93,14 +93,14 @@ func (t *Tagged) Run(ctx context.Context, args []string) error {
 
 // list - TODO
 func (t *Tagged) list(ctx context.Context, path string, w io.Writer) error {
-	matcher, err := matcher.NewTags(t.With, t.Without)
+	tags, err := matcher.Tags(t.With, t.Without)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
 	lister, err := lister.NewLister(
 		lister.WithPath(path),
-		lister.WithMatcher(matcher),
+		lister.WithMatcher(tags),
 	)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO

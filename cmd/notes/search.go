@@ -106,15 +106,22 @@ func (s *Search) Run(ctx context.Context, args []string) error {
 }
 
 // search -  TODO
+//
+// TODO (jamesl33): Include the tags in this search?
 func (s *Search) search(ctx context.Context, path string, w io.Writer) error {
-	matcher, err := matcher.NewBody(s.Fixed, s.Glob, s.Regex)
+	title, err := matcher.Title(s.Fixed, s.Glob, s.Regex)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	body, err := matcher.Body(s.Fixed, s.Glob, s.Regex)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
 	lister, err := lister.NewLister(
 		lister.WithPath(path),
-		lister.WithMatcher(matcher),
+		lister.WithMatcher(matcher.Or(title, body)),
 	)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO

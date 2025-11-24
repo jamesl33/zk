@@ -107,15 +107,17 @@ func (l *List) Run(ctx context.Context, args []string) error {
 }
 
 // list - TODO
+//
+// TODO (jamesl33): Include the name in this search?
 func (l *List) list(ctx context.Context, path string, w io.Writer) error {
-	matcher, err := matcher.NewTitle(l.Fixed, l.Glob, l.Regex)
+	title, err := matcher.Title(l.Fixed, l.Glob, l.Regex)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
 	lister, err := lister.NewLister(
 		lister.WithPath(path),
-		lister.WithMatcher(matcher),
+		lister.WithMatcher(title),
 	)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
