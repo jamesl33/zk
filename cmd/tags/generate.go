@@ -130,6 +130,10 @@ Don't use tags unless there's enough information to catagorize.`
 
 	// TODO
 	for i := range overlay.Tags {
+		// TODO
+		overlay.Tags[i] = strings.ReplaceAll(overlay.Tags[i], " ", "_")
+
+		// TODO
 		overlay.Tags[i] = strings.ReplaceAll(overlay.Tags[i], "-", "_")
 	}
 
