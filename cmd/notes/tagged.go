@@ -3,15 +3,11 @@ package notes
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 
-	icolor "github.com/jamesl33/zk/internal/color"
-	"github.com/jamesl33/zk/internal/notes/lister"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -68,10 +64,10 @@ func (t *Tagged) Run(ctx context.Context, args []string) error {
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGPIPE)
 	defer cancel()
 
-	query := "."
+	path := "."
 
 	if len(args) >= 1 {
-		query = args[0]
+		path = args[0]
 	}
 
 	// TODO
@@ -80,7 +76,7 @@ func (t *Tagged) Run(ctx context.Context, args []string) error {
 		g, gctx = errgroup.WithContext(ctx)
 	)
 
-	g.Go(func() error { defer w.Close(); return t.list(gctx, query, w) })
+	g.Go(func() error { defer w.Close(); return t.list(gctx, path, w) })
 
 	_, err := io.Copy(os.Stdout, r)
 
@@ -95,41 +91,6 @@ func (t *Tagged) Run(ctx context.Context, args []string) error {
 // list - TODO
 //
 // TODO (jamesl33): Add human readable output.
-func (t *Tagged) list(ctx context.Context, query string, w io.Writer) error {
-	lister, err := lister.NewLister(
-		lister.WithPath("."),
-		t.filter(query),
-	)
-	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
-	}
-
-	for n, err := range lister.Many(ctx) {
-		if err != nil {
-			return fmt.Errorf("%w", err) // TODO
-		}
-
-		fm, err := n.Frontmatter()
-		if err != nil {
-			return fmt.Errorf("%w", err) // TODO
-		}
-
-		rel, err := filepath.Rel(".", n.Path)
-		if err != nil {
-			return fmt.Errorf("%w", err) // TODO
-		}
-
-		fmt.Fprintf(w, "%s\x00%s\n", icolor.Yellow(fm.Title), icolor.Blue(rel))
-	}
-
+func (t *Tagged) list(ctx context.Context, path string, w io.Writer) error {
 	return nil
-}
-
-// filter - TODO
-func (t *Tagged) filter(query string) func(*lister.Options) {
-	if len(t.With) != 0 {
-		return lister.WithTagged(t.With)
-	}
-
-	return lister.WithNotTagged(t.Without)
 }

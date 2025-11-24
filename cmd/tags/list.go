@@ -36,8 +36,14 @@ func NewList() *cobra.Command {
 
 // Run - TODO
 func (l *List) Run(ctx context.Context, args []string) error {
+	path := "."
+
+	if len(args) >= 1 {
+		path = args[0]
+	}
+
 	lister, err := lister.NewLister(
-		lister.WithPath("."),
+		lister.WithPath(path),
 	)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
@@ -50,15 +56,10 @@ func (l *List) Run(ctx context.Context, args []string) error {
 			return fmt.Errorf("%w", err) // TODO
 		}
 
-		fm, err := n.Frontmatter()
-		if err != nil {
-			return fmt.Errorf("%w", err) // TODO
-		}
-
 		// TODO
 		//
 		// TODO (jamesl33): Tidy this up.
-		for _, tag := range fm.Tags {
+		for _, tag := range n.Frontmatter.Tags {
 			tags[tag] = struct{}{}
 		}
 	}

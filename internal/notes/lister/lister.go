@@ -8,7 +8,6 @@ import (
 	"iter"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 
 	"github.com/jamesl33/zk/internal/note"
@@ -88,14 +87,12 @@ func (l *Lister) walk(
 	}
 
 	// TODO
-	n := note.NewNote(path)
-
-	match, err := l.matches(n)
+	n, err := note.NewNote(path)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	if !match {
+	if l.options.matcher != nil && !l.options.matcher(n) {
 		return nil
 	}
 
@@ -104,56 +101,4 @@ func (l *Lister) walk(
 	}
 
 	return nil
-}
-
-// matches - TODO
-//
-// TODO (jamesl33): Extract out a 'Matcher' interface, to avoid duplication with searching.
-// TODO (jamesl33): Create a 'Printer' type, to avoid duplication in printing (also could support different types).
-func (l *Lister) matches(n *note.Note) (bool, error) {
-	// TODO
-	if l.options.name != "" {
-		return l.options.name == n.Name(), nil
-	}
-
-	fm, err := n.Frontmatter()
-	if err != nil {
-		return false, fmt.Errorf("%w", err) // TODO
-	}
-
-	// TODO
-	if l.options.fixed != "" {
-		return strings.Contains(fm.Title, l.options.fixed), nil
-	}
-
-	// TODO
-	if l.options.glob != nil {
-		return l.options.glob.Match(fm.Title), nil
-	}
-
-	// TODO
-	if l.options.regex != nil {
-		return l.options.regex.MatchString(fm.Title), nil
-	}
-
-	if len(l.options.tagged) != 0 {
-		return l.tagged(fm.Tags, l.options.tagged), nil
-	}
-
-	if len(l.options.ntagged) != 0 {
-		return !l.tagged(fm.Tags, l.options.ntagged), nil
-	}
-
-	return true, nil
-}
-
-// tagged - TODO
-func (l *Lister) tagged(have, want []string) bool {
-	for _, tag := range want {
-		if !slices.Contains(have, tag) {
-			return false
-		}
-	}
-
-	return true
 }

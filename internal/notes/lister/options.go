@@ -1,9 +1,7 @@
 package lister
 
 import (
-	"regexp"
-
-	"github.com/gobwas/glob"
+	"github.com/jamesl33/zk/internal/notes/matcher"
 )
 
 // Options - TODO
@@ -11,23 +9,8 @@ type Options struct {
 	// path - TODO
 	path string
 
-	// name - TODO
-	name string
-
-	// fixed - TODO
-	fixed string
-
-	// glob - TODO
-	glob glob.Glob
-
-	// regex - TODO
-	regex *regexp.Regexp
-
-	// tagged - TODO
-	tagged []string
-
-	// ntagged - TODO
-	ntagged []string
+	// matcher - TODO
+	matcher matcher.Matcher
 }
 
 // WithPath - TODO
@@ -37,44 +20,9 @@ func WithPath(path string) func(*Options) {
 	}
 }
 
-// WithName - TODO
-func WithName(name string) func(*Options) {
+// WithMatcher - TODO
+func WithMatcher(matcher matcher.Matcher) func(*Options) {
 	return func(o *Options) {
-		o.name = name
-	}
-}
-
-// WithFixed - TODO
-func WithFixed(fixed string) func(*Options) {
-	return func(o *Options) {
-		o.fixed = fixed
-	}
-}
-
-// WithGlob - TODO
-func WithGlob(glob glob.Glob) func(*Options) {
-	return func(o *Options) {
-		o.glob = glob
-	}
-}
-
-// WithRegex - TODO
-func WithRegex(regex *regexp.Regexp) func(*Options) {
-	return func(o *Options) {
-		o.regex = regex
-	}
-}
-
-// WithTagged - TODO
-func WithTagged(tags []string) func(*Options) {
-	return func(o *Options) {
-		o.tagged = tags
-	}
-}
-
-// WithNotTagged - TODO
-func WithNotTagged(tags []string) func(*Options) {
-	return func(o *Options) {
-		o.ntagged = tags
+		o.matcher = matcher
 	}
 }
