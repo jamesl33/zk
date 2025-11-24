@@ -29,8 +29,6 @@ func NewUpdate() *cobra.Command {
 		// TODO
 		Use: "update",
 		// TODO
-		Args: cobra.MaximumNArgs(1),
-		// TODO
 		RunE: func(cmd *cobra.Command, args []string) error { return update.Run(cmd.Context(), args) },
 	}
 

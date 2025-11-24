@@ -3,6 +3,7 @@ package matcher
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/gobwas/glob"
@@ -15,6 +16,24 @@ type Matcher func(n *note.Note) bool
 // NewTitle - TODO
 func NewTitle(f, g, r string) (Matcher, error) {
 	return matcher(f, g, r, func(n *note.Note) string { return n.Frontmatter.Title })
+}
+
+// NewTags - TODO
+func NewTags(i, e []string) (Matcher, error) {
+	matchers := make([]Matcher, 0)
+
+	for _, tag := range i {
+		matchers = append(matchers, tagged(tag))
+	}
+
+	for _, tag := range e {
+		matchers = append(matchers, ntagged(tag))
+	}
+
+	// TODO
+	all := and(matchers...)
+
+	return all, nil
 }
 
 // NewBody - TODO
@@ -102,4 +121,14 @@ func regex(pattern string, extract func(n *note.Note) string) (Matcher, error) {
 	}
 
 	return func(n *note.Note) bool { return parsed.MatchString(extract(n)) }, nil
+}
+
+// tagged - TODO
+func tagged(tag string) Matcher {
+	return func(n *note.Note) bool { return slices.Contains(n.Frontmatter.Tags, tag) }
+}
+
+// ntagged - TODO
+func ntagged(tag string) Matcher {
+	return func(n *note.Note) bool { return !slices.Contains(n.Frontmatter.Tags, tag) }
 }

@@ -3,11 +3,14 @@ package notes
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/jamesl33/zk/internal/notes/lister"
+	"github.com/jamesl33/zk/internal/notes/matcher"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -89,8 +92,27 @@ func (t *Tagged) Run(ctx context.Context, args []string) error {
 }
 
 // list - TODO
-//
-// TODO (jamesl33): Add human readable output.
 func (t *Tagged) list(ctx context.Context, path string, w io.Writer) error {
+	matcher, err := matcher.NewTags(t.With, t.Without)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	lister, err := lister.NewLister(
+		lister.WithPath(path),
+		lister.WithMatcher(matcher),
+	)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	for n, err := range lister.Many(ctx) {
+		if err != nil {
+			return fmt.Errorf("%w", err) // TODO
+		}
+
+		fmt.Fprintln(w, n.String0())
+	}
+
 	return nil
 }
