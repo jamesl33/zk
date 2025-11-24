@@ -35,7 +35,7 @@ func NewPick() *cobra.Command {
 }
 
 // Run - TODO
-func (l *Pick) Run(ctx context.Context, args []string) error {
+func (p *Pick) Run(ctx context.Context, args []string) error {
 	var buffer bytes.Buffer
 
 	// TODO
@@ -59,10 +59,20 @@ func (l *Pick) Run(ctx context.Context, args []string) error {
 
 	// TODO
 	err := cmd.Run()
-	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+	if err == nil {
+		return p.item(buffer)
 	}
 
+	// TODO (jamesl33): User has exited.
+	if cmd.ProcessState != nil && cmd.ProcessState.ExitCode() == 130 {
+		return nil
+	}
+
+	return fmt.Errorf("%w", err) // TODO
+}
+
+// item - TODO
+func (p *Pick) item(buffer bytes.Buffer) error {
 	// TODO
 	split := bytes.Split(buffer.Bytes(), []byte{0})
 

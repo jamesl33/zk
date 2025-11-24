@@ -3,7 +3,9 @@ package note
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -40,6 +42,12 @@ func NewUpdate() *cobra.Command {
 // TODO (jamesl33): We should update indexes post-update.
 func (u *Update) Run(ctx context.Context, args []string) error {
 	path, err := u.path(args)
+
+	// TODO (jamesl33): User has exited.
+	if errors.Is(err, io.EOF) {
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
