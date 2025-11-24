@@ -55,6 +55,8 @@ func NewLinks() *cobra.Command {
 }
 
 // Run - TODO
+//
+// `\[\[(?P<link>.*)\|(?P<text>.*)\]\]`
 func (l *Links) Run(ctx context.Context, args []string) error {
 	return nil
 }
