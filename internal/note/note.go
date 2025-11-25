@@ -63,13 +63,14 @@ func New(path string) (*Note, error) {
 }
 
 // Edit - TODO
-//
-// TODO (jamesl33): This should re-read the new after exit.
-func (n Note) Edit(ctx context.Context) error {
+func (n *Note) Edit(ctx context.Context) error {
 	// TODO
-	//
-	// TODO (jamesl33): Return an error if no editor is setup?
 	ed := os.Getenv("EDITOR")
+
+	// TODO
+	if ed == "" {
+		return errors.New("no editor set") // TODO
+	}
 
 	// TODO
 	cmd := exec.CommandContext(
@@ -93,11 +94,20 @@ func (n Note) Edit(ctx context.Context) error {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
+	// Re-read the note
+	r, err := New(n.Path)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	// Shallow copy
+	*n = *r
+
 	return nil
 }
 
 // Write - TODO
-func (n Note) Write() error {
+func (n *Note) Write() error {
 	file, err := os.OpenFile(n.Path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
@@ -128,6 +138,6 @@ func (n Note) Write() error {
 }
 
 // String0 - TODO
-func (n Note) String0() string {
+func (n *Note) String0() string {
 	return fmt.Sprintf("%s\x00%s", icolor.Yellow(n.Frontmatter.Title), icolor.Blue(n.Path))
 }
