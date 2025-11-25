@@ -164,5 +164,13 @@ func (n *Note) Links() []string {
 
 // String0 - TODO
 func (n *Note) String0() string {
-	return fmt.Sprintf("%s\x00%s", icolor.Yellow(n.Frontmatter.Title), icolor.Blue(n.Path))
+	str := fmt.Sprintf(
+		"%s\x00%s\x00%s\x00%s",
+		icolor.Blue(filepath.Dir(n.Path)),
+		icolor.Yellow(n.Frontmatter.Title),
+		icolor.Cyan(strings.Join(n.Frontmatter.Tags, ",")),
+		n.Path,
+	)
+
+	return str
 }

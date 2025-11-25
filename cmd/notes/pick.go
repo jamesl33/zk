@@ -47,7 +47,7 @@ func (p *Pick) Run(ctx context.Context, args []string) error {
 		"--ansi",
 		"--exit-0",
 		"--select-1",
-		"--with-nth={1} ({2})",
+		"--with-nth={1} {2} [{3}]",
 		`--delimiter=\x00`,
 	)
 

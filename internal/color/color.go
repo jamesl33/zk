@@ -6,8 +6,11 @@ func init() {
 	color.NoColor = false
 }
 
+// Yellow - TODO
+var Yellow = color.New(color.FgYellow).SprintFunc()
+
 // Blue - TODO
 var Blue = color.New(color.FgBlue).SprintFunc()
 
-// Yellow - TODO
-var Yellow = color.New(color.FgYellow).SprintFunc()
+// Cyan - TODO
+var Cyan = color.New(color.FgCyan).SprintFunc()
