@@ -2,17 +2,11 @@ package notes
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/jamesl33/zk/internal/notes/lister"
 	"github.com/jamesl33/zk/internal/notes/matcher"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 // TaggedOptions - TODO
@@ -64,35 +58,12 @@ func NewTagged() *cobra.Command {
 
 // Run - TODO
 func (t *Tagged) Run(ctx context.Context, args []string) error {
-	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGPIPE)
-	defer cancel()
-
 	path := "."
 
 	if len(args) >= 1 {
 		path = args[0]
 	}
 
-	// TODO
-	var (
-		r, w    = io.Pipe()
-		g, gctx = errgroup.WithContext(ctx)
-	)
-
-	g.Go(func() error { defer w.Close(); return t.list(gctx, path, w) })
-
-	_, err := io.Copy(os.Stdout, r)
-
-	// TODO
-	if errors.Is(err, syscall.EPIPE) {
-		return nil
-	}
-
-	return err
-}
-
-// list - TODO
-func (t *Tagged) list(ctx context.Context, path string, w io.Writer) error {
 	tags, err := matcher.Tags(t.With, t.Without)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
@@ -111,7 +82,7 @@ func (t *Tagged) list(ctx context.Context, path string, w io.Writer) error {
 			return fmt.Errorf("%w", err) // TODO
 		}
 
-		fmt.Fprintln(w, n.String0())
+		fmt.Println(n.String0())
 	}
 
 	return nil

@@ -2,17 +2,11 @@ package notes
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/jamesl33/zk/internal/notes/lister"
 	"github.com/jamesl33/zk/internal/notes/matcher"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 )
 
 // SearchOptions - TODO
@@ -77,38 +71,15 @@ func NewSearch() *cobra.Command {
 }
 
 // Run - TODO
+//
+// TODO (jamesl33): Include the tags in this search?
 func (s *Search) Run(ctx context.Context, args []string) error {
-	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGPIPE)
-	defer cancel()
-
 	path := "."
 
 	if len(args) >= 1 {
 		path = args[0]
 	}
 
-	// TODO
-	var (
-		r, w    = io.Pipe()
-		g, gctx = errgroup.WithContext(ctx)
-	)
-
-	g.Go(func() error { defer w.Close(); return s.search(gctx, path, w) })
-
-	_, err := io.Copy(os.Stdout, r)
-
-	// TODO
-	if errors.Is(err, syscall.EPIPE) {
-		return nil
-	}
-
-	return err
-}
-
-// search -  TODO
-//
-// TODO (jamesl33): Include the tags in this search?
-func (s *Search) search(ctx context.Context, path string, w io.Writer) error {
 	title, err := matcher.Title(s.Fixed, s.Glob, s.Regex)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
@@ -132,7 +103,7 @@ func (s *Search) search(ctx context.Context, path string, w io.Writer) error {
 			return fmt.Errorf("%w", err) // TODO
 		}
 
-		fmt.Fprintln(w, n.String0())
+		fmt.Println(n.String0())
 	}
 
 	return nil

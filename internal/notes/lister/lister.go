@@ -60,6 +60,7 @@ func (l *Lister) Many(ctx context.Context) iter.Seq2[*note.Note, error] {
 			return
 		}
 
+		fmt.Println("HERE", err)
 		yield(nil, err)
 	}
 }

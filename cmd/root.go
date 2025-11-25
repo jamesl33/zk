@@ -1,6 +1,12 @@
 package cmd
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"os/signal"
+	"syscall"
+
 	"github.com/jamesl33/zk/cmd/index"
 	"github.com/jamesl33/zk/cmd/note"
 	"github.com/jamesl33/zk/cmd/notes"
@@ -38,5 +44,18 @@ func init() {
 
 // Execute - TODO
 func Execute() error {
-	return rootCommand.Execute()
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	err := rootCommand.ExecuteContext(ctx)
+	if err == nil {
+		return nil
+	}
+
+	// TODO
+	if errors.Is(err, context.Canceled) {
+		return nil
+	}
+
+	return fmt.Errorf("%w", err) // TODO
 }
