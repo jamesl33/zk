@@ -1,10 +1,13 @@
 package note
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"regexp"
+	"strings"
 
 	icolor "github.com/jamesl33/zk/internal/color"
 	"go.yaml.in/yaml/v4"
@@ -22,8 +25,8 @@ type Note struct {
 	Body string
 }
 
-// NewNote - TODO
-func NewNote(path string) (*Note, error) {
+// New - TODO
+func New(path string) (*Note, error) {
 	re := regexp.MustCompile(`^---[\S\s]*?---\n.*`)
 
 	data, err := os.ReadFile(path)
@@ -57,6 +60,40 @@ func NewNote(path string) (*Note, error) {
 	}
 
 	return &note, nil
+}
+
+// Edit - TODO
+//
+// TODO (jamesl33): This should re-read the new after exit.
+func (n Note) Edit(ctx context.Context) error {
+	// TODO
+	//
+	// TODO (jamesl33): Return an error if no editor is setup?
+	ed := os.Getenv("EDITOR")
+
+	// TODO
+	cmd := exec.CommandContext(
+		ctx,
+		ed,
+		strings.TrimSuffix(n.Path, "\n"),
+	)
+
+	// TODO
+	cmd.Stdin = os.Stdin
+
+	// TODO
+	cmd.Stdout = os.Stdout
+
+	// TODO
+	cmd.Stderr = os.Stderr
+
+	// TODO
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	return nil
 }
 
 // Write - TODO

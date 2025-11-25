@@ -87,7 +87,7 @@ func (l *Lister) walk(
 	}
 
 	// TODO
-	n, err := note.NewNote(path)
+	n, err := note.New(path)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}

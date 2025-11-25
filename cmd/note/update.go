@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"strings"
 
+	"github.com/jamesl33/zk/internal/note"
 	"github.com/spf13/cobra"
 )
 
@@ -52,29 +52,12 @@ func (u *Update) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	// TODO
-	//
-	// TODO (jamesl33): Return an error if no editor is setup?
-	ed := os.Getenv("EDITOR")
+	n, err := note.New(path)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
 
-	// TODO
-	cmd := exec.CommandContext(
-		ctx,
-		ed,
-		strings.TrimSuffix(path, "\n"),
-	)
-
-	// TODO
-	cmd.Stdin = os.Stdin
-
-	// TODO
-	cmd.Stdout = os.Stdout
-
-	// TODO
-	cmd.Stderr = os.Stderr
-
-	// TODO
-	err = cmd.Run()
+	err = n.Edit(ctx)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
