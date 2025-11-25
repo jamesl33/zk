@@ -54,7 +54,6 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	// TODO (jamesl33): This panics if you return early with an error (need to stop iterator).
 	for n, err := range lister.Many(ctx) {
 		if err != nil {
 			return fmt.Errorf("%w", err) // TODO

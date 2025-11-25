@@ -56,7 +56,7 @@ func (l *Lister) Many(ctx context.Context) iter.Seq2[*note.Note, error] {
 		err := filepath.WalkDir(l.options.path, func(path string, _ os.DirEntry, err error) error {
 			return l.walk(ctx, path, err, yield)
 		})
-		if err == nil {
+		if err == nil || errors.Is(err, io.EOF) {
 			return
 		}
 
