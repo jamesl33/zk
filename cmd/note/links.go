@@ -3,6 +3,7 @@ package note
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/note"
@@ -72,11 +73,88 @@ func (l *Links) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
+	var (
+		// TODO
+		to = l.To || !(l.To || l.From)
+
+		// TODO
+		from = l.From || !(l.To || l.From)
+	)
+
+	// TODO
+	l.To = to
+
+	// TODO
+	l.From = from
+
+	err = l.to(ctx, n)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	err = l.from(ctx, n)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	return nil
+}
+
+// to - TODO
+func (l *Links) to(ctx context.Context, n *note.Note) error {
+	// TODO
+	if !l.To {
+		return nil
+	}
+
+	var (
+		// TODO
+		name = regexp.QuoteMeta(n.Name())
+
+		// TODO
+		pattern = fmt.Sprintf(`\[\[%s(\|.*?)?\]\]`, name)
+	)
+
+	matcher, err := matcher.Body("", "", pattern)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	lister, err := lister.NewLister(
+		lister.WithPath("."),
+		lister.WithMatcher(matcher),
+	)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	for n, err := range lister.Many(ctx) {
+		if err != nil {
+			return fmt.Errorf("%w", err) // TODO
+		}
+
+		fmt.Println(n.String0())
+	}
+
+	return nil
+}
+
+// from - TODO
+func (l *Links) from(ctx context.Context, n *note.Note) error {
+	// TODO
+	if !l.From {
+		return nil
+	}
+
 	matchers := hs.Map(n.Links(), func(n string) matcher.Matcher { return matcher.Name(n) })
 
-	// TODO (jamesl33): This doesn't work; the path needs to be the root for the Zettelkasten. Viper?
+	// TODO
+	if len(matchers) == 0 {
+		return nil
+	}
+
 	lister, err := lister.NewLister(
-		lister.WithPath(path),
+		lister.WithPath("."),
 		lister.WithMatcher(matcher.Or(matchers...)),
 	)
 	if err != nil {
