@@ -47,6 +47,8 @@ func NewCreateIndex() *cobra.Command {
 }
 
 // Run - TODO
+//
+// TODO (jamesl33): Auto-open the created note.
 func (c *CreateIndex) Run(ctx context.Context, args []string) error {
 	fm := note.Frontmatter{
 		Type:  "index",

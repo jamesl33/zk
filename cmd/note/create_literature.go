@@ -47,6 +47,8 @@ func NewCreateLiterature() *cobra.Command {
 }
 
 // Run - TODO
+//
+// TODO (jamesl33): Auto-open the created note.
 func (c *CreateLiterature) Run(ctx context.Context, args []string) error {
 	fm := note.Frontmatter{
 		Type:  "literature",
