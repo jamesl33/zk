@@ -45,6 +45,7 @@ func (p *Pick) Run(ctx context.Context, args []string) error {
 		ctx,
 		"fzf",
 		"--ansi",
+		"--exit-0",
 		"--select-1",
 		"--with-nth={1} ({2})",
 		`--delimiter=\x00`,
@@ -65,8 +66,9 @@ func (p *Pick) Run(ctx context.Context, args []string) error {
 		return p.item(buffer)
 	}
 
+	// TODO (jamesl33): There's no entries; not a fan of the exit status though.
 	// TODO (jamesl33): User has exited.
-	if cmd.ProcessState != nil && cmd.ProcessState.ExitCode() == 130 {
+	if cmd.ProcessState != nil && (cmd.ProcessState.ExitCode() == 1 || cmd.ProcessState.ExitCode() == 130) {
 		return nil
 	}
 
