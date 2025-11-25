@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -60,6 +61,11 @@ func New(path string) (*Note, error) {
 	}
 
 	return &note, nil
+}
+
+// Name - TODO
+func (n *Note) Name() string {
+	return strings.TrimSuffix(filepath.Base(n.Path), ".md")
 }
 
 // Edit - TODO
@@ -135,6 +141,25 @@ func (n *Note) Write() error {
 	}
 
 	return nil
+}
+
+// Links - TODO
+func (n *Note) Links() []string {
+	var (
+		// TODO
+		re = regexp.MustCompile(`\[\[(?P<link>.*?)(\|(?P<text>.*?))?\]\]`)
+
+		// TODO
+		matches = re.FindAllStringSubmatch(n.Body, -1)
+	)
+
+	links := make([]string, 0)
+
+	for _, match := range matches {
+		links = append(links, match[re.SubexpIndex("link")])
+	}
+
+	return links
 }
 
 // String0 - TODO
