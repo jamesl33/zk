@@ -3,14 +3,14 @@ package note
 // Frontmatter - TODO
 type Frontmatter struct {
 	// Type - TODO
-	Type Type `yaml:"type,omitempty"`
+	Type Type `yaml:"type"`
 
 	// Title - TODO
-	Title string `yaml:"title,omitempty"`
+	Title string `yaml:"title"`
 
 	// Date - TODO
-	Date string `yaml:"date,omitempty"`
+	Date string `yaml:"date"`
 
 	// Title - TODO
-	Tags []string `yaml:"tags,omitempty"`
+	Tags []string `yaml:"tags"`
 }

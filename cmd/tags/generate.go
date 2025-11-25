@@ -3,7 +3,6 @@ package tags
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -139,28 +138,7 @@ Don't use tags unless there's enough information to catagorize.`
 
 	n.Frontmatter.Tags = overlay.Tags
 
-	file, err := os.OpenFile(n.Path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
-	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
-	}
-	defer file.Close()
-
-	_, err = file.WriteString("---\n")
-	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
-	}
-
-	err = yaml.NewEncoder(file).Encode(n.Frontmatter)
-	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
-	}
-
-	_, err = file.WriteString("---")
-	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
-	}
-
-	_, err = file.WriteString(n.Body)
+	err = n.Write()
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}

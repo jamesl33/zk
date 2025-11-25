@@ -24,7 +24,7 @@ type Note struct {
 
 // NewNote - TODO
 func NewNote(path string) (*Note, error) {
-	re := regexp.MustCompile(`^---[\S\s]*?---.*`)
+	re := regexp.MustCompile(`^---[\S\s]*?---\n.*`)
 
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -57,6 +57,37 @@ func NewNote(path string) (*Note, error) {
 	}
 
 	return &note, nil
+}
+
+// Write - TODO
+func (n Note) Write() error {
+	file, err := os.OpenFile(n.Path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+	defer file.Close()
+
+	_, err = file.WriteString("---\n")
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	err = yaml.NewEncoder(file).Encode(n.Frontmatter)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	_, err = file.WriteString("---\n")
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	_, err = file.WriteString(n.Body)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	return nil
 }
 
 // String0 - TODO
