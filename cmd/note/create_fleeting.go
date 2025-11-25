@@ -68,7 +68,5 @@ func (c *CreateFleeting) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	fmt.Println(n.Body)
-
 	return nil
 }
