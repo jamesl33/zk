@@ -63,10 +63,7 @@ func (c *CreateFleeting) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	err = n.Edit(ctx)
-	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
-	}
+	fmt.Printf("%s\n", n.Path)
 
 	return nil
 }
