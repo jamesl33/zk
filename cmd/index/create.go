@@ -152,6 +152,7 @@ func (c *Create) embed(ctx context.Context, n *note.Note) ([]float32, error) {
 		return nil, fmt.Errorf("%w", err) // TODO
 	}
 
+	// TODO (jamesl33): Handle the 2k context window.
 	req := api.EmbedRequest{
 		Model: "embeddinggemma:300m",
 		Input: n.Body,
