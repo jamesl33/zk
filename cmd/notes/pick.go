@@ -48,7 +48,7 @@ func (p *Pick) Run(ctx context.Context, args []string) error {
 		"--exit-0",
 		"--select-1",
 		"--with-nth={1} {2} [{3}]",
-		`--delimiter=\x00`,
+		`--delimiter=\x01`,
 	)
 
 	// TODO
@@ -78,7 +78,7 @@ func (p *Pick) Run(ctx context.Context, args []string) error {
 // item - TODO
 func (p *Pick) item(buffer bytes.Buffer) error {
 	// TODO
-	split := bytes.Split(buffer.Bytes(), []byte{0})
+	split := bytes.Split(buffer.Bytes(), []byte{0x01})
 
 	// TODO
 	if len(split) == 0 {
