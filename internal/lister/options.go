@@ -1,7 +1,7 @@
 package lister
 
 import (
-	"github.com/jamesl33/zk/internal/notes/matcher"
+	"github.com/jamesl33/zk/internal/matcher"
 )
 
 // Options - TODO

@@ -8,8 +8,8 @@ import (
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/notes/lister"
-	"github.com/jamesl33/zk/internal/notes/matcher"
+	"github.com/jamesl33/zk/internal/lister"
+	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/spf13/cobra"
 )
 

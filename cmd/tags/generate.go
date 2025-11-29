@@ -8,7 +8,7 @@ import (
 
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/notes/lister"
+	"github.com/jamesl33/zk/internal/lister"
 	"github.com/ollama/ollama/api"
 	"github.com/spf13/cobra"
 	"go.yaml.in/yaml/v4"
