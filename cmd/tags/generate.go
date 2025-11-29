@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes/lister"
 	"github.com/ollama/ollama/api"
@@ -54,15 +55,11 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	for n, err := range lister.Many(ctx) {
-		if err != nil {
-			return fmt.Errorf("%w", err) // TODO
-		}
-
-		err = g.generate(ctx, n)
-		if err != nil {
-			return fmt.Errorf("%w", err) // TODO
-		}
+	err = iterator.ForEach2(lister.Many(ctx), func(n *note.Note) error {
+		return g.generate(ctx, n)
+	})
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
 	}
 
 	return nil

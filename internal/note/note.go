@@ -1,9 +1,12 @@
 package note
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
+	"hash/crc32"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -68,6 +71,18 @@ func (n *Note) Name() string {
 	return strings.TrimSuffix(filepath.Base(n.Path), ".md")
 }
 
+// Checksum - TODO
+func (n *Note) Checksum() (uint32, error) {
+	hasher := crc32.NewIEEE()
+
+	err := n.WriteTo(hasher)
+	if err != nil {
+		return 0, fmt.Errorf("%w", err) // TODO
+	}
+
+	return hasher.Sum32(), nil
+}
+
 // Edit - TODO
 func (n *Note) Edit(ctx context.Context) error {
 	// TODO
@@ -120,22 +135,42 @@ func (n *Note) Write() error {
 	}
 	defer file.Close()
 
-	_, err = file.WriteString("---\n")
+	err = n.WriteTo(file)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	err = yaml.NewEncoder(file).Encode(n.Frontmatter)
+	return nil
+}
+
+// WriteTo - TODO
+func (n *Note) WriteTo(w io.Writer) error {
+	// marker - TODO
+	const marker = "---\n"
+
+	b := bufio.NewWriter(w)
+
+	_, err := b.WriteString(marker)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	_, err = file.WriteString("---\n")
+	err = yaml.NewEncoder(b).Encode(n.Frontmatter)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	_, err = file.WriteString(n.Body)
+	_, err = b.WriteString(marker)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	_, err = b.WriteString(n.Body)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	err = b.Flush()
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}

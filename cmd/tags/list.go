@@ -6,6 +6,9 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/jamesl33/zk/internal/hs"
+	"github.com/jamesl33/zk/internal/iterator"
+	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes/lister"
 	"github.com/spf13/cobra"
 )
@@ -51,23 +54,21 @@ func (l *List) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	tags := make(map[string]struct{})
+	all := make(map[string]struct{})
 
-	for n, err := range lister.Many(ctx) {
-		if err != nil {
-			return fmt.Errorf("%w", err) // TODO
-		}
+	cp := func(tags []string) {
+		iterator.ForEach(slices.Values(tags), func(tag string) { all[tag] = struct{}{} })
+	}
 
-		// TODO
-		//
-		// TODO (jamesl33): Tidy this up.
-		for _, tag := range n.Frontmatter.Tags {
-			tags[tag] = struct{}{}
-		}
+	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
+		cp(n.Frontmatter.Tags)
+	}))
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
 	}
 
 	// TODO
-	keys := maps.Keys(tags)
+	keys := maps.Keys(all)
 
 	// TODO
 	sorted := slices.Sorted(keys)

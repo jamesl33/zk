@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jamesl33/zk/internal/hs"
+	"github.com/jamesl33/zk/internal/iterator"
+	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes/lister"
 	"github.com/jamesl33/zk/internal/notes/matcher"
 	"github.com/spf13/cobra"
@@ -77,12 +80,11 @@ func (t *Tagged) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	for n, err := range lister.Many(ctx) {
-		if err != nil {
-			return fmt.Errorf("%w", err) // TODO
-		}
-
+	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
 		fmt.Println(n.String0())
+	}))
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
 	}
 
 	return nil
