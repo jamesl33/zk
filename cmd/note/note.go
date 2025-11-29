@@ -19,8 +19,6 @@ func NewNote() *cobra.Command {
 		// TODO
 		NewDelete(),
 		// TODO
-		NewTags(),
-		// TODO
 		NewLinks(),
 	)
 
