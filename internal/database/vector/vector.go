@@ -20,6 +20,11 @@ import (
 	"github.com/ollama/ollama/api"
 )
 
+// TODO
+func init() {
+	sqlite_vec.Auto()
+}
+
 // DB - TODO
 type DB struct {
 	client *api.Client
