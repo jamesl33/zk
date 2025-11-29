@@ -28,7 +28,7 @@ func NewPick() *cobra.Command {
 		// TODO
 		Use: "pick",
 		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return pick.Run(cmd.Context(), args) },
+		RunE: func(cmd *cobra.Command, _ []string) error { return pick.Run(cmd.Context()) },
 	}
 
 	return &cmd
@@ -37,7 +37,7 @@ func NewPick() *cobra.Command {
 // Run - TODO
 //
 // TODO (jamesl33): Better handle the case where no elements are piped into 'fzf'.
-func (p *Pick) Run(ctx context.Context, args []string) error {
+func (p *Pick) Run(ctx context.Context) error {
 	var buffer bytes.Buffer
 
 	// TODO

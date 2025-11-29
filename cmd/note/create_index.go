@@ -32,7 +32,7 @@ func NewCreateIndex() *cobra.Command {
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return index.Run(cmd.Context(), args) },
+		RunE: func(cmd *cobra.Command, args []string) error { return index.Run(cmd.Context(), args[0]) },
 	}
 
 	cmd.Flags().StringVar(
@@ -47,7 +47,7 @@ func NewCreateIndex() *cobra.Command {
 }
 
 // Run - TODO
-func (c *CreateIndex) Run(ctx context.Context, args []string) error {
+func (c *CreateIndex) Run(ctx context.Context, path string) error {
 	fm := note.Frontmatter{
 		Type:  "index",
 		Title: c.Title,
@@ -56,7 +56,7 @@ func (c *CreateIndex) Run(ctx context.Context, args []string) error {
 	}
 
 	n := note.Note{
-		Path:        note.Path(args[0]),
+		Path:        note.Path(path),
 		Frontmatter: fm,
 	}
 

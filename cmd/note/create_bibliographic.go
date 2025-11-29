@@ -30,7 +30,7 @@ func NewCreateBibliographic() *cobra.Command {
 		// TODO
 		Use: "bibliographic",
 		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return bibliographic.Run(cmd.Context(), args) },
+		RunE: func(cmd *cobra.Command, _ []string) error { return bibliographic.Run(cmd.Context()) },
 	}
 
 	cmd.Flags().StringVar(
@@ -45,7 +45,7 @@ func NewCreateBibliographic() *cobra.Command {
 }
 
 // Run - TODO
-func (c *CreateBibliographic) Run(ctx context.Context, args []string) error {
+func (c *CreateBibliographic) Run(ctx context.Context) error {
 	fm := note.Frontmatter{
 		Type:  "bibliographic",
 		Title: c.Title,

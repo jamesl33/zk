@@ -30,7 +30,7 @@ func NewIndex() *cobra.Command {
 		// TODO
 		Use: "index",
 		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return index.Run(cmd.Context()) },
+		RunE: func(cmd *cobra.Command, _ []string) error { return index.Run(cmd.Context()) },
 	}
 
 	return &cmd

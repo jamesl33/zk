@@ -39,7 +39,7 @@ func NewLinks() *cobra.Command {
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return links.Run(cmd.Context(), args) },
+		RunE: func(cmd *cobra.Command, args []string) error { return links.Run(cmd.Context(), args[0]) },
 	}
 
 	cmd.Flags().BoolVar(
@@ -62,13 +62,7 @@ func NewLinks() *cobra.Command {
 }
 
 // Run - TODO
-func (l *Links) Run(ctx context.Context, args []string) error {
-	path := "."
-
-	if len(args) >= 1 {
-		path = args[0]
-	}
-
+func (l *Links) Run(ctx context.Context, path string) error {
 	n, err := note.New(path)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO

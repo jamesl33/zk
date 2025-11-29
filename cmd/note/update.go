@@ -38,8 +38,6 @@ func NewUpdate() *cobra.Command {
 }
 
 // Run - TODO
-//
-// TODO (jamesl33): We should update indexes post-update.
 func (u *Update) Run(ctx context.Context, args []string) error {
 	path, err := u.path(args)
 

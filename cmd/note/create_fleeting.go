@@ -30,7 +30,7 @@ func NewCreateFleeting() *cobra.Command {
 		// TODO
 		Use: "fleeting",
 		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return fleeting.Run(cmd.Context(), args) },
+		RunE: func(cmd *cobra.Command, _ []string) error { return fleeting.Run(cmd.Context()) },
 	}
 
 	cmd.Flags().StringVar(
@@ -45,7 +45,7 @@ func NewCreateFleeting() *cobra.Command {
 }
 
 // Run - TODO
-func (c *CreateFleeting) Run(ctx context.Context, args []string) error {
+func (c *CreateFleeting) Run(ctx context.Context) error {
 	fm := note.Frontmatter{
 		Type:  "fleeting",
 		Title: c.Title,
