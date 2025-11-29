@@ -41,7 +41,7 @@ func New(ctx context.Context, path string) (*DB, error) {
 	// create - TODO
 	const create = `
 	CREATE table IF NOT EXISTS notes (
-	  name text,
+	  name text unique,
 	  checksum integer,
 	  embedding blob NOT NULL
 	);
