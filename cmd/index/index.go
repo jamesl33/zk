@@ -3,7 +3,6 @@ package index
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/jamesl33/zk/internal/database/vector"
@@ -39,7 +38,7 @@ func NewIndex() *cobra.Command {
 
 // Run - TODO
 func (i *Index) Run(ctx context.Context) error {
-	db, err := vector.New(ctx, filepath.Join(os.TempDir(), "zk.sqlite3"))
+	db, err := vector.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}

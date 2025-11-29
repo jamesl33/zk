@@ -3,7 +3,6 @@ package notes
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/jamesl33/zk/internal/database/vector"
@@ -68,7 +67,7 @@ func (f *Find) Run(ctx context.Context, path string) error {
 		return fmt.Errorf("%w", err) // TODO
 	}
 
-	db, err := vector.New(ctx, filepath.Join(os.TempDir(), "zk.sqlite3"))
+	db, err := vector.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
