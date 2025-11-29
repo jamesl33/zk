@@ -9,6 +9,7 @@ import (
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/notes/lister"
 	"github.com/spf13/cobra"
 )
 
@@ -51,6 +52,12 @@ func (f *Find) Run(ctx context.Context, path string) error {
 	}
 	defer db.Close()
 
+	// TODO (jamesl33): De-duplicate the code shared with `zk index`.
+	err = f.populate(ctx, db)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
 	notes, err := db.Find(ctx, n)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
@@ -59,6 +66,25 @@ func (f *Find) Run(ctx context.Context, path string) error {
 	err = iterator.ForEach2(notes, hs.Infallible(func(n *note.Note) {
 		fmt.Println(n.String0())
 	}))
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	return nil
+}
+
+// populate - TODO
+func (f *Find) populate(ctx context.Context, db *vector.DB) error {
+	lister, err := lister.NewLister(
+		lister.WithPath("."),
+	)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	err = iterator.ForEach2(lister.Many(ctx), func(n *note.Note) error {
+		return db.Upsert(ctx, n)
+	})
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}
