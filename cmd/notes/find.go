@@ -13,13 +13,7 @@ import (
 )
 
 // FindOptions - TODO
-type FindOptions struct {
-	// Similar - TODO
-	Similar bool
-
-	// Dissimilar - TODO
-	Dissimilar bool
-}
+type FindOptions struct{}
 
 // Find - TODO
 type Find struct {
@@ -40,22 +34,6 @@ func NewFind() *cobra.Command {
 		// TODO
 		RunE: func(cmd *cobra.Command, args []string) error { return find.Run(cmd.Context(), args[0]) },
 	}
-
-	cmd.Flags().BoolVar(
-		&find.Similar,
-		"similar",
-		false,
-		// TODO
-		"",
-	)
-
-	cmd.Flags().BoolVar(
-		&find.Dissimilar,
-		"dissimilar",
-		false,
-		// TODO
-		"",
-	)
 
 	return &cmd
 }
