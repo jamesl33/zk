@@ -14,9 +14,9 @@ import (
 
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
-	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
+	"github.com/jamesl33/zk/internal/note"
 	"github.com/ollama/ollama/api"
 )
 
@@ -94,7 +94,7 @@ func (d *DB) Upsert(ctx context.Context, n *note.Note) error {
 
 	// insert - TODO
 	const insert = `
-	INSERT INTO
+	INSERT OR REPLACE INTO
 	  notes
 	VALUES
 	  (?, ?, ?);
