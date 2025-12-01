@@ -78,7 +78,7 @@ end
 ```fish
 # List all the tags, select one, find notes tagged with it, then edit it
 function zkt
-    zk tags list $argv | fzf | xargs -r zk notes tagged --with | zk notes pick | zk note update
+    zk tags list $argv | fzf | xargs -r zk notes tagged --with | zk notes pick | zk note update -
 end
 ```
 
@@ -87,6 +87,11 @@ end
 In a similar way that functions/aliases can be used to improve `zk`, the same can be done in NeoVim.
 
 ```lua
+-- Edit the given file
+local zk_file_edit = function(output)
+	vim.cmd.edit { output:match("^%s*(.-)%s*$") }
+end
+
 -- Extracts the path from the selected line, then opens the file.
 local zk_fzf_file_edit = function(selected, opts)
 	require "fzf-lua.actions".file_edit({ string.match(selected[1], "[^\x01]+$") }, opts)
@@ -99,31 +104,59 @@ local zk_fzf_opts = { ["--ansi"] = true, ["--with-nth"] = "{1} {2} [{3}]", ["--d
 local zk_fzf_actions = { ["enter"] = zk_fzf_file_edit }
 
 -- Create a new permanent note.
-vim.keymap.set('n', '<leader>zknp',
+vim.keymap.set(
+	'n',
+	'<leader>zknp',
 	function()
 		zk_file_edit(vim.fn.system { 'zk', 'note', 'create', 'permanent', vim.fn.input('Path: ', '', 'dir') })
-	end)
+	end
+)
 
 -- List notes.
-vim.keymap.set('n', '<leader>zklo',
+vim.keymap.set(
+	'n',
+	'<leader>zklo',
 	function()
 		require 'fzf-lua'.fzf_exec("zk notes list",
 			{ fzf_opts = zk_fzf_opts, actions = zk_fzf_actions })
-	end)
+	end
+)
 
--- List links to the current note (backlinks).
-vim.keymap.set('n', '<leader>zklt',
+-- List links to the current note.
+vim.keymap.set(
+	'n',
+	'<leader>zklt',
 	function()
 		require 'fzf-lua'.fzf_exec(string.format("zk note links --to '%s'", vim.fn.expand("%")),
 			{ fzf_opts = zk_fzf_opts, actions = zk_fzf_actions })
-	end)
+	end
+)
 
 -- List links from the current note.
-vim.keymap.set('n', '<leader>zklf',
+vim.keymap.set(
+	'n',
+	'<leader>zklf',
 	function()
 		require 'fzf-lua'.fzf_exec(string.format("zk note links --from '%s'", vim.fn.expand("%")),
 			{ fzf_opts = zk_fzf_opts, actions = zk_fzf_actions })
-	end)
+	end
+)
+
+-- Generate tags for the current note.
+vim.keymap.set(
+	'n',
+	'<leader>zkgt',
+	function()
+		-- Write out the file, generation should have the latest changes
+		vim.cmd.write { vim.fn.expand("%") }
+
+		-- Issue generation
+		vim.fn.system { 'zk', 'tags', 'generate', vim.fn.expand("%") }
+
+		-- Reload the file, changes occur outside the editor
+		vim.cmd.edit {}
+	end
+)
 ```
 
 # Performance
