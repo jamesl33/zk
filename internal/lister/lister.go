@@ -13,12 +13,12 @@ import (
 	"github.com/jamesl33/zk/internal/note"
 )
 
-// Lister - TODO
+// Lister is a note lister which iterates directories recursively finding matching notes.
 type Lister struct {
 	options Options
 }
 
-// NewLister - TODO
+// NewLister returns an initialized lister.
 func NewLister(opts ...func(o *Options)) (*Lister, error) {
 	var o Options
 
@@ -33,7 +33,7 @@ func NewLister(opts ...func(o *Options)) (*Lister, error) {
 	return &lister, nil
 }
 
-// Many - TODO
+// Many returns an iterator containing matching notes.
 func (l *Lister) Many(ctx context.Context) iter.Seq2[*note.Note, error] {
 	return func(yield func(*note.Note, error) bool) {
 		err := filepath.WalkDir(l.options.path, func(path string, _ os.DirEntry, err error) error {
@@ -47,32 +47,30 @@ func (l *Lister) Many(ctx context.Context) iter.Seq2[*note.Note, error] {
 	}
 }
 
-// walk - TODO
+// walk the given directory finding matching notes.
 func (l *Lister) walk(
 	ctx context.Context,
 	path string,
 	err error,
 	yield func(n *note.Note, err error) bool,
 ) error {
-	// TODO
+	// Exit early as the walk has been canceled.
 	if err := ctx.Err(); err != nil {
 		return err // Purposefully not wrapped
 	}
 
-	// TODO
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("unexpected error walking %q: %w", path, err)
 	}
 
-	// TODO
+	// Ignore as it's not a note, or is hidden
 	if hidden(path) || !strings.HasSuffix(path, ".md") {
 		return nil
 	}
 
-	// TODO
 	n, err := note.New(path)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to open note at %q: %w", path, err)
 	}
 
 	if l.options.matcher != nil && !l.options.matcher(n) {

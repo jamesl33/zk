@@ -4,23 +4,23 @@ import (
 	"github.com/jamesl33/zk/internal/matcher"
 )
 
-// Options - TODO
+// Options encapsulates the options for note listing.
 type Options struct {
-	// path - TODO
+	// path to start listing from.
 	path string
 
-	// matcher - TODO
+	// matcher which determines if a note should be included in the list.
 	matcher matcher.Matcher
 }
 
-// WithPath - TODO
+// WithPath allows specifying the path to start listing from.
 func WithPath(path string) func(*Options) {
 	return func(o *Options) {
 		o.path = path
 	}
 }
 
-// WithMatcher - TODO
+// WithMatcher allows specifying the note matcher.
 func WithMatcher(matcher matcher.Matcher) func(*Options) {
 	return func(o *Options) {
 		o.matcher = matcher

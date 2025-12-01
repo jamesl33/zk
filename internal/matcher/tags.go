@@ -1,6 +1,6 @@
 package matcher
 
-// Tags - TODO
+// Tags matcher for the given include/exclude list.
 func Tags(i, e []string) (Matcher, error) {
 	matchers := make([]Matcher, 0)
 
@@ -12,7 +12,7 @@ func Tags(i, e []string) (Matcher, error) {
 		matchers = append(matchers, Not(Tagged(tag)))
 	}
 
-	// TODO
+	// Combine the matchers
 	all := And(matchers...)
 
 	return all, nil

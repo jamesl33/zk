@@ -1,6 +1,6 @@
 package hs
 
-// Map - TODO
+// Map a slice of types from one, to another.
 func Map[A any, B any](as []A, fn func(A) B) []B {
 	bs := make([]B, 0, len(as))
 

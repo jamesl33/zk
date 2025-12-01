@@ -1,16 +1,16 @@
 package note
 
-// Frontmatter - TODO
+// Frontmatter is the YAML front-matter embedded at the front of a note.
 type Frontmatter struct {
-	// Type - TODO
+	// Type of the note.
 	Type Type `yaml:"type"`
 
-	// Title - TODO
+	// Title for the note.
 	Title string `yaml:"title"`
 
-	// Date - TODO
+	// Date the note was created.
 	Date string `yaml:"date"`
 
-	// Title - TODO
+	// Tags for the note.
 	Tags []string `yaml:"tags"`
 }

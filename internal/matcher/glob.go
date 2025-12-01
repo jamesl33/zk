@@ -7,7 +7,7 @@ import (
 	"github.com/jamesl33/zk/internal/note"
 )
 
-// Glob - TODO
+// Glob returns a matcher which will match a given glob pattern.
 func Glob(pattern string, extract func(n *note.Note) string) (Matcher, error) {
 	if pattern == "" {
 		return nil, nil
@@ -15,7 +15,7 @@ func Glob(pattern string, extract func(n *note.Note) string) (Matcher, error) {
 
 	parsed, err := glob.Compile("*" + pattern + "*")
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to compile glob pattern: %w", err)
 	}
 
 	return func(n *note.Note) bool { return parsed.Match(extract(n)) }, nil

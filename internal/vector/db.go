@@ -20,30 +20,30 @@ import (
 	"github.com/ollama/ollama/api"
 )
 
-// TODO
+// Enable SQLite vector search
 func init() {
 	sqlite_vec.Auto()
 }
 
-// DB - TODO
+// DB exposes an API to index/find notes using SQLite vector search.
 type DB struct {
 	client *api.Client
 	db     *sql.DB
 }
 
-// New - TODO
+// New returns an initialized db.
 func New(ctx context.Context, path string) (*DB, error) {
 	client, err := api.ClientFromEnvironment()
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to get ollama client: %w", err)
 	}
 
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	// create - TODO
+	// create the table if it doesn't already exist.
 	const create = `
 	CREATE table IF NOT EXISTS notes (
 	  name text unique,
@@ -54,7 +54,7 @@ func New(ctx context.Context, path string) (*DB, error) {
 
 	_, err = db.ExecContext(ctx, create)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to create table: %w", err)
 	}
 
 	vector := DB{
@@ -65,34 +65,34 @@ func New(ctx context.Context, path string) (*DB, error) {
 	return &vector, nil
 }
 
-// Upsert - TODO
+// Upsert adds the given note to the database (or updates it).
 func (d *DB) Upsert(ctx context.Context, n *note.Note) error {
 	checksum, err := n.Checksum()
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to calculate checksum: %w", err)
 	}
 
 	skip, err := d.skip(ctx, n.Name(), checksum)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to check if note requires updating: %w", err)
 	}
 
-	// TODO
+	// Checksum matches, no further work required
 	if skip {
 		return nil
 	}
 
 	embedding, err := d.embed(ctx, n)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to generate embedding: %w", err)
 	}
 
-	// TODO
+	// No embedding returned, don't add to the index
 	if embedding == nil {
 		return nil
 	}
 
-	// insert - TODO
+	// insert the embedding into the index
 	const insert = `
 	INSERT OR REPLACE INTO
 	  notes
@@ -108,25 +108,25 @@ func (d *DB) Upsert(ctx context.Context, n *note.Note) error {
 		embedding,
 	)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to insert row: %w", err)
 	}
 
 	return nil
 }
 
-// Find - TODO
+// Find some similar notes to the one provided.
 func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, error], error) {
 	embedding, err := d.embed(ctx, n)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to generate embedding: %w", err)
 	}
 
-	// TODO
+	// No embedding, we can't find any similar notes
 	if embedding == nil {
 		return iterator.Empty[*note.Note](), nil
 	}
 
-	// query - TODO
+	// query to find some similar notes
 	const query = `
 	SELECT
 	  name,
@@ -143,7 +143,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, erro
 
 	rows, err := d.db.QueryContext(ctx, query, embedding, n.Name())
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to execute query: %w", err)
 	}
 
 	var (
@@ -155,7 +155,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, erro
 	for rows.Next() {
 		err := rows.Scan(&name, &distance)
 		if err != nil {
-			return nil, fmt.Errorf("%w", err) // TODO
+			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 
 		names = append(names, name)
@@ -163,10 +163,10 @@ func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, erro
 
 	err = rows.Err()
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("unexpected error during iteration: %w", err)
 	}
 
-	// TODO
+	// No notes, return an empty iterator.
 	if len(names) == 0 {
 		return iterator.Empty[*note.Note](), nil
 	}
@@ -178,15 +178,15 @@ func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, erro
 		lister.WithMatcher(matcher.Or(matchers...)),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to create lister: %w", err)
 	}
 
 	return lister.Many(ctx), nil
 }
 
-// skip - TODO
+// skip returns a boolean indicating whether we need to update the index entry.
 func (d *DB) skip(ctx context.Context, name string, current uint32) (bool, error) {
-	// query - TODO
+	// query to acquire the existing checksum
 	const query = `
 	SELECT
 	  checksum
@@ -200,19 +200,19 @@ func (d *DB) skip(ctx context.Context, name string, current uint32) (bool, error
 
 	err := d.db.QueryRowContext(ctx, query, name).Scan(&indexed)
 
-	// TODO
+	// Not found, we need to update
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
 
 	if err != nil {
-		return false, fmt.Errorf("%w", err) // TODO
+		return false, fmt.Errorf("failed to query for note checksum: %w", err)
 	}
 
 	return current == indexed, nil
 }
 
-// embed - TODO
+// embed returns a vector embedding for the given note.
 //
 // TODO (jamesl33): Make the model configurable.
 // TODO (jamesl33): Handle the 2k context window.
@@ -221,7 +221,7 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([]byte, error) {
 
 	err := n.WriteTo(&input)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to write note to buffer: %w", err)
 	}
 
 	req := api.EmbedRequest{
@@ -231,23 +231,23 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([]byte, error) {
 
 	resp, err := d.client.Embed(ctx, &req)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to embed buffer: %w", err)
 	}
 
-	// TODO
+	// We didn't receive an embedding
 	if len(resp.Embeddings) != 1 {
 		return nil, nil
 	}
 
 	serial, err := sqlite_vec.SerializeFloat32(resp.Embeddings[0])
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to serialize embedding: %w", err)
 	}
 
 	return serial, nil
 }
 
-// Close - TODO
+// Close frees resources used by the database.
 func (d *DB) Close() error {
 	return d.db.Close()
 }

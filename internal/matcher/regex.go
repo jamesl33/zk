@@ -7,7 +7,7 @@ import (
 	"github.com/jamesl33/zk/internal/note"
 )
 
-// Regex - TODO
+// Regex returns a matcher which will match a given regular expression pattern.
 func Regex(pattern string, extract func(n *note.Note) string) (Matcher, error) {
 	if pattern == "" {
 		return nil, nil
@@ -15,7 +15,7 @@ func Regex(pattern string, extract func(n *note.Note) string) (Matcher, error) {
 
 	parsed, err := regexp.Compile(pattern)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to compile regular expression: %w", err)
 	}
 
 	return func(n *note.Note) bool { return parsed.MatchString(extract(n)) }, nil

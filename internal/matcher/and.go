@@ -2,7 +2,7 @@ package matcher
 
 import "github.com/jamesl33/zk/internal/note"
 
-// And - TODO
+// And combines the given matchers using a logic and.
 func And(matchers ...Matcher) Matcher {
 	return func(n *note.Note) bool {
 		for _, matcher := range matchers {

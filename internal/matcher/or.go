@@ -2,7 +2,7 @@ package matcher
 
 import "github.com/jamesl33/zk/internal/note"
 
-// Or - TODO
+// Or combines the given matchers using a logic or.
 func Or(matchers ...Matcher) Matcher {
 	return func(n *note.Note) bool {
 		if len(matchers) == 0 {

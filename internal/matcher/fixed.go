@@ -6,7 +6,7 @@ import (
 	"github.com/jamesl33/zk/internal/note"
 )
 
-// Fixed - TODO
+// Fixed returns a fixed pattern matcher.
 func Fixed(pattern string, extract func(n *note.Note) string) Matcher {
 	if pattern == "" {
 		return nil

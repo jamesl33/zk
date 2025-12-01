@@ -13,23 +13,23 @@ import (
 	"regexp"
 	"strings"
 
-	icolor "github.com/jamesl33/zk/internal/color"
+	"github.com/fatih/color"
 	"go.yaml.in/yaml/v4"
 )
 
-// Note - TODO
+// Note is a markdown note.
 type Note struct {
-	// Path - TODO
+	// Path to the note.
 	Path string
 
-	// Frontmatter - TODO
+	// Frontmatter metadata for the note.
 	Frontmatter Frontmatter
 
-	// Body - TODO
+	// Body is the - front-matter excluded - note body.
 	Body string
 }
 
-// New - TODO
+// New returns a new note.
 //
 // TODO (jamesl33): Defer reading the note body, until required?
 func New(path string) (*Note, error) {
@@ -37,14 +37,14 @@ func New(path string) (*Note, error) {
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to read note at %q: %w", path, err)
 	}
 
 	loc := re.FindIndex(data)
 
-	// TODO
+	// We require the offset/length
 	if len(loc) != 2 {
-		return nil, errors.New("not found") // TODO
+		return nil, errors.New("failed to extract front-matter") // TODO (jamesl33): Better error for this?
 	}
 
 	var (
@@ -56,7 +56,7 @@ func New(path string) (*Note, error) {
 
 	err = yaml.Unmarshal(data[offset:length], &fm)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to parse front-matter: %w", err)
 	}
 
 	note := Note{
@@ -68,59 +68,51 @@ func New(path string) (*Note, error) {
 	return &note, nil
 }
 
-// Name - TODO
+// Name returns the notes name.
 func (n *Note) Name() string {
 	return strings.TrimSuffix(filepath.Base(n.Path), ".md")
 }
 
-// Checksum - TODO
+// Checksum returns a checksum of the entire note (including front-matter).
 func (n *Note) Checksum() (uint32, error) {
 	hasher := crc32.NewIEEE()
 
 	err := n.WriteTo(hasher)
 	if err != nil {
-		return 0, fmt.Errorf("%w", err) // TODO
+		return 0, fmt.Errorf("failed to hash note: %w", err)
 	}
 
 	return hasher.Sum32(), nil
 }
 
-// Edit - TODO
+// Edit opens the note in the users default editor.
 func (n *Note) Edit(ctx context.Context) error {
-	// TODO
 	ed := os.Getenv("EDITOR")
 
-	// TODO
 	if ed == "" {
-		return errors.New("no editor set") // TODO
+		return fmt.Errorf("no editor set in the %q environment variable", "EDITOR")
 	}
 
-	// TODO
 	cmd := exec.CommandContext(
 		ctx,
 		ed,
 		strings.TrimSuffix(n.Path, "\n"),
 	)
 
-	// TODO
+	// We must pass all these through
 	cmd.Stdin = os.Stdin
-
-	// TODO
 	cmd.Stdout = os.Stdout
-
-	// TODO
 	cmd.Stderr = os.Stderr
 
-	// TODO
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to open editor: %w", err)
 	}
 
 	// Re-read the note
 	r, err := New(n.Path)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to read updated note: %w", err)
 	}
 
 	// Shallow copy
@@ -129,64 +121,64 @@ func (n *Note) Edit(ctx context.Context) error {
 	return nil
 }
 
-// Write - TODO
+// Write the note out to disk.
 func (n *Note) Write() error {
 	file, err := os.OpenFile(n.Path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to open file at %q: %w", n.Path, err)
 	}
 	defer file.Close()
 
 	err = n.WriteTo(file)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to write note to file: %w", err)
 	}
 
 	return nil
 }
 
-// WriteTo - TODO
+// WriteTo writes the note out to the given writer.
 func (n *Note) WriteTo(w io.Writer) error {
-	// marker - TODO
+	// marker used for the YAML front-matter.
 	const marker = "---\n"
 
 	b := bufio.NewWriter(w)
 
 	_, err := b.WriteString(marker)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to write first marker: %w", err)
 	}
 
 	err = yaml.NewEncoder(b).Encode(n.Frontmatter)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to write front-matter: %w", err)
 	}
 
 	_, err = b.WriteString(marker)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to write second marker: %w", err)
 	}
 
 	_, err = b.WriteString(n.Body)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to write body: %w", err)
 	}
 
 	err = b.Flush()
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to flush buffer: %w", err)
 	}
 
 	return nil
 }
 
-// Links - TODO
+// Links returns the names of other notes mentioned in this note.
 func (n *Note) Links() []string {
 	var (
-		// TODO
+		// Captures wiki-style links
 		re = regexp.MustCompile(`\[\[(?P<link>.*?)(\|(?P<text>.*?))?\]\]`)
 
-		// TODO
+		// All the matches within the note body
 		matches = re.FindAllStringSubmatch(n.Body, -1)
 	)
 
@@ -199,13 +191,19 @@ func (n *Note) Links() []string {
 	return links
 }
 
-// String0 - TODO
+// String0 returns a null-delimited representation of the note, useful for "picking" (i.e. 'fzf').
 func (n *Note) String0() string {
+	var (
+		yellow = color.New(color.FgYellow).SprintFunc()
+		blue   = color.New(color.FgBlue).SprintFunc()
+		cyan   = color.New(color.FgCyan).SprintFunc()
+	)
+
 	str := fmt.Sprintf(
 		"%s\x01%s\x01%s\x01%s",
-		icolor.Blue(filepath.Dir(n.Path)),
-		icolor.Yellow(n.Frontmatter.Title),
-		icolor.Cyan(strings.Join(n.Frontmatter.Tags, ",")),
+		blue(filepath.Dir(n.Path)),
+		yellow(n.Frontmatter.Title),
+		cyan(strings.Join(n.Frontmatter.Tags, ",")),
 		n.Path,
 	)
 
