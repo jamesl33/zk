@@ -7,14 +7,13 @@ import (
 	"github.com/jamesl33/zk/cmd"
 )
 
-// main - TODO
+// main runs 'zk'.
 func main() {
 	err := cmd.Execute()
 	if err == nil {
 		return
 	}
 
-	// TODO
 	defer os.Exit(1)
 
 	fmt.Fprintf(os.Stderr, "Error: %s\n", err)

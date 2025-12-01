@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/jamesl33/zk/internal/iterator"
-	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/lister"
+	"github.com/jamesl33/zk/internal/note"
 	"github.com/ollama/ollama/api"
 	"github.com/spf13/cobra"
 	"go.yaml.in/yaml/v4"
@@ -40,7 +40,7 @@ func NewGenerate() *cobra.Command {
 	return &cmd
 }
 
-// Run - TODO
+// Run tag generation.
 func (g *Generate) Run(ctx context.Context, args []string) error {
 	path := "."
 
@@ -52,24 +52,24 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 		lister.WithPath(path),
 	)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to create lister: %w", err)
 	}
 
 	err = iterator.ForEach2(lister.Many(ctx), func(n *note.Note) error {
 		return g.generate(ctx, n)
 	})
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to update notes: %w", err)
 	}
 
 	return nil
 }
 
-// generate - TODO
+// generate tags for the given note.
 func (g *Generate) generate(ctx context.Context, n *note.Note) error {
 	client, err := api.ClientFromEnvironment()
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to create ollama client: %w", err)
 	}
 
 	example := "```yaml\ntags:\n  - tag_1\n  - tag_2\n```"
@@ -96,39 +96,38 @@ Don't use tags unless there's enough information to catagorize.`
 
 	err = client.Generate(ctx, &req, func(resp api.GenerateResponse) error { o.WriteString(resp.Response); return nil })
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to generate tags: %w", err)
 	}
 
-	// TODO
+	// Extracts the YAML from the markdown code-block
 	re := regexp.MustCompile(`\x60\x60\x60yaml(?P<tags>[\S\s]*?.*)\x60\x60\x60`)
 
-	// TODO
+	// Extract the tags
 	m := re.FindStringSubmatch(o.String())
 
-	// TODO
+	// We didn't find everything, ignore
 	if len(m) != 2 {
 		return nil
 	}
 
-	// TODO
+	// Extract the tags
 	tags := m[re.SubexpIndex("tags")]
 
-	// TODO
+	// overlay allows extracting the tags
 	var overlay struct {
 		Tags []string `yaml:"tags"`
 	}
 
 	err = yaml.Unmarshal([]byte(tags), &overlay)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to unmarshal tags: %w", err)
 	}
 
-	// TODO
 	for i := range overlay.Tags {
-		// TODO
+		// Coerce spaces into snake case
 		overlay.Tags[i] = strings.ReplaceAll(overlay.Tags[i], " ", "_")
 
-		// TODO
+		// Coerce kebab casing into snake case
 		overlay.Tags[i] = strings.ReplaceAll(overlay.Tags[i], "-", "_")
 	}
 
@@ -136,7 +135,7 @@ Don't use tags unless there's enough information to catagorize.`
 
 	err = n.Write()
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to update note: %w", err)
 	}
 
 	return nil

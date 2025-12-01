@@ -12,11 +12,8 @@ func NewNote() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		// TODO
 		NewCreate(),
-		// TODO
 		NewUpdate(),
-		// TODO
 		NewLinks(),
 	)
 

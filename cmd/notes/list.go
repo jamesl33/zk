@@ -6,9 +6,9 @@ import (
 
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
-	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
+	"github.com/jamesl33/zk/internal/note"
 	"github.com/spf13/cobra"
 )
 
@@ -74,7 +74,7 @@ func NewList() *cobra.Command {
 	return &cmd
 }
 
-// Run - TODO
+// Run lists notes with matching titles.
 func (l *List) Run(ctx context.Context, args []string) error {
 	path := "."
 
@@ -84,7 +84,7 @@ func (l *List) Run(ctx context.Context, args []string) error {
 
 	title, err := matcher.Title(l.Fixed, l.Glob, l.Regex)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to create matcher: %w", err)
 	}
 
 	lister, err := lister.NewLister(
@@ -92,14 +92,14 @@ func (l *List) Run(ctx context.Context, args []string) error {
 		lister.WithMatcher(title),
 	)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to create lister: %w", err)
 	}
 
 	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
 		fmt.Println(n.String0())
 	}))
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to list notes: %w", err)
 	}
 
 	return nil

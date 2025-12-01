@@ -34,33 +34,27 @@ func NewPick() *cobra.Command {
 	return &cmd
 }
 
-// Run - TODO
+// Run the note picker.
 //
 // TODO (jamesl33): Better handle the case where no elements are piped into 'fzf'.
 func (p *Pick) Run(ctx context.Context) error {
 	var buffer bytes.Buffer
 
-	// TODO
 	cmd := exec.CommandContext(
 		ctx,
 		"fzf",
 		"--ansi",
 		"--exit-0",
 		"--select-1",
-		"--with-nth={1} {2} [{3}]",
 		`--delimiter=\x01`,
+		"--with-nth={1} {2} [{3}]",
 	)
 
-	// TODO
+	// We must pass all these through
 	cmd.Stdin = os.Stdin
-
-	// TODO
-	cmd.Stdout = &buffer
-
-	// TODO
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	// TODO
 	err := cmd.Run()
 	if err == nil {
 		return p.item(buffer)
@@ -72,20 +66,17 @@ func (p *Pick) Run(ctx context.Context) error {
 		return nil
 	}
 
-	return fmt.Errorf("%w", err) // TODO
+	return fmt.Errorf("failed to pick note: %w", err)
 }
 
-// item - TODO
+// item prints the path to the chosen note.
 func (p *Pick) item(buffer bytes.Buffer) error {
-	// TODO
 	split := bytes.Split(buffer.Bytes(), []byte{0x01})
 
-	// TODO
 	if len(split) == 0 {
 		return nil
 	}
 
-	// TODO
 	fmt.Printf("%s", split[len(split)-1])
 
 	return nil

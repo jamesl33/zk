@@ -14,15 +14,10 @@ func NewCreate() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		// TODO
 		NewCreateBibliographic(),
-		// TODO
 		NewCreatePermanent(),
-		// TODO
 		NewCreateFleeting(),
-		// TODO
 		NewCreateIndex(),
-		// TODO
 		NewCreateLiterature(),
 	)
 

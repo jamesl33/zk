@@ -6,9 +6,9 @@ import (
 
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
-	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
+	"github.com/jamesl33/zk/internal/note"
 	"github.com/spf13/cobra"
 )
 
@@ -59,7 +59,7 @@ func NewTagged() *cobra.Command {
 	return &cmd
 }
 
-// Run - TODO
+// Run lists tagged notes.
 func (t *Tagged) Run(ctx context.Context, args []string) error {
 	path := "."
 
@@ -69,7 +69,7 @@ func (t *Tagged) Run(ctx context.Context, args []string) error {
 
 	tags, err := matcher.Tags(t.With, t.Without)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to create matcher: %w", err)
 	}
 
 	lister, err := lister.NewLister(
@@ -77,14 +77,14 @@ func (t *Tagged) Run(ctx context.Context, args []string) error {
 		lister.WithMatcher(tags),
 	)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to create lister: %w", err)
 	}
 
 	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
 		fmt.Println(n.String0())
 	}))
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to list notes: %w", err)
 	}
 
 	return nil

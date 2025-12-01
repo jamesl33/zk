@@ -8,8 +8,8 @@ import (
 
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
-	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/lister"
+	"github.com/jamesl33/zk/internal/note"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +39,7 @@ func NewList() *cobra.Command {
 	return &cmd
 }
 
-// Run - TODO
+// Run the list tags command.
 func (l *List) Run(ctx context.Context, args []string) error {
 	path := "."
 
@@ -51,7 +51,7 @@ func (l *List) Run(ctx context.Context, args []string) error {
 		lister.WithPath(path),
 	)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to create lister: %w", err)
 	}
 
 	all := make(map[string]struct{})
@@ -64,16 +64,16 @@ func (l *List) Run(ctx context.Context, args []string) error {
 		cp(n.Frontmatter.Tags)
 	}))
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to extract tags: %w", err)
 	}
 
-	// TODO
+	// We just want the tags
 	keys := maps.Keys(all)
 
-	// TODO
+	// Sort them
 	sorted := slices.Sorted(keys)
 
-	// TODO
+	// Ensure they're unique
 	compacted := slices.Compact(sorted)
 
 	for _, tag := range compacted {

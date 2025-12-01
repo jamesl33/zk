@@ -17,6 +17,10 @@ import (
 	"go.yaml.in/yaml/v4"
 )
 
+func init() {
+	color.NoColor = false
+}
+
 // Note is a markdown note.
 type Note struct {
 	// Path to the note.

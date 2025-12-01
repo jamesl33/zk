@@ -46,7 +46,7 @@ func NewCreatePermanent() *cobra.Command {
 	return &cmd
 }
 
-// Run - TODO
+// Run creates a new permanent note.
 func (c *CreatePermanent) Run(ctx context.Context, path string) error {
 	fm := note.Frontmatter{
 		Type:  "permanent",
@@ -62,7 +62,7 @@ func (c *CreatePermanent) Run(ctx context.Context, path string) error {
 
 	err := n.Write()
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to write note: %w", err)
 	}
 
 	fmt.Printf("%s\n", n.Path)

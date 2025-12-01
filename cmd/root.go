@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os/signal"
 	"syscall"
 
@@ -28,21 +27,12 @@ var rootCommand = &cobra.Command{
 	TraverseChildren: true,
 }
 
-// init - TODO
+// init sets up the CLI.
 func init() {
-	rootCommand.AddCommand(
-		// TODO
-		index.NewIndex(),
-		// TODO
-		note.NewNote(),
-		// TODO
-		notes.NewNotes(),
-		// TODO
-		tags.NewTags(),
-	)
+	rootCommand.AddCommand(index.NewIndex(), note.NewNote(), notes.NewNotes(), tags.NewTags())
 }
 
-// Execute - TODO
+// Execute 'zk'.
 func Execute() error {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
@@ -52,10 +42,10 @@ func Execute() error {
 		return nil
 	}
 
-	// TODO
+	// The user canceled, don't output an error (useful for piping)
 	if errors.Is(err, context.Canceled) {
 		return nil
 	}
 
-	return fmt.Errorf("%w", err) // TODO
+	return err // Purposefully not wrapped
 }

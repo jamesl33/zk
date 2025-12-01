@@ -6,9 +6,9 @@ import (
 
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
-	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
+	"github.com/jamesl33/zk/internal/note"
 	"github.com/spf13/cobra"
 )
 
@@ -38,11 +38,11 @@ func NewDelete() *cobra.Command {
 	return &cmd
 }
 
-// Run - TODO
+// Run tag deletion.
 func (d *Delete) Run(ctx context.Context, remove string) error {
 	tags, err := matcher.Tags([]string{remove}, nil)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to create matcher: %w", err)
 	}
 
 	lister, err := lister.NewLister(
@@ -50,27 +50,26 @@ func (d *Delete) Run(ctx context.Context, remove string) error {
 		lister.WithMatcher(tags),
 	)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to create lister: %w", err)
 	}
 
 	err = iterator.ForEach2(lister.Many(ctx), func(n *note.Note) error {
 		return d.update(n, remove)
 	})
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to update notes: %w", err)
 	}
 
 	return nil
 }
 
-// update - TODO
+// update the given note, removing the provided tag.
 func (d *Delete) update(n *note.Note, remove string) error {
 	n.Frontmatter.Tags = hs.Filter(n.Frontmatter.Tags, func(tag string) bool { return tag != remove })
 
-	// TODO
 	err := n.Write()
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to write up to %q: %w", n.Path, err)
 	}
 
 	return nil

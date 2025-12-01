@@ -12,15 +12,10 @@ func NewNotes() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		// TODO
 		NewList(),
-		// TODO
 		NewSearch(),
-		// TODO
 		NewFind(),
-		// TODO
 		NewTagged(),
-		// TODO
 		NewPick(),
 	)
 
