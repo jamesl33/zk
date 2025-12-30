@@ -13,12 +13,17 @@ import (
 // Cache - TODO
 //
 // TODO (jamesl33): Add expiration.
-type Cache struct {
-	db *sql.DB
+type Cache[T any] struct {
+	db    *sql.DB
+	table string
 }
 
 // New - TODO
-func New(ctx context.Context, path string) (*Cache, error) {
+func New[T any](
+	ctx context.Context,
+	path string,
+	table string,
+) (*Cache[T], error) {
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
@@ -26,26 +31,27 @@ func New(ctx context.Context, path string) (*Cache, error) {
 
 	// create the table if it doesn't already exist.
 	const create = `
-	CREATE table IF NOT EXISTS cache (
-	  prompt integer unique,
-	  result text
+	CREATE table IF NOT EXISTS %s (
+	  key integer unique,
+	  value blob
 	);
 	`
 
-	_, err = db.ExecContext(ctx, create)
+	_, err = db.ExecContext(ctx, fmt.Sprintf(create, table))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create table: %w", err)
 	}
 
-	cache := Cache{
-		db: db,
+	cache := Cache[T]{
+		db:    db,
+		table: table,
 	}
 
 	return &cache, nil
 }
 
 // Get - TODO
-func (c *Cache) Get(ctx context.Context, prompt string) (*string, error) {
+func (c *Cache[T]) Get(ctx context.Context, prompt string) (*T, error) {
 	hasher := crc32.NewIEEE()
 
 	_, err := io.Copy(hasher, strings.NewReader(prompt))
@@ -56,16 +62,16 @@ func (c *Cache) Get(ctx context.Context, prompt string) (*string, error) {
 	// query to acquire the existing prompt checksum
 	const query = `
 	SELECT
-	  result
+	  value
 	FROM
-	  cache
+	  %s
 	WHERE
-	  prompt = ?
+	  key = ?
 	`
 
-	var result string
+	var result T
 
-	err = c.db.QueryRowContext(ctx, query, hasher.Sum32()).Scan(&result)
+	err = c.db.QueryRowContext(ctx, fmt.Sprintf(query, c.table), hasher.Sum32()).Scan(&result)
 
 	// Not found, we need to update
 	if errors.Is(err, sql.ErrNoRows) {
@@ -80,7 +86,7 @@ func (c *Cache) Get(ctx context.Context, prompt string) (*string, error) {
 }
 
 // Set - TODO
-func (c *Cache) Set(ctx context.Context, prompt, result string) error {
+func (c *Cache[T]) Set(ctx context.Context, prompt string, result T) error {
 	hasher := crc32.NewIEEE()
 
 	_, err := io.Copy(hasher, strings.NewReader(prompt))
@@ -91,14 +97,14 @@ func (c *Cache) Set(ctx context.Context, prompt, result string) error {
 	// insert the embedding into the index
 	const insert = `
 	INSERT OR REPLACE INTO
-	  cache
+	  %s
 	VALUES
 	  (?, ?);
 	`
 
 	_, err = c.db.ExecContext(
 		ctx,
-		insert,
+		fmt.Sprintf(insert, c.table),
 		hasher.Sum32(),
 		result,
 	)
