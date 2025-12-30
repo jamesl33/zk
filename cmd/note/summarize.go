@@ -3,10 +3,13 @@ package note
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/jamesl33/zk/internal/ai"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/mitchellh/go-wordwrap"
 	"github.com/spf13/cobra"
 )
 
@@ -57,7 +60,7 @@ func (s *Summarize) Run(ctx context.Context, path string) error {
 
 %s
 
-Without changing the meaning, produce a single sentence - less that 80 characters - summary of the above note.`
+Without changing the meaning, produce a single sentence summary of the above note.`
 
 	prompt = fmt.Sprintf(prompt, n.Body)
 
@@ -66,7 +69,24 @@ Without changing the meaning, produce a single sentence - less that 80 character
 		return fmt.Errorf("failed to generate tags: %w", err)
 	}
 
-	fmt.Println(content)
+	fmt.Println(s.wrap(content))
 
 	return nil
+}
+
+func (s *Summarize) wrap(content string) string {
+	raw := os.Getenv("FZF_PREVIEW_COLUMNS")
+
+	if raw == "" {
+		return content
+	}
+
+	columns, _ := strconv.ParseUint(raw, 10, 64)
+
+	// TODO
+	if columns == 0 {
+		return content
+	}
+
+	return wordwrap.WrapString(content, uint(columns))
 }

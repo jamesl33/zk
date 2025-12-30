@@ -7,6 +7,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/gobwas/glob v0.2.3
 	github.com/mattn/go-sqlite3 v1.14.32
+	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.9.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.3
