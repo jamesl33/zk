@@ -3,13 +3,14 @@ package tags
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strings"
 
+	"github.com/jamesl33/zk/internal/ai"
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/ollama/ollama/api"
 	"github.com/spf13/cobra"
 	"go.yaml.in/yaml/v4"
 )
@@ -67,9 +68,14 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 
 // generate tags for the given note.
 func (g *Generate) generate(ctx context.Context, n *note.Note) error {
-	client, err := api.ClientFromEnvironment()
+	// TODO
+	if len(n.Body) == 0 {
+		return nil
+	}
+
+	client, err := ai.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
 	if err != nil {
-		return fmt.Errorf("failed to create ollama client: %w", err)
+		return fmt.Errorf("failed to create client: %w", err)
 	}
 
 	example := "```yaml\ntags:\n  - tag_1\n  - tag_2\n```"
@@ -86,15 +92,9 @@ You must use lower-case and only output tags using the snake case style.
 
 Don't use tags unless there's enough information to catagorize.`
 
-	// TODO (jamesl33): Note body should remove wiki-links (replace with the title?).
-	req := api.GenerateRequest{
-		Model:  "gemma3:4b",
-		Prompt: fmt.Sprintf(prompt, n.Body, example),
-	}
+	prompt = fmt.Sprintf(prompt, n.Body, example)
 
-	var o strings.Builder
-
-	err = client.Generate(ctx, &req, func(resp api.GenerateResponse) error { o.WriteString(resp.Response); return nil })
+	content, err := client.Generate(ctx, prompt)
 	if err != nil {
 		return fmt.Errorf("failed to generate tags: %w", err)
 	}
@@ -103,7 +103,7 @@ Don't use tags unless there's enough information to catagorize.`
 	re := regexp.MustCompile(`\x60\x60\x60yaml(?P<tags>[\S\s]*?.*)\x60\x60\x60`)
 
 	// Extract the tags
-	m := re.FindStringSubmatch(o.String())
+	m := re.FindStringSubmatch(content)
 
 	// We didn't find everything, ignore
 	if len(m) != 2 {

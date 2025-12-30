@@ -12,12 +12,12 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
+	"github.com/jamesl33/zk/internal/ai"
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/ollama/ollama/api"
 )
 
 // Enable SQLite vector search
@@ -27,15 +27,15 @@ func init() {
 
 // DB exposes an API to index/find notes using SQLite vector search.
 type DB struct {
-	client *api.Client
+	client *ai.Client
 	db     *sql.DB
 }
 
 // New returns an initialized db.
 func New(ctx context.Context, path string) (*DB, error) {
-	client, err := api.ClientFromEnvironment()
+	client, err := ai.New(ctx, path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get ollama client: %w", err)
+		return nil, fmt.Errorf("failed to create client: %w", err)
 	}
 
 	db, err := sql.Open("sqlite3", path)
@@ -213,9 +213,6 @@ func (d *DB) skip(ctx context.Context, name string, current uint32) (bool, error
 }
 
 // embed returns a vector embedding for the given note.
-//
-// TODO (jamesl33): Make the model configurable.
-// TODO (jamesl33): Handle the 2k context window.
 func (d *DB) embed(ctx context.Context, n *note.Note) ([]byte, error) {
 	var input bytes.Buffer
 
@@ -224,22 +221,17 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([]byte, error) {
 		return nil, fmt.Errorf("failed to write note to buffer: %w", err)
 	}
 
-	req := api.EmbedRequest{
-		Model: "embeddinggemma:300m",
-		Input: input.String(),
-	}
-
-	resp, err := d.client.Embed(ctx, &req)
+	vec, err := d.client.Embed(ctx, input.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to embed buffer: %w", err)
 	}
 
 	// We didn't receive an embedding
-	if len(resp.Embeddings) != 1 {
+	if len(vec) == 1 {
 		return nil, nil
 	}
 
-	serial, err := sqlite_vec.SerializeFloat32(resp.Embeddings[0])
+	serial, err := sqlite_vec.SerializeFloat32(vec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to serialize embedding: %w", err)
 	}
