@@ -37,6 +37,8 @@ func NewIndex() *cobra.Command {
 }
 
 // Run index creation.
+//
+// TODO (jamesl33): Populate summaries?
 func (i *Index) Run(ctx context.Context) error {
 	db, err := vector.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
 	if err != nil {
