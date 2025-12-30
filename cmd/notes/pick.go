@@ -52,7 +52,7 @@ func (p *Pick) Run(ctx context.Context) error {
 
 	// We must pass all these through
 	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
+	cmd.Stdout = &buffer
 	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
