@@ -52,7 +52,6 @@ func (f *Find) Run(ctx context.Context, path string) error {
 	}
 	defer db.Close()
 
-	// TODO (jamesl33): De-duplicate the code shared with `zk index`.
 	err = f.populate(ctx, db)
 	if err != nil {
 		return fmt.Errorf("failed to populate database: %w", err)

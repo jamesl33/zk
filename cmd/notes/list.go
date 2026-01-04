@@ -71,6 +71,10 @@ func NewList() *cobra.Command {
 		"",
 	)
 
+	cmd.AddCommand(
+		NewListTagged(),
+	)
+
 	return &cmd
 }
 

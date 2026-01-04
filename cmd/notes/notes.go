@@ -15,7 +15,6 @@ func NewNotes() *cobra.Command {
 		NewList(),
 		NewSearch(),
 		NewFind(),
-		NewTagged(),
 		NewPick(),
 	)
 

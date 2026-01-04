@@ -12,10 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// TaggedOptions - TODO
-//
-// TODO (jamesl33): Move this sub-command to `zk notes list tagged`?
-type TaggedOptions struct {
+// ListTaggedOptions - TODO
+type ListTaggedOptions struct {
 	// With - TODO
 	With []string
 
@@ -23,14 +21,14 @@ type TaggedOptions struct {
 	Without []string
 }
 
-// Tagged - TODO
-type Tagged struct {
-	TaggedOptions
+// ListTagged - TODO
+type ListTagged struct {
+	ListTaggedOptions
 }
 
-// NewTagged - TODO
-func NewTagged() *cobra.Command {
-	var tagged Tagged
+// NewListTagged - TODO
+func NewListTagged() *cobra.Command {
+	var tagged ListTagged
 
 	cmd := cobra.Command{
 		// TODO
@@ -60,14 +58,14 @@ func NewTagged() *cobra.Command {
 }
 
 // Run lists tagged notes.
-func (t *Tagged) Run(ctx context.Context, args []string) error {
+func (l *ListTagged) Run(ctx context.Context, args []string) error {
 	path := "."
 
 	if len(args) >= 1 {
 		path = args[0]
 	}
 
-	tags, err := matcher.Tags(t.With, t.Without)
+	tags, err := matcher.Tags(l.With, l.Without)
 	if err != nil {
 		return fmt.Errorf("failed to create matcher: %w", err)
 	}
