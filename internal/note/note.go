@@ -34,8 +34,6 @@ type Note struct {
 }
 
 // New returns a new note.
-//
-// TODO (jamesl33): Defer reading the note body, until required?
 func New(path string) (*Note, error) {
 	re := regexp.MustCompile(`^---[\S\s]*?---\n.*`)
 
