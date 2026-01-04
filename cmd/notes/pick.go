@@ -35,8 +35,6 @@ func NewPick() *cobra.Command {
 }
 
 // Run the note picker.
-//
-// TODO (jamesl33): Better handle the case where no elements are piped into 'fzf'.
 func (p *Pick) Run(ctx context.Context) error {
 	var buffer bytes.Buffer
 
@@ -73,9 +71,17 @@ func (p *Pick) Run(ctx context.Context) error {
 
 // item prints the path to the chosen note.
 func (p *Pick) item(buffer bytes.Buffer) error {
-	split := bytes.Split(buffer.Bytes(), []byte{0x01})
+	var (
+		// Reverse the printing for note lines
+		split = bytes.Split(buffer.Bytes(), []byte{0x01})
+		// The result is empty
+		empty = len(split) == 0
+		// The result is a single newline
+		nl = len(split) == 1 && bytes.Equal(split[0], []byte("\n"))
+	)
 
-	if len(split) == 0 {
+	// If empty, don't print anything
+	if empty || nl {
 		return nil
 	}
 
