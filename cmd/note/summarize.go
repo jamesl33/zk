@@ -64,6 +64,7 @@ Without changing the meaning, produce a single sentence summary of the above not
 
 	prompt = fmt.Sprintf(prompt, n.Body)
 
+	// TODO (jamesl33): Replace note links with the relevant notes title.
 	content, err := client.Generate(ctx, prompt)
 	if err != nil {
 		return fmt.Errorf("failed to generate tags: %w", err)

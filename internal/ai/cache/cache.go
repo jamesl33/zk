@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+// TODO (jamesl33): Make this safe across instances of 'zk'.
+
 // Cache - TODO
 //
 // TODO (jamesl33): Add expiration.

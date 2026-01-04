@@ -20,6 +20,8 @@ import (
 	"github.com/jamesl33/zk/internal/note"
 )
 
+// TODO (jamesl33): Make this safe across instances of 'zk'.
+
 // Enable SQLite vector search
 func init() {
 	sqlite_vec.Auto()
