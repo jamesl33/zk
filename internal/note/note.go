@@ -1,7 +1,7 @@
 package note
 
 import (
-	"bufio"
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -81,7 +81,7 @@ func (n *Note) Name() string {
 func (n *Note) Checksum() (uint32, error) {
 	hasher := crc32.NewIEEE()
 
-	err := n.WriteTo(hasher)
+	_, err := n.WriteTo(hasher)
 	if err != nil {
 		return 0, fmt.Errorf("failed to hash note: %w", err)
 	}
@@ -133,7 +133,7 @@ func (n *Note) Write() error {
 	}
 	defer file.Close()
 
-	err = n.WriteTo(file)
+	_, err = n.WriteTo(file)
 	if err != nil {
 		return fmt.Errorf("failed to write note to file: %w", err)
 	}
@@ -142,38 +142,38 @@ func (n *Note) Write() error {
 }
 
 // WriteTo writes the note out to the given writer.
-func (n *Note) WriteTo(w io.Writer) error {
+func (n *Note) WriteTo(w io.Writer) (int64, error) {
 	// marker used for the YAML front-matter.
 	const marker = "---\n"
 
-	b := bufio.NewWriter(w)
+	var b bytes.Buffer
 
 	_, err := b.WriteString(marker)
 	if err != nil {
-		return fmt.Errorf("failed to write first marker: %w", err)
+		return 0, fmt.Errorf("failed to write first marker: %w", err)
 	}
 
-	err = yaml.NewEncoder(b).Encode(n.Frontmatter)
+	err = yaml.NewEncoder(&b).Encode(n.Frontmatter)
 	if err != nil {
-		return fmt.Errorf("failed to write front-matter: %w", err)
+		return 0, fmt.Errorf("failed to write front-matter: %w", err)
 	}
 
 	_, err = b.WriteString(marker)
 	if err != nil {
-		return fmt.Errorf("failed to write second marker: %w", err)
+		return 0, fmt.Errorf("failed to write second marker: %w", err)
 	}
 
 	_, err = b.WriteString(n.Body)
 	if err != nil {
-		return fmt.Errorf("failed to write body: %w", err)
+		return 0, fmt.Errorf("failed to write body: %w", err)
 	}
 
-	err = b.Flush()
+	bw, err := io.Copy(w, bytes.NewReader(b.Bytes()))
 	if err != nil {
-		return fmt.Errorf("failed to flush buffer: %w", err)
+		return bw, fmt.Errorf("failed to write to: %w", err)
 	}
 
-	return nil
+	return bw, nil
 }
 
 // Links returns the names of other notes mentioned in this note.

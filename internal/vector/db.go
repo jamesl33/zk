@@ -218,7 +218,7 @@ func (d *DB) skip(ctx context.Context, name string, current uint32) (bool, error
 func (d *DB) embed(ctx context.Context, n *note.Note) ([]byte, error) {
 	var input bytes.Buffer
 
-	err := n.WriteTo(&input)
+	_, err := n.WriteTo(&input)
 	if err != nil {
 		return nil, fmt.Errorf("failed to write note to buffer: %w", err)
 	}
