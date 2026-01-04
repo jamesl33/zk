@@ -23,9 +23,6 @@ The `zk` command exposes useful commands to enable finding notes that are requir
 commands/functionality is as follows.
 
 ```sh
-# Create/populate the local Vector DB
-zk index
-
 # Create a new note
 zk note create [type] <path>
 
