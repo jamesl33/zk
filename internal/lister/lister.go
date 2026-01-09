@@ -64,7 +64,9 @@ func (l *Lister) walk(
 	}
 
 	// Ignore as it's not a note, or is hidden
-	if hidden(path) || !strings.HasSuffix(path, ".md") {
+	//
+	// TODO (jamesl33): Make this more configurable.
+	if hidden(path) || !strings.HasSuffix(path, ".md") || path == "GEMINI.md" {
 		return nil
 	}
 
