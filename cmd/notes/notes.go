@@ -6,7 +6,7 @@ import "github.com/spf13/cobra"
 func NewNotes() *cobra.Command {
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Interact with all the notes in the Zettelkasten",
 		// TODO
 		Use: "notes",
 	}

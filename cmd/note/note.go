@@ -6,7 +6,7 @@ import "github.com/spf13/cobra"
 func NewNote() *cobra.Command {
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Interact and manipulate a single note",
 		// TODO
 		Use: "note",
 	}

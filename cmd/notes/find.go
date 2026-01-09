@@ -27,9 +27,9 @@ func NewFind() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Finds semantically similar notes",
 		// TODO
-		Use: "find",
+		Use: "find note",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO

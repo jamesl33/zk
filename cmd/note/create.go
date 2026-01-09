@@ -8,7 +8,7 @@ import (
 func NewCreate() *cobra.Command {
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Create a new note",
 		// TODO
 		Use: "create",
 	}

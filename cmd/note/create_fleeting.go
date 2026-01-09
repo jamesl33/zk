@@ -26,7 +26,7 @@ func NewCreateFleeting() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Create a new 'fleeting' note",
 		// TODO
 		Use: "fleeting",
 		// TODO
@@ -37,8 +37,7 @@ func NewCreateFleeting() *cobra.Command {
 		&fleeting.Title,
 		"title",
 		"Untitled",
-		// TODO
-		"",
+		"The title for the note",
 	)
 
 	return &cmd

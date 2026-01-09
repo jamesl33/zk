@@ -27,7 +27,7 @@ func NewInitialize() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Creates 'GEMINI.md' file, with instructions on how to interact with the Zettelkasten",
 		// TODO
 		Use: "initialize",
 		// TODO

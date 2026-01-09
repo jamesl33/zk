@@ -26,9 +26,9 @@ func NewCreateIndex() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Create a new 'index' note",
 		// TODO
-		Use: "index",
+		Use: "index directory",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO
@@ -39,8 +39,7 @@ func NewCreateIndex() *cobra.Command {
 		&index.Title,
 		"title",
 		"Untitled",
-		// TODO
-		"",
+		"The title for the note (e.g. the title of a book/article)",
 	)
 
 	return &cmd

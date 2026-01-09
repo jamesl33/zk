@@ -6,7 +6,7 @@ import "github.com/spf13/cobra"
 func NewTags() *cobra.Command {
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Interact and manipulate note tags",
 		// TODO
 		Use: "tags",
 	}

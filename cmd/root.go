@@ -16,7 +16,7 @@ import (
 // rootCommand - TODO
 var rootCommand = &cobra.Command{
 	// TODO
-	Short: "",
+	Short: "A composable command-line tool for interacting with a Markdown Zettelkasten.",
 	// TODO
 	Long: "",
 	// TODO

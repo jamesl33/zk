@@ -26,9 +26,9 @@ func NewDelete() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Delete a tag by remove it from all notes",
 		// TODO
-		Use: "delete",
+		Use: "delete note",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO

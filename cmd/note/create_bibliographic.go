@@ -26,7 +26,7 @@ func NewCreateBibliographic() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Create a new 'bibliographic' note",
 		// TODO
 		Use: "bibliographic",
 		// TODO
@@ -37,8 +37,7 @@ func NewCreateBibliographic() *cobra.Command {
 		&bibliographic.Title,
 		"title",
 		"Untitled",
-		// TODO
-		"",
+		"The title for the note (e.g. the title of a book/article)",
 	)
 
 	return &cmd

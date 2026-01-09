@@ -24,7 +24,7 @@ func NewPick() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Pick a note using 'fzf', supports the output from 'zk'",
 		// TODO
 		Use: "pick",
 		// TODO

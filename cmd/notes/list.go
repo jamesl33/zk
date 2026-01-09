@@ -37,7 +37,7 @@ func NewList() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "List notes and display useful information/metadata (e.g. tags)",
 		// TODO
 		Use: "list",
 		// TODO
@@ -50,24 +50,21 @@ func NewList() *cobra.Command {
 		&list.Fixed,
 		"fixed",
 		"",
-		// TODO
-		"",
+		"Filter notes by title using a fixed string",
 	)
 
 	cmd.Flags().StringVar(
 		&list.Glob,
 		"glob",
 		"",
-		// TODO
-		"",
+		"Filter notes by title using a glob pattern",
 	)
 
 	cmd.Flags().StringVar(
 		&list.Regex,
 		"regex",
 		"",
-		// TODO
-		"",
+		"Filter notes by title using a regular expression",
 	)
 
 	cmd.AddCommand(

@@ -37,7 +37,7 @@ func NewSearch() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Search the content of notes, listing the matching notes",
 		// TODO
 		Use: "search",
 		// TODO
@@ -50,24 +50,21 @@ func NewSearch() *cobra.Command {
 		&search.Fixed,
 		"fixed",
 		"",
-		// TODO
-		"",
+		"Filter notes by content using a fixed string",
 	)
 
 	cmd.Flags().StringVar(
 		&search.Glob,
 		"glob",
 		"",
-		// TODO
-		"",
+		"Filter notes by content using a glob pattern",
 	)
 
 	cmd.Flags().StringVar(
 		&search.Regex,
 		"regex",
 		"",
-		// TODO
-		"",
+		"Filter notes by content using a regular pattern",
 	)
 
 	return &cmd

@@ -27,9 +27,9 @@ func NewSummarize() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Summarize a note",
 		// TODO
-		Use: "summarize",
+		Use: "summarize note",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO

@@ -29,7 +29,7 @@ func NewGenerate() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Generate tags for a note, based on the note content",
 		// TODO
 		Use: "generate",
 		// TODO

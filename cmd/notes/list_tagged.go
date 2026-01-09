@@ -32,7 +32,7 @@ func NewListTagged() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "List notes by tag",
 		// TODO
 		Use: "tagged",
 		// TODO
@@ -43,15 +43,14 @@ func NewListTagged() *cobra.Command {
 		&tagged.With,
 		"with",
 		nil,
-		"",
+		"Include notes which have the provided tag",
 	)
 
 	cmd.Flags().StringArrayVar(
 		&tagged.Without,
 		"without",
 		nil,
-		// TODO
-		"",
+		"Exclude notes which have the provided tag",
 	)
 
 	return &cmd

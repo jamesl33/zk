@@ -27,7 +27,7 @@ func NewList() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Lists all the tags used in the Zettelkasten",
 		// TODO
 		Use: "list",
 		// TODO

@@ -27,7 +27,7 @@ func NewUpdate() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Open a note in the default text editor",
 		// TODO
 		Use: "update",
 		// TODO

@@ -26,9 +26,9 @@ func NewCreatePermanent() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "",
+		Short: "Create a new 'permanent' note",
 		// TODO
-		Use: "permanent",
+		Use: "permanent directory",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO
@@ -39,8 +39,7 @@ func NewCreatePermanent() *cobra.Command {
 		&permanent.Title,
 		"title",
 		"Untitled",
-		// TODO
-		"",
+		"The title for the note (e.g. the title of a book/article)",
 	)
 
 	return &cmd
