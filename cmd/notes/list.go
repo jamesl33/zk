@@ -82,14 +82,19 @@ func (l *List) Run(ctx context.Context, args []string) error {
 		path = args[0]
 	}
 
+	pm, err := matcher.Path(l.Fixed, l.Glob, l.Regex)
+	if err != nil {
+		return fmt.Errorf("failed to create path matcher: %w", err)
+	}
+
 	title, err := matcher.Title(l.Fixed, l.Glob, l.Regex)
 	if err != nil {
-		return fmt.Errorf("failed to create matcher: %w", err)
+		return fmt.Errorf("failed to create title matcher: %w", err)
 	}
 
 	lister, err := lister.NewLister(
 		lister.WithPath(path),
-		lister.WithMatcher(title),
+		lister.WithMatcher(matcher.Or(pm, title)),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create lister: %w", err)
