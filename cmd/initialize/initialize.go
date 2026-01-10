@@ -10,6 +10,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//go:embed settings.json
+var settings []byte
+
 //go:embed instructions.md
 var instructions []byte
 
@@ -39,7 +42,17 @@ func NewInitialize() *cobra.Command {
 
 // Run initialization.
 func (i *Initialize) Run(ctx context.Context) error {
-	err := os.WriteFile("GEMINI.md", instructions, 0o644)
+	err := os.MkdirAll(".gemini", 0o755)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	err = os.WriteFile(".gemini/settings.json", settings, 0o644)
+	if err != nil {
+		return fmt.Errorf("%w", err) // TODO
+	}
+
+	err = os.WriteFile("GEMINI.md", instructions, 0o644)
 	if err != nil {
 		return fmt.Errorf("%w", err) // TODO
 	}

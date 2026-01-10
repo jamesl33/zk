@@ -1,0 +1,10 @@
+{
+  "tools": {
+    "exclude": [
+      "delegate_to_agent",
+      "google_web_search",
+      "save_memory",
+      "write_todos"
+    ]
+  }
+}
