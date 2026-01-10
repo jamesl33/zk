@@ -15,6 +15,7 @@ func NewNote() *cobra.Command {
 		NewCreate(),
 		NewUpdate(),
 		NewLinks(),
+		NewFind(),
 		NewSummarize(),
 	)
 

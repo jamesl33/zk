@@ -1,4 +1,4 @@
-package notes
+package note
 
 import (
 	"context"
@@ -27,9 +27,9 @@ func NewFind() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "Finds semantically similar notes using a plain text query",
+		Short: "Finds semantically similar notes",
 		// TODO
-		Use: "find <query>",
+		Use: "find <path>",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO
@@ -40,7 +40,12 @@ func NewFind() *cobra.Command {
 }
 
 // Run finds some related notes.
-func (f *Find) Run(ctx context.Context, query string) error {
+func (f *Find) Run(ctx context.Context, path string) error {
+	n, err := note.New(path)
+	if err != nil {
+		return fmt.Errorf("failed to open note: %w", err)
+	}
+
 	db, err := vector.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
@@ -50,11 +55,6 @@ func (f *Find) Run(ctx context.Context, query string) error {
 	err = f.populate(ctx, db)
 	if err != nil {
 		return fmt.Errorf("failed to populate database: %w", err)
-	}
-
-	// TODO
-	n := &note.Note{
-		Body: query,
 	}
 
 	notes, err := db.Find(ctx, n)
