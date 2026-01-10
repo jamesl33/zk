@@ -28,7 +28,7 @@ func NewCreateIndex() *cobra.Command {
 		// TODO
 		Short: "Create a new 'index' note",
 		// TODO
-		Use: "index directory",
+		Use: "index <directory>",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO

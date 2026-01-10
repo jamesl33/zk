@@ -28,7 +28,7 @@ func NewCreateLiterature() *cobra.Command {
 		// TODO
 		Short: "Create a new 'literature' note",
 		// TODO
-		Use: "literature directory",
+		Use: "literature <directory>",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO

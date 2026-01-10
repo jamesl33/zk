@@ -35,7 +35,7 @@ func NewLinks() *cobra.Command {
 		// TODO
 		Short: "List the links to/from a note",
 		// TODO
-		Use: "links note",
+		Use: "links <path>",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO
@@ -46,7 +46,7 @@ func NewLinks() *cobra.Command {
 		&links.To,
 		"to",
 		false,
-		"Display notes linking to the provied note",
+		"Display",
 	)
 
 	cmd.Flags().BoolVar(

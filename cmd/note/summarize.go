@@ -29,7 +29,7 @@ func NewSummarize() *cobra.Command {
 		// TODO
 		Short: "Summarize a note",
 		// TODO
-		Use: "summarize note",
+		Use: "summarize <path>",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO

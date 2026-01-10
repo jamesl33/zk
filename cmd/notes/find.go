@@ -29,7 +29,7 @@ func NewFind() *cobra.Command {
 		// TODO
 		Short: "Finds semantically similar notes",
 		// TODO
-		Use: "find note",
+		Use: "find <path>",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO

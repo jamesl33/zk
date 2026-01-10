@@ -28,7 +28,7 @@ func NewCreatePermanent() *cobra.Command {
 		// TODO
 		Short: "Create a new 'permanent' note",
 		// TODO
-		Use: "permanent directory",
+		Use: "permanent <directory>",
 		// TODO
 		Args: cobra.ExactArgs(1),
 		// TODO

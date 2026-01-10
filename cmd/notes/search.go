@@ -39,7 +39,7 @@ func NewSearch() *cobra.Command {
 		// TODO
 		Short: "Search the content of notes, listing the matching notes",
 		// TODO
-		Use: "search",
+		Use: "search [directory]",
 		// TODO
 		Args: cobra.MaximumNArgs(1),
 		// TODO
@@ -50,21 +50,21 @@ func NewSearch() *cobra.Command {
 		&search.Fixed,
 		"fixed",
 		"",
-		"Filter notes by content using a fixed string",
+		"Filter notes by title/content using a case-sensitive fixed-string search",
 	)
 
 	cmd.Flags().StringVar(
 		&search.Glob,
 		"glob",
 		"",
-		"Filter notes by content using a glob pattern",
+		"Filter notes by title/content using a case-sensitive glob pattern",
 	)
 
 	cmd.Flags().StringVar(
 		&search.Regex,
 		"regex",
 		"",
-		"Filter notes by content using a regular pattern",
+		"Filter notes by title/content using a regular expression (RE2)",
 	)
 
 	return &cmd

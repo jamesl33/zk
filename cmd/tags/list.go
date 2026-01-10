@@ -27,9 +27,9 @@ func NewList() *cobra.Command {
 
 	cmd := cobra.Command{
 		// TODO
-		Short: "Lists all the tags used in the Zettelkasten",
+		Short: "List the tags for notes",
 		// TODO
-		Use: "list",
+		Use: "list [directory | path]",
 		// TODO
 		Args: cobra.MaximumNArgs(1),
 		// TODO
