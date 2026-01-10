@@ -33,7 +33,7 @@ func text(f, g, r string, extract func(n *note.Note) string) (Matcher, error) {
 	}
 
 	// Combine the matchers
-	all := And(matchers...)
+	all := Or(matchers...)
 
 	return all, nil
 }
