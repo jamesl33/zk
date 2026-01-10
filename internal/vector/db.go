@@ -136,7 +136,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, erro
 	FROM
 	  notes
 	WHERE
-	  name != ? AND distance <= 0.5
+	  name != ? AND distance <= 0.35
 	ORDER BY
 	  distance 
 	LIMIT
@@ -216,6 +216,11 @@ func (d *DB) skip(ctx context.Context, name string, current uint32) (bool, error
 
 // embed returns a vector embedding for the given note.
 func (d *DB) embed(ctx context.Context, n *note.Note) ([]byte, error) {
+	// Reduce false positives caused by embedding empty notes
+	if len(n.Frontmatter.Tags) == 0 && len(n.Body) == 0 {
+		return nil, nil
+	}
+
 	var input bytes.Buffer
 
 	_, err := n.WriteTo(&input)
