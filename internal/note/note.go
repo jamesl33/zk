@@ -193,6 +193,16 @@ func (n *Note) Links() []string {
 	return links
 }
 
+// String - TODO
+func (n *Note) String() string {
+	var builder strings.Builder
+
+	// TODO (jamesl33): Fine to just ignore this?
+	_, _ = n.WriteTo(&builder)
+
+	return builder.String()
+}
+
 // String0 returns a null-delimited representation of the note, useful for "picking" (i.e. 'fzf').
 func (n *Note) String0() string {
 	var (

@@ -71,8 +71,6 @@ func NewSearch() *cobra.Command {
 }
 
 // Run searches notes (e.g. titles, bodies).
-//
-// TODO (jamesl33): Include the tags in this search?
 func (s *Search) Run(ctx context.Context, args []string) error {
 	path := "."
 
@@ -80,19 +78,14 @@ func (s *Search) Run(ctx context.Context, args []string) error {
 		path = args[0]
 	}
 
-	title, err := matcher.Title(s.Fixed, s.Glob, s.Regex)
-	if err != nil {
-		return fmt.Errorf("failed to create title matcher: %w", err)
-	}
-
-	body, err := matcher.Body(s.Fixed, s.Glob, s.Regex)
+	body, err := matcher.Entire(s.Fixed, s.Glob, s.Regex)
 	if err != nil {
 		return fmt.Errorf("failed to create body matcher: %w", err)
 	}
 
 	lister, err := lister.NewLister(
 		lister.WithPath(path),
-		lister.WithMatcher(matcher.Or(title, body)),
+		lister.WithMatcher(body),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create lister: %w", err)
