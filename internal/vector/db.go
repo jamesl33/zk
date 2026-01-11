@@ -139,8 +139,6 @@ func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, erro
 	  name != ? AND distance <= 0.35
 	ORDER BY
 	  distance 
-	LIMIT
-	  5;
 	`
 
 	rows, err := d.db.QueryContext(ctx, query, embedding, n.Name())
