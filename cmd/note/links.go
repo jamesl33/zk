@@ -46,7 +46,7 @@ func NewLinks() *cobra.Command {
 		&links.To,
 		"to",
 		false,
-		"Display",
+		"Display notes linked to the provied note",
 	)
 
 	cmd.Flags().BoolVar(

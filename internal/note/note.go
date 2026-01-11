@@ -24,13 +24,13 @@ func init() {
 // Note is a markdown note.
 type Note struct {
 	// Path to the note.
-	Path string
+	Path string `json:"path" jsonschema:"The relative path to the note on disk"`
 
 	// Frontmatter metadata for the note.
-	Frontmatter Frontmatter
+	Frontmatter Frontmatter `json:"frontmatter" jsonschema:"The notes YAML frontmatter"`
 
 	// Body is the - front-matter excluded - note body.
-	Body string
+	Body string `json:"body" jsonschema:"The notes content/body, excluding frontmatter"`
 }
 
 // New returns a new note.

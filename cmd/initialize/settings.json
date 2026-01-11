@@ -2,9 +2,27 @@
   "tools": {
     "exclude": [
       "delegate_to_agent",
+      "glob",
       "google_web_search",
+      "list_directory",
+      "read_file",
+      "replace",
+      "run_shell_command",
       "save_memory",
+      "search_file_content",
+      "web_fetch",
+      "write_file",
       "write_todos"
     ]
+  },
+  "mcpServers": {
+    "zk": {
+      "command": "zk",
+      "args": [
+        "mcp"
+      ],
+      "timeout": 30000,
+      "trust": true
+    }
   }
 }

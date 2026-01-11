@@ -1,16 +1,5 @@
 # A Zettelkasten (Slip Box) Note Vault in Markdown
 
-## General Instructions
-
-- You are well versed in the Zettelkasten, PARA and CODE techniques
-- You should use the Zettelkasten to answer questions
-- You should do this, by using `zk` to search notes
-- Before running a `zk` command you must pass `--help` to determine if the usage is correct
-- After finding notes, use tags/links and semantic search to find other related notes
-- If you don't find anything using `zk`, you can use normal tools
-- You can search/read files (e.g. PDFs)
-- Don't fall-back to using the internet
-
 ## The Zettelkasten
 
 A merger of the Zettelkasten technique - by Niklas Luhmann - and the PARA/CODE techniques by Tiago Forte.
@@ -162,96 +151,6 @@ It's common to use placeholder variables, to express how the script/command can 
 
 It's an implementation of the "progressive summarization" defined by Tiago Forte.
 
-## Searching, Interacting and Updating the Zettelkasten
+# General Instructions
 
-### Listing Notes
-
-```
-$ zk notes list
-```
-
-1. Notes can be listed to find their directory, title, tags and path
-2. The command supports multiple methods of filtering
-3. The filtering is based on *only* the note title
-4. When multiple filters are provided, it acts as an *AND* operation
-5. The output will be in the format `$DIRECTORY\0x1$TITLE\0x1$TAGS0x1$PATH`
-
-You can (and should) still use standard shell utilities to list notes, if required.
-
-### Searching Notes
-
-```
-$ zk notes search
-```
-
-1. The content of notes can be searched (full text)
-2. The command supports multiple methods of filtering
-3. The filtering is based on both the note title *and* the content
-4. When multiple filters are provided, it acts as an *AND* operation
-5. The output will be in the format `$DIRECTORY\0x1$TITLE\0x1$TAGS0x1$PATH`
-
-You can (and should) still use standard shell utilities to search notes, if required.
-
-### Finding Related Notes
-
-One of the core goals of the Zettelkasten is to improve the ability to find related notes, ideas or concepts.
-
-1. You should `list` and/or `search` to find notes on a subject
-2. You should use tags to find related notes
-3. You can use links to find related notes
-4. You should use `find` to find notes that are semantically related to each-other
-
-#### Using Tags
-
-```
-$ zk tags list
-```
-
-1. You can find all the tags that exist
-
-```
-$ zk notes list tagged
-```
-
-1. You can list notes that are tagged with or without given tags
-2. The output will be in the format `$DIRECTORY\0x1$TITLE\0x1$TAGS0x1$PATH`
-
-#### Using Links
-
-Given notes are atomic, they're often linked using Markdown/Wiki links.
-
-```
-$ zk note links
-```
-
-1. You can list notes that are linked to or from a given note
-2. The output will be in the format `$DIRECTORY\0x1$TITLE\0x1$TAGS0x1$PATH`
-
-#### Using Semantic Search
-
-```
-$ zk notes find
-```
-
-1. You can find notes that are sematically related to a given note
-2. The output will be in the format `$DIRECTORY\0x1$TITLE\0x1$TAGS0x1$PATH`
-
-#### Command Composition
-
-```
-$ zk tags list | fzf | xargs -r zk notes list tagged --with | zk notes pick | zk note update -
-```
-
-1. `zk` is made to be compostable
-2. You can use it within a pipeline to perform more complex searches/operations
-
-### Creating Notes
-
-```
-$ zk note create
-```
-
-1. The initial note should be created using `zk`
-2. It will output the path to the new note
-3. You will add the note content/body after
-4. You will run `zk tags generate $PATH` once the note is created, to ensure the tags are up-to-date
+You are a helpful note-taking assistant, well versed in the Zettelkasten, PARA and CODE techniques; you should use notes from the Zettelkasten to help fulfill requests from the user.
