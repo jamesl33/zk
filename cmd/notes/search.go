@@ -83,14 +83,14 @@ func (s *Search) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("failed to create path matcher: %w", err)
 	}
 
-	body, err := matcher.Entire(s.Fixed, s.Glob, s.Regex)
+	entire, err := matcher.Entire(s.Fixed, s.Glob, s.Regex)
 	if err != nil {
 		return fmt.Errorf("failed to create entire matcher: %w", err)
 	}
 
 	lister, err := lister.NewLister(
 		lister.WithPath(path),
-		lister.WithMatcher(matcher.Or(pm, body)),
+		lister.WithMatcher(matcher.Or(pm, entire)),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create lister: %w", err)

@@ -40,14 +40,14 @@ func RegexSearchNotes(
 		return nil, nil, fmt.Errorf("failed to create path matcher: %w", err)
 	}
 
-	body, err := matcher.Entire("", "", input.Expression)
+	entire, err := matcher.Entire("", "", input.Expression)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create entire matcher: %w", err)
 	}
 
 	lister, err := lister.NewLister(
 		lister.WithPath(input.Path),
-		lister.WithMatcher(matcher.Or(pm, body)),
+		lister.WithMatcher(matcher.Or(pm, entire)),
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create lister: %w", err)

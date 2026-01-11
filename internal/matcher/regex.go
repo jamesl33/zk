@@ -13,6 +13,12 @@ func Regex(pattern string, extract func(n *note.Note) string) (Matcher, error) {
 		return nil, nil
 	}
 
+	// Enable multi-line search
+	pattern = fmt.Sprintf(
+		"(?m:%s)",
+		pattern,
+	)
+
 	parsed, err := regexp.Compile(pattern)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compile regular expression: %w", err)
