@@ -30,7 +30,7 @@ type Note struct {
 	Frontmatter Frontmatter `json:"frontmatter" jsonschema:"The notes YAML frontmatter"`
 
 	// Body is the - front-matter excluded - note body.
-	Body string `json:"body" jsonschema:"The notes content/body, excluding frontmatter"`
+	Body string `json:"body,omitempty" jsonschema:"The notes content/body, excluding frontmatter"`
 }
 
 // New returns a new note.
