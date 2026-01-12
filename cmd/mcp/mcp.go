@@ -71,7 +71,7 @@ This is an excellent way to find notes, it should be used when:
 	- Searching for a tag, which is a lower case, snake case identifier (e.g. linux, thru_hiking)
 	- Searching for words or phrases which may be within a note
 
-The full note content isn't returned, you must read it using 'read_note'.
+The full note content isn't returned, you must read it using 'read_file'.
 `
 
 	mcp.AddTool(
@@ -87,7 +87,7 @@ This is an excellent way to find notes, it should be used when:
 
 	- Searching for notes which are similar, or related to a topic (but perhaps don't mention it directly)
 
-The full note content isn't returned, you must read it using 'read_note'.
+The full note content isn't returned, you must read it using 'read_file'.
 `
 
 	mcp.AddTool(
@@ -105,30 +105,13 @@ This is a great way to increase the amount of context you have before performing
 	- You have a note and you'd like to find other notes that are linked to/from the note (direct mentions)
 	- You have a 'bibliographic' note, and wish to find quotes/citations from the book
 
-The full note content isn't returned, you must read it using 'read_note'.
+The full note content isn't returned, you must read it using 'read_file'.
 	`
 
 	mcp.AddTool(
 		server,
 		&mcp.Tool{Name: "find_related_notes", Description: strings.TrimSpace(description)},
 		tools.FindRelatedNotes,
-	)
-
-	description = `
-Read a note from disk.
-
-You should use this tool when:
-
-	- You have a note, and the title, tags or path don't contain enough information to perform your task
-	- You want to improve your understanding on a topic/idea, the note content is almost always required
-
-The full note is returned.
-	`
-
-	mcp.AddTool(
-		server,
-		&mcp.Tool{Name: "read_note", Description: strings.TrimSpace(description)},
-		tools.ReadNote,
 	)
 
 	err := server.Run(ctx, &mcp.StdioTransport{})
