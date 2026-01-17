@@ -10,28 +10,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// MCPOptions - TODO
-type MCPOptions struct {
-	// Title - TODO
-	Title string
-}
+// MCPOptions defines the options for the mcp command.
+type MCPOptions struct{}
 
-// MCP - TODO
+// MCP defines the struct for the mcp command.
 type MCP struct {
 	MCPOptions
 }
 
-// NewMCP - TODO
+// NewMCP creates a new command for acting as a model context protocol server.
 func NewMCP() *cobra.Command {
 	var mcp MCP
 
 	cmd := cobra.Command{
-		// TODO
-		Short: "",
-		// TODO
-		Use: "mcp",
-		// TODO
-		RunE: func(cmd *cobra.Command, _ []string) error { return mcp.Run(cmd.Context()) },
+		Short: "Runs as a model context protocol server",
+		Use:   "mcp",
+		RunE:  func(cmd *cobra.Command, _ []string) error { return mcp.Run(cmd.Context()) },
 	}
 
 	return &cmd
@@ -116,7 +110,7 @@ The full note content isn't returned, you must read it using 'read_file'.
 
 	err := server.Run(ctx, &mcp.StdioTransport{})
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to run server: %w", err)
 	}
 
 	return nil

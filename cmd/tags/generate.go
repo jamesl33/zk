@@ -15,27 +15,23 @@ import (
 	"go.yaml.in/yaml/v4"
 )
 
-// GenerateOptions - TODO
+// GenerateOptions defines the options for the generate command.
 type GenerateOptions struct{}
 
-// Generate - TODO
+// Generate defines the struct for the generate command.
 type Generate struct {
 	GenerateOptions
 }
 
-// NewGenerate - TODO
+// NewGenerate creates a new command for generating tags.
 func NewGenerate() *cobra.Command {
 	var generate Generate
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Generate tags for notes, based on the note content",
-		// TODO
-		Use: "generate [directory | path]",
-		// TODO
-		Args: cobra.MaximumNArgs(1),
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return generate.Run(cmd.Context(), args) },
+		Use:   "generate [directory | path]",
+		Args:  cobra.MaximumNArgs(1),
+		RunE:  func(cmd *cobra.Command, args []string) error { return generate.Run(cmd.Context(), args) },
 	}
 
 	return &cmd
@@ -68,7 +64,6 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 
 // generate tags for the given note.
 func (g *Generate) generate(ctx context.Context, n *note.Note) error {
-	// TODO
 	if len(n.Body) == 0 {
 		return nil
 	}

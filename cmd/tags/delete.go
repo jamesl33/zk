@@ -12,27 +12,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// DeleteOptions - TODO
+// DeleteOptions defines the options for the delete command.
 type DeleteOptions struct{}
 
-// Delete - TODO
+// Delete defines the struct for the delete command.
 type Delete struct {
 	DeleteOptions
 }
 
-// NewDelete - TODO
+// NewDelete creates a new command for deleting a tag.
 func NewDelete() *cobra.Command {
 	var del Delete
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Delete a tag by remove it from all notes",
-		// TODO
-		Use: "delete <path>",
-		// TODO
-		Args: cobra.ExactArgs(1),
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return del.Run(cmd.Context(), args[0]) },
+		Use:   "delete <path>",
+		Args:  cobra.ExactArgs(1),
+		RunE:  func(cmd *cobra.Command, args []string) error { return del.Run(cmd.Context(), args[0]) },
 	}
 
 	return &cmd

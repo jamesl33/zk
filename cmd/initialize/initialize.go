@@ -16,25 +16,22 @@ var settings []byte
 //go:embed instructions.md
 var instructions []byte
 
-// InitializeOptions - TODO
+// InitializeOptions defines the options for the initialize command.
 type InitializeOptions struct{}
 
-// Initialize - TODO
+// Initialize defines the struct for the initialize command.
 type Initialize struct {
 	InitializeOptions
 }
 
-// NewInitialize - TODO
+// NewInitialize creates a new command for initializing Gemini for use with 'zk'.
 func NewInitialize() *cobra.Command {
 	var index Initialize
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Creates a 'GEMINI.md' file, with instructions on how to interact with the Zettelkasten",
-		// TODO
-		Use: "initialize",
-		// TODO
-		RunE: func(cmd *cobra.Command, _ []string) error { return index.Run(cmd.Context()) },
+		Use:   "initialize",
+		RunE:  func(cmd *cobra.Command, _ []string) error { return index.Run(cmd.Context()) },
 	}
 
 	return &cmd
@@ -44,17 +41,17 @@ func NewInitialize() *cobra.Command {
 func (i *Initialize) Run(ctx context.Context) error {
 	err := os.MkdirAll(".gemini", 0o755)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
 	err = os.WriteFile(".gemini/settings.json", settings, 0o644)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to write settings: %w", err)
 	}
 
 	err = os.WriteFile("GEMINI.md", instructions, 0o644)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to write instructions: %w", err)
 	}
 
 	return nil

@@ -13,27 +13,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ListOptions - TODO
+// ListOptions defines the options for the list command.
 type ListOptions struct{}
 
-// List - TODO
+// List defines the struct for the list command.
 type List struct {
 	ListOptions
 }
 
-// NewList - TODO
+// NewList creates a new command for listing tags.
 func NewList() *cobra.Command {
 	var list List
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "List the tags for notes",
-		// TODO
-		Use: "list [directory | path]",
-		// TODO
-		Args: cobra.MaximumNArgs(1),
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return list.Run(cmd.Context(), args) },
+		Use:   "list [directory | path]",
+		Args:  cobra.MaximumNArgs(1),
+		RunE:  func(cmd *cobra.Command, args []string) error { return list.Run(cmd.Context(), args) },
 	}
 
 	return &cmd

@@ -13,27 +13,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// FindOptions - TODO
+// FindOptions defines the options for the find command.
 type FindOptions struct{}
 
-// Find - TODO
+// Find defines the struct for the find command.
 type Find struct {
 	FindOptions
 }
 
-// NewFind - TODO
+// NewFind creates a new command for finding semantically similar notes.
 func NewFind() *cobra.Command {
 	var find Find
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Finds semantically similar notes using a plain text query",
-		// TODO
-		Use: "find <query>",
-		// TODO
-		Args: cobra.ExactArgs(1),
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return find.Run(cmd.Context(), args[0]) },
+		Use:   "find <query>",
+		Args:  cobra.ExactArgs(1),
+		RunE:  func(cmd *cobra.Command, args []string) error { return find.Run(cmd.Context(), args[0]) },
 	}
 
 	return &cmd
@@ -52,7 +48,6 @@ func (f *Find) Run(ctx context.Context, query string) error {
 		return fmt.Errorf("failed to populate database: %w", err)
 	}
 
-	// TODO
 	n := &note.Note{
 		Body: query,
 	}

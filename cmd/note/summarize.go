@@ -13,27 +13,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// SummarizeOptions - TODO
+// SummarizeOptions defines the options for the summarize command.
 type SummarizeOptions struct{}
 
-// Summarize - TODO
+// Summarize defines the struct for the summarize command.
 type Summarize struct {
 	SummarizeOptions
 }
 
-// NewSummarize - TODO
+// NewSummarize creates a new command for summarizing notes.
 func NewSummarize() *cobra.Command {
 	var summarize Summarize
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Summarize a note",
-		// TODO
-		Use: "summarize <path>",
-		// TODO
-		Args: cobra.ExactArgs(1),
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return summarize.Run(cmd.Context(), args[0]) },
+		Use:   "summarize <path>",
+		Args:  cobra.ExactArgs(1),
+		RunE:  func(cmd *cobra.Command, args []string) error { return summarize.Run(cmd.Context(), args[0]) },
 	}
 
 	return &cmd
@@ -46,7 +42,6 @@ func (s *Summarize) Run(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to open note: %w", err)
 	}
 
-	// TODO
 	if len(n.Body) == 0 {
 		return nil
 	}
@@ -85,7 +80,6 @@ func (s *Summarize) wrap(content string) string {
 
 	columns, _ := strconv.ParseUint(raw, 10, 64)
 
-	// TODO
 	if columns == 0 {
 		return content
 	}

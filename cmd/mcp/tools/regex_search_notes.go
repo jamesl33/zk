@@ -12,22 +12,22 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// RegexSearchNotesInput - TODO
+// RegexSearchNotesInput defines the input for the RegexSearchNotes tool.
 type RegexSearchNotesInput struct {
-	// Path - TODO
+	// Path is the path to the directory to search in.
 	Path string `json:"path" jsonschema:"The path to the directory to search in"`
 
-	// Expression - TODO
+	// Expression is the (RE2) regular expression to use.
 	Expression string `json:"expression" jsonschema:"The (RE2) regular expression to use"`
 }
 
-// RegexSearchNotesOutput - TODO
+// RegexSearchNotesOutput defines the output for the RegexSearchNotes tool.
 type RegexSearchNotesOutput struct {
-	// Notes - TODO
+	// Notes is a list of notes where the title, tags or content match the regular expression.
 	Notes []*note.Note `json:"notes" jsonschema:"Notes where the title, tags or content match the regular expression"`
 }
 
-// RegexSearchNotes - TODO
+// RegexSearchNotes finds notes where the title, tags or content match the regular expression.
 //
 // TODO (jamesl33): De-duplicate this code?
 func RegexSearchNotes(
@@ -56,10 +56,7 @@ func RegexSearchNotes(
 	found := make([]*note.Note, 0)
 
 	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
-		// TODO
 		n.Body = ""
-
-		// TODO
 		found = append(found, n)
 	}))
 	if err != nil {

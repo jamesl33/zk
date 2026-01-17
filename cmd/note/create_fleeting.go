@@ -9,28 +9,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CreateFleetingOptions - TODO
+// CreateFleetingOptions defines the options for the fleeting command.
 type CreateFleetingOptions struct {
-	// Title - TODO
+	// Title is the title for the note.
 	Title string
 }
 
-// CreateFleeting - TODO
+// CreateFleeting defines the struct for the fleeting command.
 type CreateFleeting struct {
 	CreateFleetingOptions
 }
 
-// NewCreateFleeting - TODO
+// NewCreateFleeting creates a new command for creating a 'fleeting' note.
 func NewCreateFleeting() *cobra.Command {
 	var fleeting CreateFleeting
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Create a new 'fleeting' note",
-		// TODO
-		Use: "fleeting",
-		// TODO
-		RunE: func(cmd *cobra.Command, _ []string) error { return fleeting.Run(cmd.Context()) },
+		Use:   "fleeting",
+		RunE:  func(cmd *cobra.Command, _ []string) error { return fleeting.Run(cmd.Context()) },
 	}
 
 	cmd.Flags().StringVar(

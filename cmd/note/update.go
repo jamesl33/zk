@@ -13,25 +13,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// UpdateOptions - TODO
+// UpdateOptions defines the options for the update command.
 type UpdateOptions struct{}
 
-// Update - TODO
+// Update defines the struct for the update command.
 type Update struct {
 	UpdateOptions
 }
 
-// NewUpdate - TODO
+// NewUpdate creates a new command for opening a note in the default text editor.
 func NewUpdate() *cobra.Command {
 	var update Update
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Open a note in the default text editor",
-		// TODO
-		Use: "update",
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return update.Run(cmd.Context(), args) },
+		Use:   "update",
+		RunE:  func(cmd *cobra.Command, args []string) error { return update.Run(cmd.Context(), args) },
 	}
 
 	return &cmd
@@ -73,7 +70,7 @@ func (u *Update) path(args []string) (string, error) {
 	// No path provided, read from stdin
 	path, err := bufio.NewReader(os.Stdin).ReadString('\n')
 	if err != nil {
-		return "", fmt.Errorf("%w", err) // TODO
+		return "", fmt.Errorf("failed to read from stdin: %w", err)
 	}
 
 	// Strip whitespace

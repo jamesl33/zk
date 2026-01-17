@@ -9,30 +9,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CreateLiteratureOptions - TODO
+// CreateLiteratureOptions defines the options for the literature command.
 type CreateLiteratureOptions struct {
-	// Title - TODO
+	// Title is the title for the note (e.g. the title of a book/article).
 	Title string
 }
 
-// CreateLiterature - TODO
+// CreateLiterature defines the struct for the literature command.
 type CreateLiterature struct {
 	CreateLiteratureOptions
 }
 
-// NewCreateLiterature - TODO
+// NewCreateLiterature creates a new command for creating a 'literature' note.
 func NewCreateLiterature() *cobra.Command {
 	var literature CreateLiterature
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Create a new 'literature' note",
-		// TODO
-		Use: "literature <directory>",
-		// TODO
-		Args: cobra.ExactArgs(1),
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return literature.Run(cmd.Context(), args[0]) },
+		Use:   "literature <directory>",
+		Args:  cobra.ExactArgs(1),
+		RunE:  func(cmd *cobra.Command, args []string) error { return literature.Run(cmd.Context(), args[0]) },
 	}
 
 	cmd.Flags().StringVar(

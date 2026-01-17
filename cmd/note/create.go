@@ -4,13 +4,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewCreate - TODO
+// NewCreate creates a new command for creating notes.
 func NewCreate() *cobra.Command {
 	cmd := cobra.Command{
-		// TODO
 		Short: "Create a new note",
-		// TODO
-		Use: "create",
+		Use:   "create",
 	}
 
 	cmd.AddCommand(

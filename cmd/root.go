@@ -14,17 +14,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rootCommand - TODO
+// rootCommand defines the root of the command chain.
 var rootCommand = &cobra.Command{
-	// TODO
-	Short: "A composable command-line tool for interacting with a Markdown Zettelkasten.",
-	// TODO
-	Long: "",
-	// TODO
-	SilenceErrors: true,
-	// TODO
-	SilenceUsage: true,
-	// TODO
+	Short:            "A composable command-line tool for interacting with a Markdown Zettelkasten.",
+	Long:             "",
+	SilenceErrors:    true,
+	SilenceUsage:     true,
 	TraverseChildren: true,
 }
 

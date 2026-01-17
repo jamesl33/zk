@@ -193,11 +193,11 @@ func (n *Note) Links() []string {
 	return links
 }
 
-// String - TODO
+// String returns a string representation of the note.
 func (n *Note) String() string {
 	var builder strings.Builder
 
-	// TODO (jamesl33): Fine to just ignore this?
+	// TODO (jamesl3y3): Fine to just ignore this?
 	_, _ = n.WriteTo(&builder)
 
 	return builder.String()

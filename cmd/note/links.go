@@ -13,33 +13,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// LinksOptions - TODO
+// LinksOptions defines the options for the links command.
 type LinksOptions struct {
-	// To - TODO
+	// To determines whether to show notes which link to the given note.
 	To bool
 
-	// From - TODO
+	// From determines whether to show notes which are linked from the given note.
 	From bool
 }
 
-// Links - TODO
+// Links defines the struct for the links command.
 type Links struct {
 	LinksOptions
 }
 
-// NewLinks - TODO
+// NewLinks creates a new command for listing links to/from a note.
 func NewLinks() *cobra.Command {
 	var links Links
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "List the links to/from a note",
-		// TODO
-		Use: "links <path>",
-		// TODO
-		Args: cobra.ExactArgs(1),
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return links.Run(cmd.Context(), args[0]) },
+		Use:   "links <path>",
+		Args:  cobra.ExactArgs(1),
+		RunE:  func(cmd *cobra.Command, args []string) error { return links.Run(cmd.Context(), args[0]) },
 	}
 
 	cmd.Flags().BoolVar(

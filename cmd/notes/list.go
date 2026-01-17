@@ -12,38 +12,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ListOptions - TODO
+// ListOptions defines the options for the list command.
 //
 // TODO (jamesl33): Add support for case-insensitive listing.
 type ListOptions struct {
-	// Fixed - TODO
+	// Fixed filters notes by title using a case-sensitive fixed-string search.
 	Fixed string
 
-	// Glob - TODO
+	// Glob filters notes by title using a case-sensitive glob pattern.
 	Glob string
 
-	// Regex - TODO
+	// Regex filters notes by title using a regular expression (RE2).
 	Regex string
 }
 
-// List - TODO
+// List defines the struct for the list command.
 type List struct {
 	ListOptions
 }
 
-// NewList - TODO
+// NewList creates a new command for listing notes.
 func NewList() *cobra.Command {
 	var list List
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "List notes and display useful information/metadata (e.g. tags)",
-		// TODO
-		Use: "list [directory]",
-		// TODO
-		Args: cobra.MaximumNArgs(1),
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return list.Run(cmd.Context(), args) },
+		Use:   "list [directory]",
+		Args:  cobra.MaximumNArgs(1),
+		RunE:  func(cmd *cobra.Command, args []string) error { return list.Run(cmd.Context(), args) },
 	}
 
 	cmd.Flags().StringVar(

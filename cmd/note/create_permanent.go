@@ -9,30 +9,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CreatePermanentOptions - TODO
+// CreatePermanentOptions defines the options for the permanent command.
 type CreatePermanentOptions struct {
-	// Title - TODO
+	// Title is the title for the note (e.g. the title of a book/article).
 	Title string
 }
 
-// CreatePermanent - TODO
+// CreatePermanent defines the struct for the permanent command.
 type CreatePermanent struct {
 	CreatePermanentOptions
 }
 
-// NewCreatePermanent - TODO
+// NewCreatePermanent creates a new command for creating a 'permanent' note.
 func NewCreatePermanent() *cobra.Command {
 	var permanent CreatePermanent
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Create a new 'permanent' note",
-		// TODO
-		Use: "permanent <directory>",
-		// TODO
-		Args: cobra.ExactArgs(1),
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return permanent.Run(cmd.Context(), args[0]) },
+		Use:   "permanent <directory>",
+		Args:  cobra.ExactArgs(1),
+		RunE:  func(cmd *cobra.Command, args []string) error { return permanent.Run(cmd.Context(), args[0]) },
 	}
 
 	cmd.Flags().StringVar(

@@ -9,28 +9,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CreateBibliographicOptions - TODO
+// CreateBibliographicOptions defines the options for the bibliographic command.
 type CreateBibliographicOptions struct {
-	// Title - TODO
+	// Title is the title for the note (e.g. the title of a book/article).
 	Title string
 }
 
-// CreateBibliographic - TODO
+// CreateBibliographic defines the struct for the bibliographic command.
 type CreateBibliographic struct {
 	CreateBibliographicOptions
 }
 
-// NewCreateBibliographic - TODO
+// NewCreateBibliographic creates a new command for creating a 'bibliographic' note.
 func NewCreateBibliographic() *cobra.Command {
 	var bibliographic CreateBibliographic
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Create a new 'bibliographic' note",
-		// TODO
-		Use: "bibliographic",
-		// TODO
-		RunE: func(cmd *cobra.Command, _ []string) error { return bibliographic.Run(cmd.Context()) },
+		Use:   "bibliographic",
+		RunE:  func(cmd *cobra.Command, _ []string) error { return bibliographic.Run(cmd.Context()) },
 	}
 
 	cmd.Flags().StringVar(

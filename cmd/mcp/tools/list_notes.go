@@ -11,19 +11,19 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// ListNotesInput - TODO
+// ListNotesInput defines the input for the ListNotes tool.
 type ListNotesInput struct {
-	// Path - TODO
+	// Path is a directory in which to list notes.
 	Path string `json:"path" jsonschema:"A directory in which to list notes"`
 }
 
-// ListNotesOutput - TODO
+// ListNotesOutput defines the output for the ListNotes tool.
 type ListNotesOutput struct {
-	// Notes - TODO
+	// Notes is a list of notes that were in the given directory.
 	Notes []*note.Note `json:"notes" jsonschema:"Notes that were in the given directory"`
 }
 
-// ListNotes - TODO
+// ListNotes lists notes in a given directory.
 //
 // TODO (jamesl33): De-duplicate this code?
 func ListNotes(
@@ -41,10 +41,7 @@ func ListNotes(
 	found := make([]*note.Note, 0)
 
 	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
-		// TODO
 		n.Body = ""
-
-		// TODO
 		found = append(found, n)
 	}))
 	if err != nil {

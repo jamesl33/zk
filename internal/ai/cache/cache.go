@@ -10,9 +10,7 @@ import (
 	"strings"
 )
 
-// TODO (jamesl33): Make this safe across instances of 'zk'.
-
-// Cache - TODO
+// Cache defines a generic cache which is backed by a sqlite3 database.
 //
 // TODO (jamesl33): Add expiration.
 type Cache[T any] struct {
@@ -20,7 +18,7 @@ type Cache[T any] struct {
 	table string
 }
 
-// New - TODO
+// New creates a new cache.
 func New[T any](
 	ctx context.Context,
 	path string,
@@ -52,13 +50,13 @@ func New[T any](
 	return &cache, nil
 }
 
-// Get - TODO
+// Get a value from the cache.
 func (c *Cache[T]) Get(ctx context.Context, prompt string) (*T, error) {
 	hasher := crc32.NewIEEE()
 
 	_, err := io.Copy(hasher, strings.NewReader(prompt))
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to hash prompt: %w", err)
 	}
 
 	// query to acquire the existing prompt checksum
@@ -81,19 +79,19 @@ func (c *Cache[T]) Get(ctx context.Context, prompt string) (*T, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to query row: %w", err)
 	}
 
 	return &result, nil
 }
 
-// Set - TODO
+// Set a value in the cache.
 func (c *Cache[T]) Set(ctx context.Context, prompt string, result T) error {
 	hasher := crc32.NewIEEE()
 
 	_, err := io.Copy(hasher, strings.NewReader(prompt))
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to hash prompt: %w", err)
 	}
 
 	// insert the embedding into the index

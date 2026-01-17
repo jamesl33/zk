@@ -10,25 +10,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// PickOptions - TODO
+// PickOptions defines the options for the pick command.
 type PickOptions struct{}
 
-// Pick - TODO
+// Pick defines the struct for the pick command.
 type Pick struct {
 	PickOptions
 }
 
-// NewPick - TODO
+// NewPick creates a new command for picking a note using 'fzf'.
 func NewPick() *cobra.Command {
 	var pick Pick
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Pick a note using 'fzf', supports the output from 'zk'",
-		// TODO
-		Use: "pick",
-		// TODO
-		RunE: func(cmd *cobra.Command, _ []string) error { return pick.Run(cmd.Context()) },
+		Use:   "pick",
+		RunE:  func(cmd *cobra.Command, _ []string) error { return pick.Run(cmd.Context()) },
 	}
 
 	return &cmd

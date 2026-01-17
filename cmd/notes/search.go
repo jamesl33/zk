@@ -12,38 +12,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// SearchOptions - TODO
+// SearchOptions defines the options for the search command.
 //
 // TODO (jamesl33): Add support for case-insensitive search.
 type SearchOptions struct {
-	// Fixed - TODO
+	// Fixed filters notes by title/content using a case-sensitive fixed-string search.
 	Fixed string
 
-	// Glob - TODO
+	// Glob filters notes by title/content using a case-sensitive glob pattern.
 	Glob string
 
-	// Regex - TODO
+	// Regex filters notes by title/content using a regular expression (RE2).
 	Regex string
 }
 
-// Search - TODO
+// Search defines the struct for the search command.
 type Search struct {
 	SearchOptions
 }
 
-// NewSearch - TODO
+// NewSearch creates a new command for searching notes.
 func NewSearch() *cobra.Command {
 	var search Search
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Search the content of notes, listing the matching notes",
-		// TODO
-		Use: "search [directory]",
-		// TODO
-		Args: cobra.MaximumNArgs(1),
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return search.Run(cmd.Context(), args) },
+		Use:   "search [directory]",
+		Args:  cobra.MaximumNArgs(1),
+		RunE:  func(cmd *cobra.Command, args []string) error { return search.Run(cmd.Context(), args) },
 	}
 
 	cmd.Flags().StringVar(

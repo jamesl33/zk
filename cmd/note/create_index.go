@@ -9,30 +9,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CreateIndexOptions - TODO
+// CreateIndexOptions defines the options for the index command.
 type CreateIndexOptions struct {
-	// Title - TODO
+	// Title is the title for the note (e.g. the title of a book/article).
 	Title string
 }
 
-// CreateIndex - TODO
+// CreateIndex defines the struct for the index command.
 type CreateIndex struct {
 	CreateIndexOptions
 }
 
-// NewCreateIndex - TODO
+// NewCreateIndex creates a new command for creating an 'index' note.
 func NewCreateIndex() *cobra.Command {
 	var index CreateIndex
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "Create a new 'index' note",
-		// TODO
-		Use: "index <directory>",
-		// TODO
-		Args: cobra.ExactArgs(1),
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return index.Run(cmd.Context(), args[0]) },
+		Use:   "index <directory>",
+		Args:  cobra.ExactArgs(1),
+		RunE:  func(cmd *cobra.Command, args []string) error { return index.Run(cmd.Context(), args[0]) },
 	}
 
 	cmd.Flags().StringVar(

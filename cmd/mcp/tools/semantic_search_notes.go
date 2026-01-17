@@ -13,19 +13,19 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// SemanticSearchNotesInput - TODO
+// SemanticSearchNotesInput defines the input for the SemanticSearchNotes tool.
 type SemanticSearchNotesInput struct {
-	// Query - TODO
+	// Query is a generic query, phrase, word or pattern used to find semantically similar notes.
 	Query string `json:"query" jsonschema:"A generic query, phrase, word or pattern used to find semantically similar notes"`
 }
 
-// SemanticSearchNotesOutput - TODO
+// SemanticSearchNotesOutput defines the output for the SemanticSearchNotes tool.
 type SemanticSearchNotesOutput struct {
-	// Notes - TODO
+	// Notes is a list of notes that are semantically similar to the query.
 	Notes []*note.Note `json:"notes" jsonschema:"Notes that are semantically similar to the query"`
 }
 
-// SemanticSearchNotes - TODO
+// SemanticSearchNotes finds notes that are semantically similar to the query.
 //
 // TODO (jamesl33): De-duplicate this code?
 func SemanticSearchNotes(
@@ -44,7 +44,6 @@ func SemanticSearchNotes(
 		return nil, nil, fmt.Errorf("failed to populate database: %w", err)
 	}
 
-	// TODO
 	n := &note.Note{
 		Body: input.Query,
 	}
@@ -57,10 +56,7 @@ func SemanticSearchNotes(
 	found := make([]*note.Note, 0)
 
 	err = iterator.ForEach2(notes, hs.Infallible(func(n *note.Note) {
-		// TODO
 		n.Body = ""
-
-		// TODO
 		found = append(found, n)
 	}))
 	if err != nil {

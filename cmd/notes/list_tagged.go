@@ -12,31 +12,28 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ListTaggedOptions - TODO
+// ListTaggedOptions defines the options for the tagged command.
 type ListTaggedOptions struct {
-	// With - TODO
+	// With defines a list of tags which must be present.
 	With []string
 
-	// Without - TODO
+	// Without defines a list of tags which must not be present.
 	Without []string
 }
 
-// ListTagged - TODO
+// ListTagged defines the struct for the tagged command.
 type ListTagged struct {
 	ListTaggedOptions
 }
 
-// NewListTagged - TODO
+// NewListTagged creates a new command for listing notes by tag.
 func NewListTagged() *cobra.Command {
 	var tagged ListTagged
 
 	cmd := cobra.Command{
-		// TODO
 		Short: "List notes by tag",
-		// TODO
-		Use: "tagged",
-		// TODO
-		RunE: func(cmd *cobra.Command, args []string) error { return tagged.Run(cmd.Context(), args) },
+		Use:   "tagged",
+		RunE:  func(cmd *cobra.Command, args []string) error { return tagged.Run(cmd.Context(), args) },
 	}
 
 	cmd.Flags().StringArrayVar(

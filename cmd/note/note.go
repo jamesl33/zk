@@ -2,13 +2,11 @@ package note
 
 import "github.com/spf13/cobra"
 
-// NewNote - TODO
+// NewNote creates a new command for interacting with a single note.
 func NewNote() *cobra.Command {
 	cmd := cobra.Command{
-		// TODO
 		Short: "Interact and manipulate a single note",
-		// TODO
-		Use: "note",
+		Use:   "note",
 	}
 
 	cmd.AddCommand(

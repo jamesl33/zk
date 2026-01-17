@@ -16,19 +16,19 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// FindRelatedNotesInput - TODO
+// FindRelatedNotesInput defines the input for the FindRelatedNotes tool.
 type FindRelatedNotesInput struct {
-	// Path - TODO
+	// Path is the path to the note to find related notes for.
 	Path string `json:"path" jsonschema:"The path to a note"`
 }
 
-// FindRelatedNotesOutput - TODO
+// FindRelatedNotesOutput defines the output for the FindRelatedNotes tool.
 type FindRelatedNotesOutput struct {
-	// Notes - TODO
+	// Notes is a list of notes which are semantically similar to the given note.
 	Notes []*note.Note `json:"notes" jsonschema:"Notes which are semantically similar to the given note"`
 }
 
-// FindRelatedNotes - TODO
+// FindRelatedNotes finds notes which are semantically similar to the given note.
 //
 // TODO (jamesl33): De-duplicate this code?
 func FindRelatedNotes(
@@ -60,10 +60,7 @@ func FindRelatedNotes(
 	found := make([]*note.Note, 0)
 
 	err = iterator.ForEach2(notes, hs.Infallible(func(n *note.Note) {
-		// TODO
 		n.Body = ""
-
-		// TODO
 		found = append(found, n)
 	}))
 	if err != nil {
@@ -72,12 +69,12 @@ func FindRelatedNotes(
 
 	to, err := to(ctx, n)
 	if err != nil {
-		return nil, nil, fmt.Errorf("%w", err) // TODO
+		return nil, nil, fmt.Errorf("failed to find linked notes: %w", err)
 	}
 
 	from, err := from(ctx, n)
 	if err != nil {
-		return nil, nil, fmt.Errorf("%w", err) // TODO
+		return nil, nil, fmt.Errorf("failed to find linking notes: %w", err)
 	}
 
 	output := FindRelatedNotesOutput{
@@ -87,7 +84,7 @@ func FindRelatedNotes(
 	return nil, &output, nil
 }
 
-// to - TODO
+// to finds notes which link to the given note.
 func to(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	var (
 		// name of the note, escaped for use in regular expressions
@@ -113,10 +110,7 @@ func to(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	found := make([]*note.Note, 0)
 
 	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
-		// TODO
 		n.Body = ""
-
-		// TODO
 		found = append(found, n)
 	}))
 	if err != nil {
@@ -126,7 +120,7 @@ func to(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	return found, nil
 }
 
-// from - TODO
+// from finds notes which are linked from the given note.
 func from(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	matchers := hs.Map(n.Links(), func(n string) matcher.Matcher { return matcher.Name(n) })
 
@@ -146,10 +140,7 @@ func from(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	found := make([]*note.Note, 0)
 
 	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
-		// TODO
 		n.Body = ""
-
-		// TODO
 		found = append(found, n)
 	}))
 	if err != nil {
