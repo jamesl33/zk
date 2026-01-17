@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/jamesl33/zk/internal/regex"
 	"go.yaml.in/yaml/v4"
 )
 
@@ -177,17 +178,12 @@ func (n *Note) WriteTo(w io.Writer) (int64, error) {
 // Links returns the names of other notes mentioned in this note.
 func (n *Note) Links() []string {
 	var (
-		// Captures wiki-style links
-		re = regexp.MustCompile(`\[\[(?P<link>.*?)(\|(?P<text>.*?))?\]\]`)
-
-		// All the matches within the note body
-		matches = re.FindAllStringSubmatch(n.Body, -1)
+		matches = regex.Link.FindAllStringSubmatch(n.Body, -1)
+		links   = make([]string, 0)
 	)
 
-	links := make([]string, 0)
-
 	for _, match := range matches {
-		links = append(links, match[re.SubexpIndex("link")])
+		links = append(links, match[regex.Link.SubexpIndex("link")])
 	}
 
 	return links
