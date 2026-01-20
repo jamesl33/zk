@@ -8,12 +8,8 @@ import (
 	"strconv"
 
 	"github.com/jamesl33/zk/internal/ai"
-	"github.com/jamesl33/zk/internal/hs"
-	"github.com/jamesl33/zk/internal/iterator"
-	"github.com/jamesl33/zk/internal/lister"
-	"github.com/jamesl33/zk/internal/matcher"
+	"github.com/jamesl33/zk/internal/links"
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/regex"
 	"github.com/mitchellh/go-wordwrap"
 	"github.com/spf13/cobra"
 )
@@ -55,7 +51,7 @@ func (s *Summarize) Run(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to create client: %w", err)
 	}
 
-	err = s.rewriteLinks(ctx, n)
+	n, err = links.Rewrite(ctx, n)
 	if err != nil {
 		return fmt.Errorf("failed to rewrite links: %w", err)
 	}
@@ -75,54 +71,6 @@ Without changing the meaning, produce a single sentence summary of the above not
 	}
 
 	fmt.Println(s.wrap(content))
-
-	return nil
-}
-
-// rewriteLinks rewrites links within a note, converting the link into the title of the linked note; this is to enrich
-// the context for summarization.
-func (s *Summarize) rewriteLinks(ctx context.Context, n *note.Note) error {
-	links := n.Links()
-
-	if len(links) == 0 {
-		return nil
-	}
-
-	matchers := hs.Map(links, func(n string) matcher.Matcher { return matcher.Name(n) })
-
-	lister, err := lister.NewLister(
-		lister.WithPath("."),
-		lister.WithMatcher(matcher.Or(matchers...)),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create lister: %w", err)
-	}
-
-	titles := make(map[string]string)
-
-	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
-		titles[n.Name()] = n.Frontmatter.Title
-	}))
-	if err != nil {
-		return fmt.Errorf("failed to list notes: %w", err)
-	}
-
-	// rpl replaces links within notes, with the target notes title.
-	rpl := func(match string) string {
-		var (
-			submatches = regex.Link.FindStringSubmatch(match)
-			link       = submatches[regex.Link.SubexpIndex("link")]
-		)
-
-		if title, ok := titles[link]; ok {
-			return title
-		}
-
-		return link
-	}
-
-	// Rewrite the note body
-	n.Body = regex.Link.ReplaceAllStringFunc(n.Body, rpl)
 
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/jamesl33/zk/internal/ai"
 	"github.com/jamesl33/zk/internal/iterator"
+	"github.com/jamesl33/zk/internal/links"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/spf13/cobra"
@@ -73,6 +74,11 @@ func (g *Generate) generate(ctx context.Context, n *note.Note) error {
 		return fmt.Errorf("failed to create client: %w", err)
 	}
 
+	rw, err := links.Rewrite(ctx, n)
+	if err != nil {
+		return fmt.Errorf("failed to rewrite links: %w", err)
+	}
+
 	example := "```yaml\ntags:\n  - tag_1\n  - tag_2\n```"
 
 	prompt := `
@@ -87,7 +93,7 @@ You must use lower-case and only output tags using the snake case style.
 
 Don't use tags unless there's enough information to catagorize.`
 
-	prompt = fmt.Sprintf(prompt, n.Body, example)
+	prompt = fmt.Sprintf(prompt, rw.Body, example)
 
 	content, err := client.Generate(ctx, prompt)
 	if err != nil {
