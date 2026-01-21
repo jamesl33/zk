@@ -33,6 +33,23 @@ func NewLister(opts ...func(o *Options)) (*Lister, error) {
 	return &lister, nil
 }
 
+// One - TODO
+func (l *Lister) One(ctx context.Context) (*note.Note, error) {
+	next, stop := iter.Pull2(l.Many(ctx))
+	defer stop()
+
+	n, err, ok := next()
+	if !ok {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("%w", err) // TODO
+	}
+
+	return n, nil
+}
+
 // Many returns an iterator containing matching notes.
 func (l *Lister) Many(ctx context.Context) iter.Seq2[*note.Note, error] {
 	return func(yield func(*note.Note, error) bool) {

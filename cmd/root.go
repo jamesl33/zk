@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/jamesl33/zk/cmd/initialize"
+	"github.com/jamesl33/zk/cmd/lsp"
 	"github.com/jamesl33/zk/cmd/mcp"
 	"github.com/jamesl33/zk/cmd/note"
 	"github.com/jamesl33/zk/cmd/notes"
@@ -25,7 +26,7 @@ var rootCommand = &cobra.Command{
 
 // init sets up the CLI.
 func init() {
-	rootCommand.AddCommand(initialize.NewInitialize(), note.NewNote(), notes.NewNotes(), tags.NewTags(), mcp.NewMCP())
+	rootCommand.AddCommand(initialize.NewInitialize(), note.NewNote(), notes.NewNotes(), tags.NewTags(), mcp.NewMCP(), lsp.NewLSP())
 }
 
 // Execute 'zk'.

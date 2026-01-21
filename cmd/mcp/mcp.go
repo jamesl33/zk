@@ -31,7 +31,7 @@ func NewMCP() *cobra.Command {
 	return &cmd
 }
 
-// Run creates a new bibliographic note.
+// Run - TODO
 func (m *MCP) Run(ctx context.Context) error {
 	impl := mcp.Implementation{
 		Name:    "zk",
