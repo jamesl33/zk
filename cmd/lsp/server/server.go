@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/jamesl33/zk/internal/lister"
@@ -83,6 +84,7 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse document URI: %w", err)
 	}
+
 	src, err := os.ReadFile(u.Path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read source file: %w", err)
@@ -95,8 +97,7 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 	}
 
 	var (
-		line     = lines[params.Position.Line]
-		matches  = regex.Link.FindStringSubmatch(line)
+		matches  = regex.Link.FindStringSubmatch(lines[params.Position.Line])
 		expected = 1 + regex.Link.NumSubexp()
 	)
 
@@ -130,9 +131,17 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 		return nil, fmt.Errorf("failed to get absolute path of destination note: %w", err)
 	}
 
-	// TODO (jamesl33): Jump directly to the title?
+	lines = strings.Split(dst.String(), "\n")
+
+	// Place the cursor at the beginning of the note title
+	var (
+		idx  = slices.IndexFunc(lines, func(s string) bool { return strings.HasPrefix(s, "title: ") })
+		line = max(0, idx)
+		char = len("title: ")
+	)
+
 	rng := protocol.Range{
-		Start: protocol.Position{Line: 0, Character: 0},
+		Start: protocol.Position{Line: protocol.UInteger(line), Character: protocol.UInteger(char)},
 		End:   protocol.Position{Line: 0, Character: 0},
 	}
 
