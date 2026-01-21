@@ -31,7 +31,8 @@ func NewMCP() *cobra.Command {
 	return &cmd
 }
 
-// Run - TODO
+// Run configures and executes the model context protocol server. It initializes the server implementation, registers
+// available tools with their descriptions, and then starts the server using stdio for transport.
 func (m *MCP) Run(ctx context.Context) error {
 	impl := mcp.Implementation{
 		Name:    "zk",

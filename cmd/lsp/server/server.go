@@ -16,7 +16,7 @@ import (
 	protocol "github.com/tliron/glsp/protocol_3_16"
 )
 
-// Server - TODO
+// Server defines the LSP server.
 //
 // TODO (jamesl33): Add support for finding references (e.g. all the notes that link to a note).
 type Server struct {
@@ -24,7 +24,7 @@ type Server struct {
 	ctx context.Context
 }
 
-// NewServer - TODO
+// NewServer creates a new LSP server.
 func NewServer(ctx context.Context) (*Server, error) {
 	server := Server{
 		ctx: ctx,
@@ -41,7 +41,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 	return &server, nil
 }
 
-// Initialize - TODO
+// Initialize the LSP server's capabilities.
 func (s *Server) Initialize(_ *glsp.Context, _ *protocol.InitializeParams) (any, error) {
 	capabilities := s.CreateServerCapabilities()
 
@@ -60,34 +60,32 @@ func (s *Server) Initialize(_ *glsp.Context, _ *protocol.InitializeParams) (any,
 	return result, nil
 }
 
-// Initialized - TODO
+// Initialized is called after the client has been initialized.
 func (s *Server) Initialized(_ *glsp.Context, _ *protocol.InitializedParams) error {
 	return nil
 }
 
-// Shutdown - TODO
+// Shutdown is called when the client requests to shut down the server.
 func (s *Server) Shutdown(_ *glsp.Context) error {
 	return nil
 }
 
-// SetTrace - TODO
+// SetTrace sets the trace value.
 func (s *Server) SetTrace(_ *glsp.Context, params *protocol.SetTraceParams) error {
-	// TODO
 	protocol.SetTraceValue(params.Value)
 
 	return nil
 }
 
-// TextDocumentDefinition - TODO
+// TextDocumentDefinition provides the definition for a symbol at a given position.
 func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.DefinitionParams) (any, error) {
 	u, err := url.Parse(params.TextDocument.URI)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to parse document URI: %w", err)
 	}
-
 	src, err := os.ReadFile(u.Path)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to read source file: %w", err)
 	}
 
 	lines := strings.Split(string(src), "\n")
@@ -103,7 +101,7 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 	)
 
 	if len(matches) != expected {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("unexpected number of regex matches")
 	}
 
 	name := matches[regex.Link.SubexpIndex("link")]
@@ -129,7 +127,7 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 
 	abs, err := filepath.Abs(dst.Path)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to get absolute path of destination note: %w", err)
 	}
 
 	// TODO (jamesl33): Jump directly to the title?

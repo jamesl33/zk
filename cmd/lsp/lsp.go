@@ -12,15 +12,15 @@ import (
 	_ "github.com/tliron/commonlog/simple"
 )
 
-// LSPOptions - TODO
+// LSPOptions defines the options for the lsp command.
 type LSPOptions struct{}
 
-// LSP - TODO
+// LSP defines the struct for the lsp command.
 type LSP struct {
 	LSPOptions
 }
 
-// NewLSP - TODO
+// NewLSP creates a new command for starting the zk LSP server.
 func NewLSP() *cobra.Command {
 	var lsp LSP
 
@@ -33,11 +33,11 @@ func NewLSP() *cobra.Command {
 	return &cmd
 }
 
-// Run - TODO
+// Run runs the LSP server.
 func (l *LSP) Run(ctx context.Context) error {
 	svr, err := lspserver.NewServer(ctx)
 	if err != nil {
-		return fmt.Errorf("%w", err) // TODO
+		return fmt.Errorf("failed to create LSP server: %w", err)
 	}
 
 	return server.NewServer(svr, "zk", false).RunStdio()

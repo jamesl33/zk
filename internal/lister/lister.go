@@ -33,7 +33,7 @@ func NewLister(opts ...func(o *Options)) (*Lister, error) {
 	return &lister, nil
 }
 
-// One - TODO
+// One returns the first match for the lister.
 func (l *Lister) One(ctx context.Context) (*note.Note, error) {
 	next, stop := iter.Pull2(l.Many(ctx))
 	defer stop()
@@ -44,7 +44,7 @@ func (l *Lister) One(ctx context.Context) (*note.Note, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // TODO
+		return nil, fmt.Errorf("failed to get next note: %w", err)
 	}
 
 	return n, nil
