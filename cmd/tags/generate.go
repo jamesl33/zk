@@ -74,7 +74,7 @@ func (g *Generate) generate(ctx context.Context, n *note.Note) error {
 		return fmt.Errorf("failed to create client: %w", err)
 	}
 
-	rw, err := links.Rewrite(ctx, n)
+	rw, err := links.Replace(ctx, n)
 	if err != nil {
 		return fmt.Errorf("failed to rewrite links: %w", err)
 	}

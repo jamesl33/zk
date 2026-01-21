@@ -9,15 +9,21 @@ import (
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/ptr"
 	"github.com/jamesl33/zk/internal/regex"
 )
 
-// Rewrite the links in a note so that links contain up-to-date titles.
-func Rewrite(ctx context.Context, n *note.Note) error {
-	links := n.Links()
+// Replace links within a note, converting the link into the title of the linked note.
+//
+// NOTE: Returns a shallow copy of the given note, with a re-written `Body`.
+func Replace(ctx context.Context, a *note.Note) (*note.Note, error) {
+	var (
+		b     = ptr.To(*a)
+		links = b.Links()
+	)
 
 	if len(links) == 0 {
-		return nil
+		return b, nil
 	}
 
 	matchers := hs.Map(links, func(n string) matcher.Matcher { return matcher.Name(n) })
@@ -27,7 +33,7 @@ func Rewrite(ctx context.Context, n *note.Note) error {
 		lister.WithMatcher(matcher.Or(matchers...)),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to create lister: %w", err)
+		return nil, fmt.Errorf("failed to create lister: %w", err)
 	}
 
 	titles := make(map[string]string)
@@ -36,7 +42,7 @@ func Rewrite(ctx context.Context, n *note.Note) error {
 		titles[n.Name()] = n.Frontmatter.Title
 	}))
 	if err != nil {
-		return fmt.Errorf("failed to list notes: %w", err)
+		return nil, fmt.Errorf("failed to list notes: %w", err)
 	}
 
 	// rpl replaces links within notes, with the target notes title.
@@ -47,14 +53,14 @@ func Rewrite(ctx context.Context, n *note.Note) error {
 		)
 
 		if title, ok := titles[link]; ok {
-			return fmt.Sprintf("[[%s|%s]]", link, title)
+			return title
 		}
 
-		return fmt.Sprintf("[[%s]]", link)
+		return link
 	}
 
 	// Rewrite the note body
-	n.Body = regex.Link.ReplaceAllStringFunc(n.Body, rpl)
+	b.Body = regex.Link.ReplaceAllStringFunc(b.Body, rpl)
 
-	return nil
+	return b, nil
 }

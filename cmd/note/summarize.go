@@ -51,7 +51,7 @@ func (s *Summarize) Run(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to create client: %w", err)
 	}
 
-	n, err = links.Rewrite(ctx, n)
+	n, err = links.Replace(ctx, n)
 	if err != nil {
 		return fmt.Errorf("failed to rewrite links: %w", err)
 	}
