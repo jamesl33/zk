@@ -25,9 +25,10 @@ func NewLSP() *cobra.Command {
 	var lsp LSP
 
 	cmd := cobra.Command{
-		Short: "Starts an LSP server for zk",
-		Use:   "lsp",
-		RunE:  func(cmd *cobra.Command, _ []string) error { return lsp.Run(cmd.Context()) },
+		Short:  "Starts an LSP server for zk",
+		Use:    "lsp",
+		RunE:   func(cmd *cobra.Command, _ []string) error { return lsp.Run(cmd.Context()) },
+		Hidden: true,
 	}
 
 	return &cmd

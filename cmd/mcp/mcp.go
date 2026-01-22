@@ -23,9 +23,10 @@ func NewMCP() *cobra.Command {
 	var mcp MCP
 
 	cmd := cobra.Command{
-		Short: "Runs as a model context protocol server",
-		Use:   "mcp",
-		RunE:  func(cmd *cobra.Command, _ []string) error { return mcp.Run(cmd.Context()) },
+		Short:  "Runs as a model context protocol server",
+		Use:    "mcp",
+		RunE:   func(cmd *cobra.Command, _ []string) error { return mcp.Run(cmd.Context()) },
+		Hidden: true,
 	}
 
 	return &cmd
