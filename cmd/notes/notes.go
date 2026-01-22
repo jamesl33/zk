@@ -11,7 +11,6 @@ func NewNotes() *cobra.Command {
 
 	cmd.AddCommand(
 		NewFind(),
-		NewLint(),
 		NewList(),
 		NewPick(),
 		NewSearch(),

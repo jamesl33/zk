@@ -8,6 +8,7 @@ import (
 
 	"github.com/jamesl33/zk/cmd/initialize"
 	"github.com/jamesl33/zk/cmd/links"
+	"github.com/jamesl33/zk/cmd/lint"
 	"github.com/jamesl33/zk/cmd/lsp"
 	"github.com/jamesl33/zk/cmd/mcp"
 	"github.com/jamesl33/zk/cmd/note"
@@ -30,11 +31,12 @@ func init() {
 	rootCommand.AddCommand(
 		initialize.NewInitialize(),
 		links.NewLinks(),
+		lint.NewLint(),
+		lsp.NewLSP(),
+		mcp.NewMCP(),
 		note.NewNote(),
 		notes.NewNotes(),
 		tags.NewTags(),
-		mcp.NewMCP(),
-		lsp.NewLSP(),
 	)
 }
 

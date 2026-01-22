@@ -1,4 +1,4 @@
-package notes
+package lint
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 )
 
 // LintOptions defines the options for the lint command.
-type LintOptions struct{}
+type LintOptions struct {}
 
 // Lint defines the struct for the lint command.
 type Lint struct {
