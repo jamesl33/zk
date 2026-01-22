@@ -20,7 +20,7 @@ import (
 // rootCommand defines the root of the command chain.
 var rootCommand = &cobra.Command{
 	Short:            "A composable command-line tool for interacting with a Markdown Zettelkasten.",
-	Long:             "",
+	Use:              "zk",
 	SilenceErrors:    true,
 	SilenceUsage:     true,
 	TraverseChildren: true,
