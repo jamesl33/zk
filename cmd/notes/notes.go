@@ -10,10 +10,11 @@ func NewNotes() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		NewList(),
-		NewSearch(),
 		NewFind(),
+		NewLint(),
+		NewList(),
 		NewPick(),
+		NewSearch(),
 	)
 
 	return &cmd

@@ -10,7 +10,6 @@ func NewLinks() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		NewList(),
 		NewRewrite(),
 	)
 

@@ -1,4 +1,4 @@
-package links
+package notes
 
 import (
 	"context"
@@ -13,42 +13,30 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ListOptions defines the options for the list command.
-type ListOptions struct {
-	// Broken means only notes with broken links will be shown.
-	Broken bool
+// LintOptions defines the options for the lint command.
+type LintOptions struct{}
+
+// Lint defines the struct for the lint command.
+type Lint struct {
+	LintOptions
 }
 
-// List defines the struct for the list command.
-//
-// TODO (jamesl33): Turn this into a "lint" command, and just have the ability to lint notes (then it can use LSP diagnostics as well).
-type List struct {
-	ListOptions
-}
-
-// NewList creates a new command for listing notes with links.
-func NewList() *cobra.Command {
-	var list List
+// NewLint creates a new command for linting notes.
+func NewLint() *cobra.Command {
+	var lint Lint
 
 	cmd := cobra.Command{
-		Short: "Lists notes which contain links to other notes",
-		Use:   "list [directory]",
+		Short: "Lints notes",
+		Use:   "lint [directory]",
 		Args:  cobra.MaximumNArgs(1),
-		RunE:  func(cmd *cobra.Command, args []string) error { return list.Run(cmd.Context(), args) },
+		RunE:  func(cmd *cobra.Command, args []string) error { return lint.Run(cmd.Context(), args) },
 	}
-
-	cmd.Flags().BoolVar(
-		&list.Broken,
-		"broken",
-		false,
-		"Filter notes by those which have broken links",
-	)
 
 	return &cmd
 }
 
-// Run lists notes with matching titles.
-func (l *List) Run(ctx context.Context, args []string) error {
+// Run lints the notes, printing warnings/errors.
+func (l *Lint) Run(ctx context.Context, args []string) error {
 	path := "."
 
 	if len(args) >= 1 {
@@ -60,6 +48,9 @@ func (l *List) Run(ctx context.Context, args []string) error {
 	lstr, err := lister.NewLister(
 		lister.WithPath(path),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to create lister: %w", err)
+	}
 
 	err = iterator.ForEach2(lstr.Many(ctx), hs.Infallible(func(n *note.Note) {
 		ids = append(ids, n.Name())
@@ -81,12 +72,12 @@ func (l *List) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("failed to create lister: %w", err)
 	}
 
+	// TODO (jamesl33): Mimic 'golangci-lint' more closely, by reporting the line/offset as well?
+	// TODO (jamesl33): Refactor this to allow modular linting.
 	err = iterator.ForEach2(lstr.Many(ctx), hs.Infallible(func(n *note.Note) {
-		if l.Broken && len(hs.Difference(n.Links(), ids)) == 0 {
-			return
+		for _, link := range hs.Difference(n.Links(), ids) {
+			fmt.Printf("%q: Link %q is broken (linkcheck)\n", n.Path, link)
 		}
-
-		fmt.Println(n.String0())
 	}))
 	if err != nil {
 		return fmt.Errorf("failed to list notes: %w", err)
