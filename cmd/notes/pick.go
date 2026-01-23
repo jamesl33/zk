@@ -43,7 +43,7 @@ func (p *Pick) Run(ctx context.Context) error {
 		"--select-1",
 		`--delimiter=\x01`,
 		"--with-nth={1} {2} [{3}]",
-		`--preview=cat {4}`,
+		`--preview=bat --color=always --style=numbers {4}`,
 	)
 
 	// We must pass all these through
