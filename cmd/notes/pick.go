@@ -43,8 +43,7 @@ func (p *Pick) Run(ctx context.Context) error {
 		"--select-1",
 		`--delimiter=\x01`,
 		"--with-nth={1} {2} [{3}]",
-		`--preview=zk note summarize {4}`,
-		"--preview-window=wrap",
+		`--preview=cat {4}`,
 	)
 
 	// We must pass all these through
