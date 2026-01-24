@@ -19,63 +19,59 @@ I use `zk` to mange my notes, which are organized to follow [PARA](https://forte
 
 ## CLI
 
-The `zk` command exposes useful commands to enable finding notes that are required; a non-exhaustive list of the
-commands/functionality is as follows.
-
-```sh
-# Create a new note
-zk note create [type] <path>
-
-# List notes that link to another
-zk note links --to <path>
-
-# List notes linked from a given note
-zk note links --from <path>
-
-# List all notes
-zk notes list <path>
-
-# List notes matching a pattern
-zk notes list --fixed <string> --glob <pattern> --regex '<pattern>'
-
-# Search the contents of notes
-zk notes search --fixed <string> --glob <pattern> --regex '<pattern>'
-
-# Find related notes
-zk notes find <path>
-
-# List all tags
-zk tags list
-
-# Generate new tags for a note
-zk tags generate <path>
-
-# Remove a tag globally
-zk tags delete <tag>
-```
+The `zk` command exposes useful commands to enable finding notes that are required; see [#Aliases/Functions](#Aliases/Functions) for some usage examples.
 
 ### Aliases/Functions
 
 The tool is designed to be compostable, allow aliases/functions which improve overall functionality.
 
 ```fish
-# Create a new note, then open it in an editor
-function zknp
-    zk note create permanent $argv | zk note update -
+function zkfn -d "Finds notes related to a given note, then picks and opens one"
+    zk note find $argv | zk notes pick | zk note update -
 end
-```
 
-```fish
-# List all the notes, pick one in 'fzf', then open it in an editor
-function zklo
+function zkfo -d "Find notes based on a semantic query then picks and opens one"
+    zk notes find $argv | zk notes pick | zk note update -
+end
+
+function zkgt -d "Generates tags for the given directory/note"
+    zk tags generate $argv
+end
+
+function zklo -d "Lists notes, then picks and opens one"
     zk notes list $argv | zk notes pick | zk note update -
 end
-```
 
-```fish
-# List all the tags, select one, find notes tagged with it, then edit it
-function zkt
-    zk tags list $argv | fzf | xargs -r zk notes tagged --with | zk notes pick | zk note update -
+function zknb -d "Creates a new bibliographic note"
+    zk note create bibliographic $argv | zk note update -
+end
+
+function zknf -d "Creates a new fleeting note"
+    zk note create fleeting $argv | zk note update -
+end
+
+function zkni -d "Creates a new index note"
+    zk note create index $argv | zk note update -
+end
+
+function zknl -d "Creates a new literature note"
+    zk note create literature $argv | zk note update -
+end
+
+function zknp -d "Creates a new permanent note"
+    zk note create permanent $argv | zk note update -
+end
+
+function zkp -d "List notes, picks one then prints the path"
+    zk notes list $argv | zk notes pick
+end
+
+function zkso -d "Search notes, picks one then opens it"
+    zk notes search $argv | zk notes pick | zk note update -
+end
+
+function zkt -d "Lists all tags, picks one, finds notes that have the tag, picks one and updates it"
+    zk tags list $argv | fzf | xargs -r zk notes list tagged --with | zk notes pick | zk note update -
 end
 ```
 
@@ -95,10 +91,51 @@ local zk_fzf_file_edit = function(selected, opts)
 end
 
 -- Common 'fzf' options for 'zk.'
-local zk_fzf_opts = { ["--ansi"] = true, ["--with-nth"] = "{1} {2} [{3}]", ["--delimiter"] = "\x01" }
+local zk_fzf_opts = {
+	["--ansi"] = true,
+	["--with-nth"] = "{1} {2} [{3}]",
+	["--delimiter"] = "\x01",
+	["--preview"] = "bat --color=always --style=numbers {4}",
+}
 
 -- Common 'fzf' actions for 'zk.'
 local zk_fzf_actions = { ["enter"] = zk_fzf_file_edit }
+
+-- Create a new bibliographic note.
+vim.keymap.set(
+	'n',
+	'<leader>zknb',
+	function()
+		zk_file_edit(vim.fn.system { 'zk', 'note', 'create', 'bibliographic' })
+	end
+)
+
+-- Create a new fleeting note.
+vim.keymap.set(
+	'n',
+	'<leader>zknf',
+	function()
+		zk_file_edit(vim.fn.system { 'zk', 'note', 'create', 'fleeting' })
+	end
+)
+
+-- Create a new index note.
+vim.keymap.set(
+	'n',
+	'<leader>zkni',
+	function()
+		zk_file_edit(vim.fn.system { 'zk', 'note', 'create', 'index', vim.fn.input('Path: ', '', 'dir') })
+	end
+)
+
+-- Create a new literature note.
+vim.keymap.set(
+	'n',
+	'<leader>zknl',
+	function()
+		zk_file_edit(vim.fn.system { 'zk', 'note', 'create', 'literature', vim.fn.input('Path: ', '', 'dir') })
+	end
+)
 
 -- Create a new permanent note.
 vim.keymap.set(
@@ -115,6 +152,35 @@ vim.keymap.set(
 	'<leader>zklo',
 	function()
 		require 'fzf-lua'.fzf_exec("zk notes list",
+			{ fzf_opts = zk_fzf_opts, actions = zk_fzf_actions })
+	end
+)
+
+-- Live search notes.
+vim.keymap.set(
+	'n',
+	'<leader>zkso',
+	function(opts)
+		require 'fzf-lua'.live_grep({ opts, cmd = "zk notes search --regex", hidden = false, fzf_opts = zk_fzf_opts, actions = zk_fzf_actions, exec_empty_query = true })
+	end
+)
+
+-- List similar notes.
+vim.keymap.set(
+	'n',
+	'<leader>zkfn',
+	function()
+		require 'fzf-lua'.fzf_exec(string.format("zk note find '%s'", vim.fn.expand("%")),
+			{ fzf_opts = zk_fzf_opts, actions = zk_fzf_actions })
+	end
+)
+
+-- List links to/from the current note.
+vim.keymap.set(
+	'n',
+	'<leader>zkla',
+	function()
+		require 'fzf-lua'.fzf_exec(string.format("zk note links '%s'", vim.fn.expand("%")),
 			{ fzf_opts = zk_fzf_opts, actions = zk_fzf_actions })
 	end
 )
@@ -158,8 +224,7 @@ vim.keymap.set(
 
 # Performance
 
-For the amount of notes I have, the performance hasn't been a problem although admittedly it wasn't designed with
-performance as a key consideration; there's room for optimization in the future, if required.
+For the amount of notes I have, the performance hasn't been a problem although admittedly it wasn't designed with performance as a key consideration; there's room for optimization in the future, if required.
 
 # Design
 
@@ -169,5 +234,9 @@ performance as a key consideration; there's room for optimization in the future,
 
 # Why?
 
-I've used multiple tools for this process in the past, and struggled to find anything that fit my desired usage in a way
-that has stood the test of time.
+I've used multiple tools for this process in the past, and struggled to find anything that fit my desired usage in a way that has stood the test of time.
+
+# TODO
+
+- [ ] Make it easier to define/share shell functions/aliases
+- [ ] Write a NeoVim plugin to make it easier to define/share that setup
