@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/note"
@@ -57,11 +56,8 @@ func (f *Find) Run(ctx context.Context, query string) error {
 		return fmt.Errorf("failed to find related notes: %w", err)
 	}
 
-	err = iterator.ForEach2(notes, hs.Infallible(func(n *note.Note) {
+	for _, n := range notes {
 		fmt.Println(n.String0())
-	}))
-	if err != nil {
-		return fmt.Errorf("failed to list related notes: %w", err)
 	}
 
 	return nil

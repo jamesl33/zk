@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/note"
@@ -53,18 +52,12 @@ func SemanticSearchNotes(
 		return nil, nil, fmt.Errorf("failed to find related notes: %w", err)
 	}
 
-	found := make([]*note.Note, 0)
-
-	err = iterator.ForEach2(notes, hs.Infallible(func(n *note.Note) {
+	for _, n := range notes {
 		n.Body = ""
-		found = append(found, n)
-	}))
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to list related notes: %w", err)
 	}
 
 	output := SemanticSearchNotesOutput{
-		Notes: found,
+		Notes: notes,
 	}
 
 	return nil, &output, nil

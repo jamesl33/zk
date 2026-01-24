@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"iter"
+	"slices"
 
 	sqlite_vec "github.com/asg017/sqlite-vec-go-bindings/cgo"
 
@@ -117,7 +117,7 @@ func (d *DB) Upsert(ctx context.Context, n *note.Note) error {
 }
 
 // Find some similar notes to the one provided.
-func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, error], error) {
+func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	embedding, err := d.embed(ctx, n)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate embedding: %w", err)
@@ -125,7 +125,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, erro
 
 	// No embedding, we can't find any similar notes
 	if embedding == nil {
-		return iterator.Empty[*note.Note](), nil
+		return make([]*note.Note, 0), nil
 	}
 
 	// query to find some similar notes
@@ -138,7 +138,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, erro
 	WHERE
 	  name != ? AND distance <= 0.35
 	ORDER BY
-	  distance 
+	  distance
 	`
 
 	rows, err := d.db.QueryContext(ctx, query, embedding, n.Name())
@@ -168,7 +168,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, erro
 
 	// No notes, return an empty iterator.
 	if len(names) == 0 {
-		return iterator.Empty[*note.Note](), nil
+		return make([]*note.Note, 0), nil
 	}
 
 	matchers := hs.Map(names, func(n string) matcher.Matcher { return matcher.Name(n) })
@@ -181,7 +181,16 @@ func (d *DB) Find(ctx context.Context, n *note.Note) (iter.Seq2[*note.Note, erro
 		return nil, fmt.Errorf("failed to create lister: %w", err)
 	}
 
-	return lister.Many(ctx), nil
+	notes := make([]*note.Note, len(matchers))
+
+	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
+		notes[slices.IndexFunc(names, func(name string) bool { return name == n.Name() })] = n
+	}))
+	if err != nil {
+		return nil, fmt.Errorf("failed to collect notes: %w", err)
+	}
+
+	return notes, nil
 }
 
 // skip returns a boolean indicating whether we need to update the index entry.

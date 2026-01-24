@@ -57,14 +57,8 @@ func FindRelatedNotes(
 		return nil, nil, fmt.Errorf("failed to find related notes: %w", err)
 	}
 
-	found := make([]*note.Note, 0)
-
-	err = iterator.ForEach2(notes, hs.Infallible(func(n *note.Note) {
+	for _, n := range notes {
 		n.Body = ""
-		found = append(found, n)
-	}))
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to list related notes: %w", err)
 	}
 
 	to, err := to(ctx, n)
@@ -78,7 +72,7 @@ func FindRelatedNotes(
 	}
 
 	output := FindRelatedNotesOutput{
-		Notes: slices.Concat(found, to, from),
+		Notes: slices.Concat(notes, to, from),
 	}
 
 	return nil, &output, nil
