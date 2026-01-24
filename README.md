@@ -27,11 +27,11 @@ The tool is designed to be compostable, allow aliases/functions which improve ov
 
 ```fish
 function zkfn -d "Finds notes related to a given note, then picks and opens one"
-    zk note find $argv | tac | zk notes pick | zk note update -
+    zk note find $argv | zk notes pick | zk note update -
 end
 
 function zkfo -d "Find notes based on a semantic query then picks and opens one"
-    zk notes find $argv | tac | zk notes pick | zk note update -
+    zk notes find $argv | zk notes pick | zk note update -
 end
 
 function zkgt -d "Generates tags for the given directory/note"
@@ -170,7 +170,7 @@ vim.keymap.set(
 	'n',
 	'<leader>zkfn',
 	function()
-		require 'fzf-lua'.fzf_exec(string.format("zk note find '%s' | tac", vim.fn.expand("%")),
+		require 'fzf-lua'.fzf_exec(string.format("zk note find '%s'", vim.fn.expand("%")),
 			{ fzf_opts = zk_fzf_opts, actions = zk_fzf_actions })
 	end
 )
