@@ -9,7 +9,6 @@
       "run_shell_command",
       "save_memory",
       "search_file_content",
-      "write_file",
       "write_todos"
     ]
   },
