@@ -19,7 +19,7 @@ I use `zk` to mange my notes, which are organized to follow [PARA](https://forte
 
 ## CLI
 
-The `zk` command exposes useful commands to enable finding notes that are required; see [#Aliases/Functions](#Aliases/Functions) for some usage examples.
+The `zk` command exposes useful commands to enable finding notes that are required; see [#Aliases/Functions](#aliasesfunctions) for some usage examples.
 
 ### Aliases/Functions
 
