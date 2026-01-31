@@ -4,17 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jamesl33/zk/internal/hs"
-	"github.com/jamesl33/zk/internal/iterator"
-	"github.com/jamesl33/zk/internal/lister"
-	"github.com/jamesl33/zk/internal/matcher"
-	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/regex"
+	"github.com/jamesl33/zk/internal/linter"
 	"github.com/spf13/cobra"
 )
 
 // LintOptions defines the options for the lint command.
-type LintOptions struct {}
+type LintOptions struct{}
 
 // Lint defines the struct for the lint command.
 type Lint struct {
@@ -43,44 +38,13 @@ func (l *Lint) Run(ctx context.Context, args []string) error {
 		path = args[0]
 	}
 
-	ids := make([]string, 0)
-
-	lstr, err := lister.NewLister(
-		lister.WithPath(path),
-	)
+	errors, err := linter.NewLinter().Lint(ctx, path)
 	if err != nil {
-		return fmt.Errorf("failed to create lister: %w", err)
+		return fmt.Errorf("failed to lint notes: %w", err)
 	}
 
-	err = iterator.ForEach2(lstr.Many(ctx), hs.Infallible(func(n *note.Note) {
-		ids = append(ids, n.Name())
-	}))
-	if err != nil {
-		return fmt.Errorf("failed to list notes: %w", err)
-	}
-
-	entire, err := matcher.Entire("", "", regex.Link.String())
-	if err != nil {
-		return fmt.Errorf("failed to create entire matcher: %w", err)
-	}
-
-	lstr, err = lister.NewLister(
-		lister.WithPath(path),
-		lister.WithMatcher(entire),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create lister: %w", err)
-	}
-
-	// TODO (jamesl33): Mimic 'golangci-lint' more closely, by reporting the line/offset as well?
-	// TODO (jamesl33): Refactor this to allow modular linting.
-	err = iterator.ForEach2(lstr.Many(ctx), hs.Infallible(func(n *note.Note) {
-		for _, link := range hs.Difference(n.Links(), ids) {
-			fmt.Printf("%q: Link %q is broken (linkcheck)\n", n.Path, link)
-		}
-	}))
-	if err != nil {
-		return fmt.Errorf("failed to list notes: %w", err)
+	for _, err := range errors {
+		fmt.Printf("%q: %s\n", err.Path, err.Message)
 	}
 
 	return nil
