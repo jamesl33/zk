@@ -98,8 +98,6 @@ Find notes that contain information that's semantically similar or link to/from 
 This is a great way to increase the amount of context you have before performing a task, it should be used when:
 
 	- You have a note and you'd like to find other notes that are similar (vector search)
-	- You have a note and you'd like to find other notes that are linked to/from the note (direct mentions)
-	- You have a 'bibliographic' note, and wish to find quotes/citations from the book
 
 The full note content isn't returned, you must read it using 'read_file'.
 	`
@@ -108,6 +106,39 @@ The full note content isn't returned, you must read it using 'read_file'.
 		server,
 		&mcp.Tool{Name: "find_related_notes", Description: strings.TrimSpace(description)},
 		tools.FindRelatedNotes,
+	)
+
+	description = `
+Find notes that link to a given note.
+
+This is a great way to increase the amount of context you have before performing a task, it should be used when:
+
+	- You have a note and you'd like to find other notes that are linked to the note (direct mentions)
+
+The full note content isn't returned, you must read it using 'read_file'.
+	`
+
+	mcp.AddTool(
+		server,
+		&mcp.Tool{Name: "find_notes_linked_to", Description: strings.TrimSpace(description)},
+		tools.FindNotesLinkedTo,
+	)
+
+	description = `
+Find notes that are linked from a given note.
+
+This is a great way to increase the amount of context you have before performing a task, it should be used when:
+
+	- You have a note and you'd like to find other notes that are linked from the note (direct mentions)
+	- You have a 'bibliographic' note, and wish to find quotes/citations from the book
+
+The full note content isn't returned, you must read it using 'read_file'.
+	`
+
+	mcp.AddTool(
+		server,
+		&mcp.Tool{Name: "find_notes_linked_from", Description: strings.TrimSpace(description)},
+		tools.FindNotesLinkedFrom,
 	)
 
 	err := server.Run(ctx, &mcp.StdioTransport{})
