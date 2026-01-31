@@ -5,7 +5,6 @@
       "glob",
       "google_web_search",
       "list_directory",
-      "run_shell_command",
       "save_memory",
       "search_file_content"
     ]

@@ -19,6 +19,9 @@ var instructions []byte
 //go:embed researcher.md
 var researcher []byte
 
+//go:embed maintainer.md
+var maintainer []byte
+
 // InitializeOptions defines the options for the initialize command.
 type InitializeOptions struct{}
 
@@ -65,6 +68,11 @@ func (i *Initialize) Run(ctx context.Context) error {
 	err = os.WriteFile(".gemini/skills/researcher/SKILL.md", researcher, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to write researcher skill: %w", err)
+	}
+
+	err = os.WriteFile(".gemini/skills/maintainer/SKILL.md", maintainer, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to write maintainer skill: %w", err)
 	}
 
 	return nil

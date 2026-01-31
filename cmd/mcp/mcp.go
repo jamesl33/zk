@@ -57,6 +57,16 @@ There's no filtering, so it's best for obtaining all the notes you wish to read.
 	)
 
 	description = `
+Lint notes in a given directory, checking for issues.
+`
+
+	mcp.AddTool(
+		server,
+		&mcp.Tool{Name: "lint_notes", Description: strings.TrimSpace(description)},
+		tools.LintNotes,
+	)
+
+	description = `
 Search the title, tags and content of notes using a regular expression.
 
 It's a case sensitive, multi-line search by default; to make it case insensive, use "(?i:$EXPRESSION)".
