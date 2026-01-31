@@ -70,6 +70,11 @@ func (i *Initialize) Run(ctx context.Context) error {
 		return fmt.Errorf("failed to write researcher skill: %w", err)
 	}
 
+	err = os.MkdirAll(".gemini/skills/maintainer", 0o755)
+	if err != nil {
+		return fmt.Errorf("failed to create skill directory: %w", err)
+	}
+
 	err = os.WriteFile(".gemini/skills/maintainer/SKILL.md", maintainer, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to write maintainer skill: %w", err)
