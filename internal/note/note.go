@@ -193,7 +193,7 @@ func (n *Note) Links() []string {
 func (n *Note) String() string {
 	var builder strings.Builder
 
-	// TODO (jamesl3y3): Fine to just ignore this?
+	// TODO (jamesl33): Fine to just ignore this?
 	_, _ = n.WriteTo(&builder)
 
 	return builder.String()
