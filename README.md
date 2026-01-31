@@ -160,8 +160,8 @@ vim.keymap.set(
 vim.keymap.set(
 	'n',
 	'<leader>zkso',
-	function(opts)
-		require 'fzf-lua'.live_grep({ opts, cmd = "zk notes search --regex", hidden = false, fzf_opts = zk_fzf_opts, actions = zk_fzf_actions, git_icons = false, file_icons = false, exec_empty_query = true })
+	function()
+		require 'fzf-lua'.live_grep({ previewer = false, cmd = "zk notes search --regex", hidden = false, fzf_opts = zk_fzf_opts, actions = zk_fzf_actions, git_icons = false, file_icons = false, exec_empty_query = true })
 	end
 )
 
