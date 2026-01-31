@@ -93,7 +93,7 @@ end
 -- Common 'fzf' options for 'zk.'
 local zk_fzf_opts = {
 	["--ansi"] = true,
-	["--with-nth"] = "{1} {2} [{3}]",
+	["--with-nth"] = "{1} {2} {3}",
 	["--delimiter"] = "\x01",
 	["--preview"] = "bat --color=always --style=numbers {4}",
 }

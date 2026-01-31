@@ -42,7 +42,7 @@ func (p *Pick) Run(ctx context.Context) error {
 		"--exit-0",
 		"--select-1",
 		`--delimiter=\x01`,
-		"--with-nth={1} {2} [{3}]",
+		"--with-nth={1} {2} {3}",
 		`--preview=bat --color=always --style=numbers {4}`,
 	)
 

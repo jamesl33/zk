@@ -15,6 +15,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jamesl33/zk/internal/regex"
+	"github.com/mattn/go-isatty"
 	"go.yaml.in/yaml/v4"
 )
 
@@ -200,20 +201,21 @@ func (n *Note) String() string {
 }
 
 // String0 returns a null-delimited representation of the note, useful for "picking" (i.e. 'fzf').
+//
+// TODO (jamesl33): Think of a better name for this.
 func (n *Note) String0() string {
 	var (
-		yellow = color.New(color.FgYellow).SprintFunc()
 		blue   = color.New(color.FgBlue).SprintFunc()
+		dir    = blue(filepath.Dir(n.Path))
+		yellow = color.New(color.FgYellow).SprintFunc()
+		title  = yellow(n.Frontmatter.Title)
 		cyan   = color.New(color.FgCyan).SprintFunc()
+		tags   = cyan(strings.Join(n.Frontmatter.Tags, ","))
 	)
 
-	str := fmt.Sprintf(
-		"%s\x01%s\x01%s\x01%s",
-		blue(filepath.Dir(n.Path)),
-		yellow(n.Frontmatter.Title),
-		cyan(strings.Join(n.Frontmatter.Tags, ",")),
-		n.Path,
-	)
+	if isatty.IsTerminal(os.Stdout.Fd()) {
+		return fmt.Sprintf("%s %s [%s] %s", dir, title, tags, n.Path)
+	}
 
-	return str
+	return fmt.Sprintf("%s\x01%s\x01[%s]\x01%s", dir, title, tags, n.Path)
 }
