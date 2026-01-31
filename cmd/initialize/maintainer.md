@@ -30,3 +30,8 @@ This skill outlines the process for converting `fleeting` notes into `permanent`
 5.  **Archive the Original**: Once the `fleeting` note has been fully processed into one or more `permanent` notes, delete the original file from the `0 Inbox` to keep it clean.
 
 6.  **Lint and Fix**: Run `lint_notes` to check for any issues, such as broken links, and fix any errors that are found.
+
+## Rules
+
+1. Don't touch the `4 Archive` directory, consider it to be read-only
+2. Don't remove any `.gitkeep` files
