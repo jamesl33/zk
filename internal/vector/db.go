@@ -190,6 +190,12 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 		return nil, fmt.Errorf("failed to collect notes: %w", err)
 	}
 
+	// We may have entries in the index, but not on disk (e.g. deleted notes)
+	notes = slices.DeleteFunc(notes, func(n *note.Note) bool { return n == nil })
+
+	// Remove unused capacity
+	notes = slices.Clip(notes)
+
 	return notes, nil
 }
 
