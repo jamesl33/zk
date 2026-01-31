@@ -24,8 +24,6 @@ type ListNotesOutput struct {
 }
 
 // ListNotes lists notes in a given directory.
-//
-// TODO (jamesl33): De-duplicate this code?
 func ListNotes(
 	ctx context.Context,
 	_ *mcp.CallToolRequest,

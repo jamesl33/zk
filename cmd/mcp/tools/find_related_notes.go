@@ -3,9 +3,10 @@ package tools
 import (
 	"context"
 	"fmt"
-	"path/filepath"
+
+	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/vector"
+	"github.com/jamesl33/zk/internal/notes"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -22,8 +23,6 @@ type FindRelatedNotesOutput struct {
 }
 
 // FindRelatedNotes finds notes which are semantically similar to the given note.
-//
-// TODO (jamesl33): De-duplicate this code?
 func FindRelatedNotes(
 	ctx context.Context,
 	_ *mcp.CallToolRequest,
@@ -34,28 +33,18 @@ func FindRelatedNotes(
 		return nil, nil, fmt.Errorf("failed to open note: %w", err)
 	}
 
-	db, err := vector.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to open database: %w", err)
-	}
-	defer db.Close()
+	var found []*note.Note
 
-	err = populate(ctx, db)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to populate database: %w", err)
-	}
-
-	notes, err := db.Find(ctx, n)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to find related notes: %w", err)
-	}
-
-	for _, n := range notes {
+	err = notes.Find(ctx, n, hs.Infallible(func(n *note.Note) {
 		n.Body = ""
+		found = append(found, n)
+	}))
+	if err != nil {
+		return nil, nil, err
 	}
 
 	output := FindRelatedNotesOutput{
-		Notes: notes,
+		Notes: found,
 	}
 
 	return nil, &output, nil

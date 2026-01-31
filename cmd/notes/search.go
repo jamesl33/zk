@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jamesl33/zk/internal/hs"
-	"github.com/jamesl33/zk/internal/iterator"
-	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/notes"
 	"github.com/spf13/cobra"
 )
 
@@ -84,17 +82,9 @@ func (s *Search) Run(ctx context.Context, args []string) error {
 		return fmt.Errorf("failed to create entire matcher: %w", err)
 	}
 
-	lister, err := lister.NewLister(
-		lister.WithPath(path),
-		lister.WithMatcher(matcher.Or(pm, entire)),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create lister: %w", err)
-	}
-
-	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
+	err = notes.Search(ctx, path, matcher.Or(pm, entire), func(n *note.Note) {
 		fmt.Println(n.String0())
-	}))
+	})
 	if err != nil {
 		return fmt.Errorf("failed to search notes: %w", err)
 	}

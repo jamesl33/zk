@@ -3,13 +3,9 @@ package note
 import (
 	"context"
 	"fmt"
-	"regexp"
 
-	"github.com/jamesl33/zk/internal/hs"
-	"github.com/jamesl33/zk/internal/iterator"
-	"github.com/jamesl33/zk/internal/lister"
-	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/notes"
 	"github.com/spf13/cobra"
 )
 
@@ -71,8 +67,7 @@ func (l *Links) Run(ctx context.Context, path string) error {
 	)
 
 	// Assign afterwards, as the values are part of both boolean expressions
-	l.To = to
-	l.From = from
+	l.To, l.From = to, from
 
 	err = l.to(ctx, n)
 	if err != nil {
@@ -94,32 +89,11 @@ func (l *Links) to(ctx context.Context, n *note.Note) error {
 		return nil
 	}
 
-	var (
-		// name of the note, escaped for use in regular expressions
-		name = regexp.QuoteMeta(n.Name())
-
-		// pattern which matches links to this note
-		pattern = fmt.Sprintf(`\[\[%s(\|.*?)?\]\]`, name)
-	)
-
-	matcher, err := matcher.Body("", "", pattern)
-	if err != nil {
-		return fmt.Errorf("failed to create matcher: %w", err)
-	}
-
-	lister, err := lister.NewLister(
-		lister.WithPath("."),
-		lister.WithMatcher(matcher),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create lister: %w", err)
-	}
-
-	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
+	err := notes.LinkedTo(ctx, n, func(n *note.Note) {
 		fmt.Println(n.String0())
-	}))
+	})
 	if err != nil {
-		return fmt.Errorf("failed to list notes: %w", err)
+		return fmt.Errorf("failed to list incoming notes: %w", err)
 	}
 
 	return nil
@@ -132,26 +106,11 @@ func (l *Links) from(ctx context.Context, n *note.Note) error {
 		return nil
 	}
 
-	matchers := hs.Map(n.Links(), func(n string) matcher.Matcher { return matcher.Name(n) })
-
-	// Must check for no matchers, as the default is to list all
-	if len(matchers) == 0 {
-		return nil
-	}
-
-	lister, err := lister.NewLister(
-		lister.WithPath("."),
-		lister.WithMatcher(matcher.Or(matchers...)),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create lister: %w", err)
-	}
-
-	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
+	err := notes.LinkedFrom(ctx, n, func(n *note.Note) {
 		fmt.Println(n.String0())
-	}))
+	})
 	if err != nil {
-		return fmt.Errorf("failed to list notes: %w", err)
+		return fmt.Errorf("failed to list outgoing notes: %w", err)
 	}
 
 	return nil

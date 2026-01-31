@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jamesl33/zk/internal/hs"
-	"github.com/jamesl33/zk/internal/iterator"
-	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/notes"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -28,8 +26,6 @@ type RegexSearchNotesOutput struct {
 }
 
 // RegexSearchNotes finds notes where the title, tags or content match the regular expression.
-//
-// TODO (jamesl33): De-duplicate this code?
 func RegexSearchNotes(
 	ctx context.Context,
 	_ *mcp.CallToolRequest,
@@ -45,20 +41,12 @@ func RegexSearchNotes(
 		return nil, nil, fmt.Errorf("failed to create entire matcher: %w", err)
 	}
 
-	lister, err := lister.NewLister(
-		lister.WithPath(input.Path),
-		lister.WithMatcher(matcher.Or(pm, entire)),
-	)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create lister: %w", err)
-	}
+	var found []*note.Note
 
-	found := make([]*note.Note, 0)
-
-	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
+	err = notes.Search(ctx, input.Path, matcher.Or(pm, entire), func(n *note.Note) {
 		n.Body = ""
 		found = append(found, n)
-	}))
+	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to search notes: %w", err)
 	}
