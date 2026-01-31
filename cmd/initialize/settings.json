@@ -5,11 +5,9 @@
       "glob",
       "google_web_search",
       "list_directory",
-      "replace",
       "run_shell_command",
       "save_memory",
-      "search_file_content",
-      "write_todos"
+      "search_file_content"
     ]
   },
   "mcpServers": {
