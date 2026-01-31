@@ -51,6 +51,8 @@ tags:
 
 {Note content goes here.}
 
+---
+
 - [$NOTE_ID|{Link Title}]
 - [{External Description}]({URL})
 ```
