@@ -14,7 +14,7 @@ import (
 // ListNotesInput defines the input for the ListNotes tool.
 type ListNotesInput struct {
 	// Path is a directory in which to list notes.
-	Path string `json:"path" jsonschema:"A directory in which to list notes"`
+	Path string `json:"path" jsonschema:"A directory in which to list notes, use '.' to list everything"`
 }
 
 // ListNotesOutput defines the output for the ListNotes tool.

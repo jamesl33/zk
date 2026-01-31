@@ -15,7 +15,7 @@ import (
 // RegexSearchNotesInput defines the input for the RegexSearchNotes tool.
 type RegexSearchNotesInput struct {
 	// Path is the path to the directory to search in.
-	Path string `json:"path" jsonschema:"The path to the directory to search in"`
+	Path string `json:"path" jsonschema:"The path to the directory to search in, use '.' to search everything"`
 
 	// Expression is the (RE2) regular expression to use.
 	Expression string `json:"expression" jsonschema:"The (RE2) regular expression to use"`
