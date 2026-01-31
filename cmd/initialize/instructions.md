@@ -51,7 +51,7 @@ tags:
 
 {Note content goes here.}
 
-- [{Link Title}|$NOTE_ID]
+- [$NOTE_ID|{Link Title}]
 - [{External Description}]({URL})
 ```
 
@@ -63,7 +63,7 @@ tags:
 -   **`tags`**: A list of short, lowercase, snake_case strings to make the note discoverable.
 -   **Content**: The body of the note.
 -   **References**: Optional. Placed at the very end of the file.
-    -   Internal links to other notes use the WikiLink format: `[[$TITLE|$NOTE_ID]]`.
+    -   Internal links to other notes use the WikiLink format: `[[$NOTE_ID|$TITLE]]`.
     -   External links use the standard Markdown format: `[$DESCRIPTION]($LINK)`.
 
 ### 3.2. Note Types Explained
