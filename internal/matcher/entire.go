@@ -1,10 +1,19 @@
 package matcher
 
-import (
-	"github.com/jamesl33/zk/internal/note"
-)
+import "fmt"
 
-// Entire(  )returns a matcher for the entire note, using the given fixed/glob/regex patterns.
+// Entire returns a matcher for the entire note, using the given fixed/glob/regex patterns.
 func Entire(f, g, r string) (Matcher, error) {
-	return text(f, g, r, func(n *note.Note) (string, error) { return n.Text() })
+	fm, err := Frontmatter(r, g, r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create frontmatter matcher: %w", err)
+	}
+
+	// The use of 'Or' means we defer loading the note body if the frontmatter already matches
+	body, err := Body(r, g, r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create body matcher: %w", err)
+	}
+
+	return Or(fm, body), nil
 }
