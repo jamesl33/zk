@@ -58,7 +58,7 @@ func New(path string) (*Note, error) {
 
 	ok = scanner.Scan()
 	if !ok {
-		return nil, fmt.Errorf("failed to scan frontmatter: %w", scanner.Err())
+		return nil, fmt.Errorf("failed to scan the frontmatter: %w", scanner.Err())
 	}
 
 	var fm Frontmatter
@@ -122,7 +122,7 @@ func (n *Note) GetBody() (string, error) {
 	// Scan the body
 	ok = scanner.Scan()
 	if !ok {
-		return "", fmt.Errorf("failed to scan the frontmatter: %w", scanner.Err())
+		return "", scanner.Err() // Don't wrap, as a nil error is valid (e.g. note body is empty)
 	}
 
 	n.body = ptr.To(scanner.Text())
