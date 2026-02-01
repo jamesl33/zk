@@ -52,17 +52,13 @@ func New(path string) (*Note, error) {
 	scanner.Split(scan)
 
 	// Naively assume the frontmatter is within the first page
-	scanner.Buffer(make([]byte, 4096), 4096)
+	scanner.Buffer(make([]byte, 4096), bufio.MaxScanTokenSize)
 
-	ok := scanner.Scan()
-	if !ok {
-		return nil, fmt.Errorf("failed to discard the first frontmatter marker: %w", scanner.Err())
-	}
+	// Throw away the first marker
+	_ = scanner.Scan()
 
-	ok = scanner.Scan()
-	if !ok {
-		return nil, fmt.Errorf("failed to scan the frontmatter: %w", scanner.Err())
-	}
+	// Scan the frontmatter
+	_ = scanner.Scan()
 
 	var fm Frontmatter
 
@@ -107,23 +103,20 @@ func (n *Note) GetBody() (string, error) {
 	// Add the frontmatter scanner
 	scanner.Split(scan)
 
+	// Enforce a minimum size
+	size := max(4096, int(stats.Size()))
+
 	// Set the buffer to the size of the file, so we can read the whole thing in one go
-	scanner.Buffer(make([]byte, stats.Size()), int(stats.Size()))
+	scanner.Buffer(make([]byte, size), size)
 
 	// Throw away the first marker
-	ok := scanner.Scan()
-	if !ok {
-		return "", fmt.Errorf("failed to discard the first frontmatter marker: %w", scanner.Err())
-	}
+	_ = scanner.Scan()
 
 	// Throw away the frontmatter
-	ok = scanner.Scan()
-	if !ok {
-		return "", fmt.Errorf("failed to discard the frontmatter: %w", scanner.Err())
-	}
+	_ = scanner.Scan()
 
 	// Scan the body
-	ok = scanner.Scan()
+	ok := scanner.Scan()
 	if !ok {
 		return "", scanner.Err() // Don't wrap, as a nil error is valid (e.g. note body is empty)
 	}
