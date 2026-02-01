@@ -272,10 +272,8 @@ func (n *Note) Text() (string, error) {
 	return builder.String(), nil
 }
 
-// String0 returns a null-delimited representation of the note, useful for "picking" (i.e. 'fzf').
-//
-// TODO (jamesl33): Think of a better name for this.
-func (n *Note) String0() string {
+// String returns a null-delimited representation of the note, useful for "picking" (i.e. 'fzf').
+func (n *Note) String() string {
 	var (
 		blue   = color.New(color.FgBlue).SprintFunc()
 		dir    = blue(filepath.Dir(n.Path))

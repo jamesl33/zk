@@ -40,7 +40,7 @@ func (f *Find) Run(ctx context.Context, path string) error {
 	}
 
 	err = notes.Find(ctx, n, hs.Infallible(func(n *note.Note) {
-		fmt.Println(n.String0())
+		fmt.Println(n.String())
 	}))
 	if err != nil {
 		return err

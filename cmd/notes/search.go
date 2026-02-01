@@ -83,7 +83,7 @@ func (s *Search) Run(ctx context.Context, args []string) error {
 	}
 
 	err = notes.Search(ctx, path, matcher.Or(pm, entire), func(n *note.Note) {
-		fmt.Println(n.String0())
+		fmt.Println(n.String())
 	})
 	if err != nil {
 		return fmt.Errorf("failed to search notes: %w", err)

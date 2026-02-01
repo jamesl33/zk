@@ -90,7 +90,7 @@ func (l *Links) to(ctx context.Context, n *note.Note) error {
 	}
 
 	err := notes.LinkedTo(ctx, n, func(n *note.Note) {
-		fmt.Println(n.String0())
+		fmt.Println(n.String())
 	})
 	if err != nil {
 		return fmt.Errorf("failed to list incoming notes: %w", err)
@@ -107,7 +107,7 @@ func (l *Links) from(ctx context.Context, n *note.Note) error {
 	}
 
 	err := notes.LinkedFrom(ctx, n, func(n *note.Note) {
-		fmt.Println(n.String0())
+		fmt.Println(n.String())
 	})
 	if err != nil {
 		return fmt.Errorf("failed to list outgoing notes: %w", err)

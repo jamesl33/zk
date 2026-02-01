@@ -75,7 +75,7 @@ func (l *ListTagged) Run(ctx context.Context, args []string) error {
 	}
 
 	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
-		fmt.Println(n.String0())
+		fmt.Println(n.String())
 	}))
 	if err != nil {
 		return fmt.Errorf("failed to list notes: %w", err)
