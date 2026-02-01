@@ -51,6 +51,9 @@ func New(path string) (*Note, error) {
 	// Add the frontmatter scanner
 	scanner.Split(scan)
 
+	// Naively assume the frontmatter is within the first page
+	scanner.Buffer(make([]byte, 4096), 4096)
+
 	ok := scanner.Scan()
 	if !ok {
 		return nil, fmt.Errorf("failed to discard the first frontmatter marker: %w", scanner.Err())

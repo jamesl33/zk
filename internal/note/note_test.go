@@ -6,14 +6,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestNewNote(t *testing.T) {
+	_, err := New("testdata/20060102150405.md")
+	require.NoError(t, err)
+}
+
 func BenchmarkNewNote(b *testing.B) {
 	for b.Loop() {
 		_, err := New("testdata/20060102150405.md")
 		require.NoError(b, err)
 	}
-}
-
-func TestNewNote(t *testing.T) {
-	_, err := New("testdata/20060102150405.md")
-	require.NoError(t, err)
 }
