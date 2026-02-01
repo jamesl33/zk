@@ -3,14 +3,12 @@ package note
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"hash/crc32"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/fatih/color"
@@ -37,36 +35,29 @@ type Note struct {
 
 // New returns a new note.
 func New(path string) (*Note, error) {
-	re := regexp.MustCompile(`^---[\S\s]*?---\n.*`)
-
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read note at %q: %w", path, err)
 	}
 
-	loc := re.FindIndex(data)
-
-	// We require the offset/length
-	if len(loc) != 2 {
-		return nil, errors.New("failed to extract front-matter") // TODO (jamesl33): Better error for this?
-	}
+	const marker = "---\n"
 
 	var (
-		offset = int64(loc[0])
-		length = int64(loc[1])
+		sfm = bytes.Index(data, []byte(marker))
+		efm = bytes.Index(data[sfm+1:], []byte(marker))
 	)
 
 	var fm Frontmatter
 
-	err = yaml.Unmarshal(data[offset:length], &fm)
+	err = yaml.Unmarshal(data[sfm:efm], &fm)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse front-matter: %w", err)
+		return nil, fmt.Errorf("failed to parse frontmatter: %w", err)
 	}
 
 	note := Note{
 		Path:        path,
 		Frontmatter: fm,
-		Body:        string(data[length:]),
+		Body:        string(data[sfm+efm+len(marker)+1:]),
 	}
 
 	return &note, nil
