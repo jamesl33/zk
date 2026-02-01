@@ -35,8 +35,10 @@ func NewFind() *cobra.Command {
 // Run finds some related notes.
 func (f *Find) Run(ctx context.Context, query string) error {
 	n := &note.Note{
-		Body: query,
+		// We just want to set the body
 	}
+
+	n.SetBody(query)
 
 	err := notes.Find(ctx, n, hs.Infallible(func(n *note.Note) {
 		fmt.Println(n.String0())

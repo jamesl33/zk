@@ -1,16 +1,23 @@
 package matcher
 
-import "github.com/jamesl33/zk/internal/note"
+import (
+	"github.com/jamesl33/zk/internal/note"
+)
 
 // And combines the given matchers using a logic and.
 func And(matchers ...Matcher) Matcher {
-	return func(n *note.Note) bool {
+	return func(n *note.Note) (bool, error) {
 		for _, matcher := range matchers {
-			if !matcher(n) {
-				return false
+			m, err := matcher(n)
+			if err != nil {
+				return false, err // Purposefully not wrapped
+			}
+
+			if !m {
+				return false, nil
 			}
 		}
 
-		return true
+		return true, nil
 	}
 }

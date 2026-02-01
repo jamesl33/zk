@@ -61,8 +61,13 @@ func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
 
 	errors := make([]*LintError, 0)
 
-	err = iterator.ForEach2(lstr.Many(ctx), hs.Infallible(func(n *note.Note) {
-		for _, link := range hs.Difference(n.Links(), ids) {
+	err = iterator.ForEach2(lstr.Many(ctx), func(n *note.Note) error {
+		links, err := n.Links()
+		if err != nil {
+			return fmt.Errorf("failed to get links: %w", err)
+		}
+
+		for _, link := range hs.Difference(links, ids) {
 			err := LintError{
 				Path:    n.Path,
 				Message: fmt.Sprintf("Link %q is broken (linkcheck)", link),
@@ -70,7 +75,9 @@ func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
 
 			errors = append(errors, &err)
 		}
-	}))
+
+		return nil
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list notes: %w", err)
 	}

@@ -1,6 +1,7 @@
 package note
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/jamesl33/zk/internal/ptr"
 	"github.com/jamesl33/zk/internal/regex"
 	"github.com/mattn/go-isatty"
 	"go.yaml.in/yaml/v4"
@@ -29,27 +31,39 @@ type Note struct {
 	// Frontmatter metadata for the note.
 	Frontmatter Frontmatter `json:"frontmatter" jsonschema:"The notes YAML frontmatter"`
 
-	// Body is the - front-matter excluded - note body.
-	Body string `json:"body,omitempty" jsonschema:"The notes content/body, excluding frontmatter"`
+	// body is the lazy loaded body of the note.
+	body *string
 }
 
 // New returns a new note.
+//
+// TODO (jamesl33): Improve the handling of non-note markdown files.
 func New(path string) (*Note, error) {
-	data, err := os.ReadFile(path)
+	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read note at %q: %w", path, err)
+		return nil, fmt.Errorf("failed to open note at %q: %w", path, err)
+	}
+	defer file.Close()
+
+	// Create a scanner, which we'll use to pluck the frontmatter
+	scanner := bufio.NewScanner(file)
+
+	// Add the frontmatter scanner
+	scanner.Split(scan)
+
+	ok := scanner.Scan()
+	if !ok {
+		return nil, fmt.Errorf("failed to discard the first frontmatter marker: %w", scanner.Err())
 	}
 
-	const marker = "---\n"
-
-	var (
-		sfm = bytes.Index(data, []byte(marker))
-		efm = bytes.Index(data[sfm+1:], []byte(marker))
-	)
+	ok = scanner.Scan()
+	if !ok {
+		return nil, fmt.Errorf("failed to scan frontmatter: %w", scanner.Err())
+	}
 
 	var fm Frontmatter
 
-	err = yaml.Unmarshal(data[sfm:efm], &fm)
+	err = yaml.Unmarshal(scanner.Bytes(), &fm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse frontmatter: %w", err)
 	}
@@ -57,7 +71,6 @@ func New(path string) (*Note, error) {
 	note := Note{
 		Path:        path,
 		Frontmatter: fm,
-		Body:        string(data[sfm+efm+len(marker)+1:]),
 	}
 
 	return &note, nil
@@ -66,6 +79,62 @@ func New(path string) (*Note, error) {
 // Name returns the notes name.
 func (n *Note) Name() string {
 	return strings.TrimSuffix(filepath.Base(n.Path), ".md")
+}
+
+// GetBody returns the note body.
+func (n *Note) GetBody() (string, error) {
+	if n.body != nil {
+		return *n.body, nil
+	}
+
+	file, err := os.Open(n.Path)
+	if err != nil {
+		return "", fmt.Errorf("failed to open note at %q: %w", n.Path, err)
+	}
+	defer file.Close()
+
+	stats, err := file.Stat()
+	if err != nil {
+		return "", fmt.Errorf("failed to get note stats: %w", err)
+	}
+
+	// Create a scanner, which we'll use to pluck the body
+	scanner := bufio.NewScanner(file)
+
+	// Add the frontmatter scanner
+	scanner.Split(scan)
+
+	// Set the buffer to the size of the file, so we can read the whole thing in one go
+	scanner.Buffer(make([]byte, stats.Size()), int(stats.Size()))
+
+	// Throw away the first marker
+	ok := scanner.Scan()
+	if !ok {
+		return "", fmt.Errorf("failed to discard the first frontmatter marker: %w", scanner.Err())
+	}
+
+	// Throw away the frontmatter
+	ok = scanner.Scan()
+	if !ok {
+		return "", fmt.Errorf("failed to discard the frontmatter: %w", scanner.Err())
+	}
+
+	// Scan the body
+	ok = scanner.Scan()
+	if !ok {
+		return "", fmt.Errorf("failed to scan the frontmatter: %w", scanner.Err())
+	}
+
+	n.body = ptr.To(scanner.Text())
+
+	return *n.body, nil
+}
+
+// SetBody overwrites the note body.
+//
+// NOTE: This is in-memory only, use 'Write' to persist the changes.
+func (n *Note) SetBody(body string) {
+	n.body = &body
 }
 
 // Checksum returns a checksum of the entire note (including front-matter).
@@ -154,7 +223,12 @@ func (n *Note) WriteTo(w io.Writer) (int64, error) {
 		return 0, fmt.Errorf("failed to write second marker: %w", err)
 	}
 
-	_, err = b.WriteString(n.Body)
+	body, err := n.GetBody()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get body: %w", err)
+	}
+
+	_, err = b.WriteString(body)
 	if err != nil {
 		return 0, fmt.Errorf("failed to write body: %w", err)
 	}
@@ -168,9 +242,14 @@ func (n *Note) WriteTo(w io.Writer) (int64, error) {
 }
 
 // Links returns the names of other notes mentioned in this note.
-func (n *Note) Links() []string {
+func (n *Note) Links() ([]string, error) {
+	body, err := n.GetBody()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get body: %w", err)
+	}
+
 	var (
-		matches = regex.Link.FindAllStringSubmatch(n.Body, -1)
+		matches = regex.Link.FindAllStringSubmatch(body, -1)
 		links   = make([]string, 0)
 	)
 
@@ -178,17 +257,19 @@ func (n *Note) Links() []string {
 		links = append(links, match[regex.Link.SubexpIndex("link")])
 	}
 
-	return links
+	return links, nil
 }
 
-// String returns a string representation of the note.
-func (n *Note) String() string {
+// Text returns the full note text.
+func (n *Note) Text() (string, error) {
 	var builder strings.Builder
 
-	// TODO (jamesl33): Fine to just ignore this?
-	_, _ = n.WriteTo(&builder)
+	_, err := n.WriteTo(&builder)
+	if err != nil {
+		return "", fmt.Errorf("failed to write note: %w", err)
+	}
 
-	return builder.String()
+	return builder.String(), nil
 }
 
 // String0 returns a null-delimited representation of the note, useful for "picking" (i.e. 'fzf').

@@ -65,18 +65,23 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 
 // generate tags for the given note.
 func (g *Generate) generate(ctx context.Context, n *note.Note) error {
-	if len(n.Body) == 0 {
+	n, err := links.Replace(ctx, n)
+	if err != nil {
+		return fmt.Errorf("failed to replace links: %w", err)
+	}
+
+	body, err := n.GetBody()
+	if err != nil {
+		return fmt.Errorf("failed to get body: %w", err)
+	}
+
+	if len(body) == 0 {
 		return nil
 	}
 
 	client, err := ai.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
 	if err != nil {
 		return fmt.Errorf("failed to create client: %w", err)
-	}
-
-	rw, err := links.Replace(ctx, n)
-	if err != nil {
-		return fmt.Errorf("failed to rewrite links: %w", err)
 	}
 
 	example := "```yaml\ntags:\n  - tag_1\n  - tag_2\n```"
@@ -93,7 +98,7 @@ You must use lower-case and only output tags using the snake case style.
 
 Don't use tags unless there's enough information to catagorize.`
 
-	prompt = fmt.Sprintf(prompt, rw.Body, example)
+	prompt = fmt.Sprintf(prompt, body, example)
 
 	content, err := client.Generate(ctx, prompt)
 	if err != nil {

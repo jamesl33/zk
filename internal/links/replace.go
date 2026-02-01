@@ -9,21 +9,23 @@ import (
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/ptr"
 	"github.com/jamesl33/zk/internal/regex"
 )
 
 // Replace links within a note, converting the link into the title of the linked note.
-//
-// NOTE: Returns a shallow copy of the given note, with a re-written `Body`.
-func Replace(ctx context.Context, a *note.Note) (*note.Note, error) {
-	var (
-		b     = ptr.To(*a)
-		links = b.Links()
-	)
+func Replace(ctx context.Context, n *note.Note) (*note.Note, error) {
+	body, err := n.GetBody()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get body: %w", err)
+	}
+
+	links, err := n.Links()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get links: %w", err)
+	}
 
 	if len(links) == 0 {
-		return b, nil
+		return n, nil
 	}
 
 	matchers := hs.Map(links, func(n string) matcher.Matcher { return matcher.Name(n) })
@@ -60,7 +62,7 @@ func Replace(ctx context.Context, a *note.Note) (*note.Note, error) {
 	}
 
 	// Rewrite the note body
-	b.Body = regex.Link.ReplaceAllStringFunc(b.Body, rpl)
+	n.SetBody(regex.Link.ReplaceAllStringFunc(body, rpl))
 
-	return b, nil
+	return n, nil
 }

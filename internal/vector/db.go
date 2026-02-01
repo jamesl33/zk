@@ -229,14 +229,19 @@ func (d *DB) skip(ctx context.Context, name string, current uint32) (bool, error
 
 // embed returns a vector embedding for the given note.
 func (d *DB) embed(ctx context.Context, n *note.Note) ([]byte, error) {
+	body, err := n.GetBody()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get body: %w", err)
+	}
+
 	// Reduce false positives caused by embedding empty notes
-	if len(n.Frontmatter.Tags) == 0 && len(n.Body) == 0 {
+	if len(n.Frontmatter.Tags) == 0 && len(body) == 0 {
 		return nil, nil
 	}
 
 	var input bytes.Buffer
 
-	_, err := n.WriteTo(&input)
+	_, err = n.WriteTo(&input)
 	if err != nil {
 		return nil, fmt.Errorf("failed to write note to buffer: %w", err)
 	}

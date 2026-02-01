@@ -35,7 +35,6 @@ func FindNotesLinkedTo(
 	var found []*note.Note
 
 	err = notes.LinkedTo(ctx, n, func(n *note.Note) {
-		n.Body = ""
 		found = append(found, n)
 	})
 	if err != nil {

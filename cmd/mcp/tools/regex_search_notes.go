@@ -44,7 +44,6 @@ func RegexSearchNotes(
 	var found []*note.Note
 
 	err = notes.Search(ctx, input.Path, matcher.Or(pm, entire), func(n *note.Note) {
-		n.Body = ""
 		found = append(found, n)
 	})
 	if err != nil {

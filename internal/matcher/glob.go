@@ -8,7 +8,7 @@ import (
 )
 
 // Glob returns a matcher which will match a given glob pattern.
-func Glob(pattern string, extract func(n *note.Note) string) (Matcher, error) {
+func Glob(pattern string, extract func(n *note.Note) (string, error)) (Matcher, error) {
 	if pattern == "" {
 		return nil, nil
 	}
@@ -18,5 +18,5 @@ func Glob(pattern string, extract func(n *note.Note) string) (Matcher, error) {
 		return nil, fmt.Errorf("failed to compile glob pattern: %w", err)
 	}
 
-	return func(n *note.Note) bool { return parsed.Match(extract(n)) }, nil
+	return eandm(extract, parsed.Match), nil
 }

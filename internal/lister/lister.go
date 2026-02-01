@@ -92,7 +92,12 @@ func (l *Lister) walk(
 		return fmt.Errorf("failed to open note at %q: %w", path, err)
 	}
 
-	if l.options.matcher != nil && !l.options.matcher(n) {
+	m, err := l.match(n)
+	if err != nil {
+		return err // Purposefully not wrapped
+	}
+
+	if !m {
 		return nil
 	}
 
@@ -101,4 +106,18 @@ func (l *Lister) walk(
 	}
 
 	return nil
+}
+
+// match returns a boolean indicating whether the given note should be listed.
+func (l *Lister) match(n *note.Note) (bool, error) {
+	if l.options.matcher == nil {
+		return true, nil
+	}
+
+	m, err := l.options.matcher(n)
+	if err != nil {
+		return false, fmt.Errorf("failed to run matcher: %w", err)
+	}
+
+	return m, nil
 }

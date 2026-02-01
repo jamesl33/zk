@@ -8,5 +8,5 @@ import (
 
 // Tagged returns a matcher which looks for a given tag.
 func Tagged(tag string) Matcher {
-	return func(n *note.Note) bool { return slices.Contains(n.Frontmatter.Tags, tag) }
+	return func(n *note.Note) (bool, error) { return slices.Contains(n.Frontmatter.Tags, tag), nil }
 }

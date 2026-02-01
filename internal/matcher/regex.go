@@ -8,7 +8,7 @@ import (
 )
 
 // Regex returns a matcher which will match a given regular expression pattern.
-func Regex(pattern string, extract func(n *note.Note) string) (Matcher, error) {
+func Regex(pattern string, extract func(n *note.Note) (string, error)) (Matcher, error) {
 	if pattern == "" {
 		return nil, nil
 	}
@@ -24,5 +24,5 @@ func Regex(pattern string, extract func(n *note.Note) string) (Matcher, error) {
 		return nil, fmt.Errorf("failed to compile regular expression: %w", err)
 	}
 
-	return func(n *note.Note) bool { return parsed.MatchString(extract(n)) }, nil
+	return eandm(extract, parsed.MatchString), nil
 }

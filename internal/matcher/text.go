@@ -7,7 +7,7 @@ import (
 )
 
 // text returns a text matcher for the given fixed/glob/regex patterns.
-func text(f, g, r string, extract func(n *note.Note) string) (Matcher, error) {
+func text(f, g, r string, extract func(n *note.Note) (string, error)) (Matcher, error) {
 	matchers := make([]Matcher, 0)
 
 	if m := Fixed(f, extract); m != nil {

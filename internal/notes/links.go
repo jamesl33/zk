@@ -14,7 +14,12 @@ import (
 
 // LinkedFrom finds notes which are linked from the given note and calls the function for each note.
 func LinkedFrom(ctx context.Context, n *note.Note, fn func(n *note.Note)) error {
-	matchers := hs.Map(n.Links(), func(n string) matcher.Matcher { return matcher.Name(n) })
+	links, err := n.Links()
+	if err != nil {
+		return fmt.Errorf("failed to get links: %w", err)
+	}
+
+	matchers := hs.Map(links, func(n string) matcher.Matcher { return matcher.Name(n) })
 
 	// Must check for no matchers, as the default is to list all
 	if len(matchers) == 0 {

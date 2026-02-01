@@ -36,7 +36,6 @@ func FindRelatedNotes(
 	var found []*note.Note
 
 	err = notes.Find(ctx, n, hs.Infallible(func(n *note.Note) {
-		n.Body = ""
 		found = append(found, n)
 	}))
 	if err != nil {

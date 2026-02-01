@@ -39,7 +39,6 @@ func ListNotes(
 	found := make([]*note.Note, 0)
 
 	err = iterator.ForEach2(lister.Many(ctx), hs.Infallible(func(n *note.Note) {
-		n.Body = ""
 		found = append(found, n)
 	}))
 	if err != nil {

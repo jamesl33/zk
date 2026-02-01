@@ -5,4 +5,4 @@ import (
 )
 
 // Matcher is a readability wrapper for a function which "matches" a given note (e.g. determines if to select or not).
-type Matcher func(n *note.Note) bool
+type Matcher func(n *note.Note) (bool, error)

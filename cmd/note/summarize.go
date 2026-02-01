@@ -42,7 +42,17 @@ func (s *Summarize) Run(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to open note: %w", err)
 	}
 
-	if len(n.Body) == 0 {
+	n, err = links.Replace(ctx, n)
+	if err != nil {
+		return fmt.Errorf("failed to replace links: %w", err)
+	}
+
+	body, err := n.GetBody()
+	if err != nil {
+		return fmt.Errorf("failed to get body: %w", err)
+	}
+
+	if len(body) == 0 {
 		return nil
 	}
 
@@ -51,18 +61,13 @@ func (s *Summarize) Run(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to create client: %w", err)
 	}
 
-	n, err = links.Replace(ctx, n)
-	if err != nil {
-		return fmt.Errorf("failed to rewrite links: %w", err)
-	}
-
 	prompt := `
 
 %s
 
 Without changing the meaning, produce a single sentence summary of the above note.`
 
-	prompt = fmt.Sprintf(prompt, n.Body)
+	prompt = fmt.Sprintf(prompt, body)
 
 	// TODO (jamesl33): Handle the case where the model fails to summarize.
 	content, err := client.Generate(ctx, prompt)

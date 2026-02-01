@@ -14,7 +14,15 @@ import (
 
 // Rewrite the links in a note so that links contain up-to-date titles.
 func Rewrite(ctx context.Context, n *note.Note) error {
-	links := n.Links()
+	body, err := n.GetBody()
+	if err != nil {
+		return fmt.Errorf("failed to get body: %w", err)
+	}
+
+	links, err := n.Links()
+	if err != nil {
+		return fmt.Errorf("failed to get links: %w", err)
+	}
 
 	if len(links) == 0 {
 		return nil
@@ -54,7 +62,7 @@ func Rewrite(ctx context.Context, n *note.Note) error {
 	}
 
 	// Rewrite the note body
-	n.Body = regex.Link.ReplaceAllStringFunc(n.Body, rpl)
+	n.SetBody(regex.Link.ReplaceAllStringFunc(body, rpl))
 
 	return nil
 }

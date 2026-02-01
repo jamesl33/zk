@@ -7,10 +7,19 @@ import (
 )
 
 // Fixed returns a fixed pattern matcher.
-func Fixed(pattern string, extract func(n *note.Note) string) Matcher {
+func Fixed(pattern string, extract func(n *note.Note) (string, error)) Matcher {
 	if pattern == "" {
 		return nil
 	}
 
-	return func(n *note.Note) bool { return strings.Contains(extract(n), pattern) }
+	fn := func(n *note.Note) (bool, error) {
+		c, err := extract(n)
+		if err != nil {
+			return false, err // Purposefully not wrapped
+		}
+
+		return strings.Contains(c, pattern), nil
+	}
+
+	return fn
 }

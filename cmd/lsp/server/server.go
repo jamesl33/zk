@@ -131,7 +131,12 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 		return nil, fmt.Errorf("failed to get absolute path of destination note: %w", err)
 	}
 
-	lines = strings.Split(dst.String(), "\n")
+	body, err := dst.Text()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get note text: %w", err)
+	}
+
+	lines = strings.Split(body, "\n")
 
 	// Place the cursor at the beginning of the note title
 	var (

@@ -28,13 +28,14 @@ func SemanticSearchNotes(
 	input *SemanticSearchNotesInput,
 ) (*mcp.CallToolResult, *SemanticSearchNotesOutput, error) {
 	n := &note.Note{
-		Body: input.Query,
+		// We just want to set the body
 	}
+
+	n.SetBody(input.Query)
 
 	var found []*note.Note
 
 	err := notes.Find(ctx, n, hs.Infallible(func(n *note.Note) {
-		n.Body = ""
 		found = append(found, n)
 	}))
 	if err != nil {
