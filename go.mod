@@ -5,7 +5,6 @@ go 1.25.4
 require (
 	github.com/asg017/sqlite-vec-go-bindings v0.1.6
 	github.com/fatih/color v1.18.0
-	github.com/gobwas/glob v0.2.3
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/mitchellh/go-wordwrap v1.0.1

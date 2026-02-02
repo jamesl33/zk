@@ -2,38 +2,68 @@ package matcher
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/jamesl33/zk/internal/note"
 )
 
 // text returns a text matcher for the given fixed/glob/regex patterns.
 func text(f, g, r string, extract func(n *note.Note) (string, error)) (Matcher, error) {
-	matchers := make([]Matcher, 0)
+	patterns := make([]string, 0, 3)
 
-	if m := Fixed(f, extract); m != nil {
-		matchers = append(matchers, m)
+	if f != "" {
+		patterns = append(patterns, regexp.QuoteMeta(f))
 	}
 
-	m, err := Glob(g, extract)
+	if g != "" {
+		patterns = append(patterns, gtor(g))
+	}
+
+	if r != "" {
+		patterns = append(patterns, r)
+	}
+
+	if len(patterns) == 0 {
+		return nil, nil
+	}
+
+	// Enable multi-line search
+	pattern := fmt.Sprintf(
+		"(?m:%s)",
+		strings.Join(patterns, "|"),
+	)
+
+	parsed, err := regexp.Compile(pattern)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create glob matcher: %w", err)
+		return nil, fmt.Errorf("failed to compile regular expression: %w", err)
 	}
 
-	if m != nil {
-		matchers = append(matchers, m)
-	}
+	return eandm(extract, parsed.MatchString), nil
+}
 
-	m, err = Regex(r, extract)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create regex matcher: %w", err)
-	}
+// gtor returns a regular expression which is functionally equivalent to the provided glob pattern.
+//
+// https://en.wikipedia.org/wiki/Glob_(programming)
+func gtor(glob string) string {
+	// Matches brackets
+	br := regexp.MustCompile(`\[!(.*)\]`)
 
-	if m != nil {
-		matchers = append(matchers, m)
-	}
+	// Escapes any special characters
+	glob = regexp.QuoteMeta(glob)
 
-	// Combine the matchers
-	all := Or(matchers...)
+	// Convert question marks
+	glob = strings.ReplaceAll(glob, "\\?", ".")
 
-	return all, nil
+	// Convert wildcards
+	glob = strings.ReplaceAll(glob, "\\*", ".*")
+
+	// Switch '!' for '^' to support negation
+	glob = br.ReplaceAllString(glob, "[^$1]")
+
+	// Remove escape sequences for brackets
+	glob = strings.ReplaceAll(glob, "\\[", "[")
+	glob = strings.ReplaceAll(glob, "\\]", "]")
+
+	return glob
 }
