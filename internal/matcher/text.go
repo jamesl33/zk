@@ -25,7 +25,7 @@ func text(f, g, r string, extract func(n *note.Note) (string, error)) (Matcher, 
 	}
 
 	if len(patterns) == 0 {
-		return nil, nil
+		return Any(), nil
 	}
 
 	// Enable multi-line search
