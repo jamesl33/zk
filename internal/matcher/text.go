@@ -47,10 +47,7 @@ func text(f, g, r string, extract func(n *note.Note) (string, error)) (Matcher, 
 // https://en.wikipedia.org/wiki/Glob_(programming)
 func gtor(glob string) string {
 	// Matches brackets
-	var (
-		br  = regexp.MustCompile(`\[!(.+)\]`)
-		qbr = regexp.MustCompile(`\\\[(.+)\\\]`)
-	)
+	br := regexp.MustCompile(`\[!(.+)\]`)
 
 	// Escapes any special characters
 	glob = regexp.QuoteMeta(glob)
@@ -65,7 +62,7 @@ func gtor(glob string) string {
 	glob = br.ReplaceAllString(glob, "[^$1]")
 
 	// Remove escape sequences for brackets
-	glob = qbr.ReplaceAllString(glob, "[$1]")
+	glob = br.ReplaceAllString(glob, "[$1]")
 
 	return glob
 }
