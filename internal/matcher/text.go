@@ -48,8 +48,8 @@ func text(f, g, r string, extract func(n *note.Note) (string, error)) (Matcher, 
 func gtor(glob string) string {
 	// Matches brackets
 	var (
-		br  = regexp.MustCompile(`\[!(.+)\]`)
-		qbr = regexp.MustCompile(`\\\[(.+)\\\]`)
+		br  = regexp.MustCompile(`(?U:\[!(.+)\])`)
+		qbr = regexp.MustCompile(`(?U:\\\[(.+)\\\])`)
 	)
 
 	// Escapes any special characters
