@@ -47,10 +47,7 @@ func text(f, g, r string, extract func(n *note.Note) (string, error)) (Matcher, 
 // https://en.wikipedia.org/wiki/Glob_(programming)
 func gtor(glob string) string {
 	// Matches brackets
-	var (
-		br  = regexp.MustCompile(`(?U:\[!(.+)\])`)
-		qbr = regexp.MustCompile(`(?U:\\\[(.+)\\\])`)
-	)
+	br := regexp.MustCompile(`(?U:\\\[(.+)\\\])`)
 
 	// Escapes any special characters
 	glob = regexp.QuoteMeta(glob)
@@ -61,11 +58,46 @@ func gtor(glob string) string {
 	// Convert wildcards
 	glob = strings.ReplaceAll(glob, "\\*", ".*")
 
-	// Switch '!' for '^' to support negation
-	glob = br.ReplaceAllString(glob, "[^$1]")
-
 	// Remove escape sequences for brackets
-	glob = qbr.ReplaceAllString(glob, "[$1]")
+	glob = br.ReplaceAllString(glob, "[$1]")
+
+	// For non-escaped opening brackets, handle negations
+	glob = negbrac(glob)
 
 	return glob
+}
+
+// negbrac rewrites the pattern with '[!...]' replaced with '[^...]' where not escaped.
+func negbrac(glob string) string {
+	var result strings.Builder
+
+	for i := 0; i < len(glob); i++ {
+		next := negchar(glob, i)
+
+		// Ignore the '!' character
+		if len(next) != 1 {
+			i++
+		}
+
+		result.WriteString(next)
+	}
+
+	return result.String()
+}
+
+// negchar converts the '[!' to '[^' where not escaped.
+func negchar(glob string, i int) string {
+	if glob[i] != '[' {
+		return string(glob[i])
+	}
+
+	if i-1 >= 0 && glob[i-1] == '\\' {
+		return "["
+	}
+
+	if i+1 < len(glob) && glob[i+1] != '!' {
+		return "["
+	}
+
+	return "[^"
 }
