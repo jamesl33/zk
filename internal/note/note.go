@@ -49,7 +49,7 @@ func New(path string) (*Note, error) {
 	scanner := bufio.NewScanner(file)
 
 	// Add the frontmatter scanner
-	scanner.Split(scan)
+	scanner.Split(splitter())
 
 	// Naively assume the frontmatter is within the first page
 	scanner.Buffer(make([]byte, 4096), bufio.MaxScanTokenSize)
@@ -101,7 +101,7 @@ func (n *Note) GetBody() (string, error) {
 	scanner := bufio.NewScanner(file)
 
 	// Add the frontmatter scanner
-	scanner.Split(scan)
+	scanner.Split(splitter())
 
 	// Enforce a minimum size
 	size := max(4096, int(stats.Size()))
