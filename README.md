@@ -239,6 +239,5 @@ I've used multiple tools for this process in the past, and struggled to find any
 # TODO
 
 - [ ] Add support for Trigram Indexing (https://swtch.com/~rsc/regexp/regexp4.html)
-- [ ] Make the `--fixed` and `--glob` flags compile down to indexed regular expressions
 - [ ] Make it easier to define/share shell functions/aliases
 - [ ] Write a NeoVim plugin to make it easier to define/share that setup
