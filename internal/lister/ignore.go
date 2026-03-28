@@ -1,17 +1,16 @@
 package lister
 
 import (
-	"path/filepath"
 	"strings"
 )
 
 // ignore returns a boolean indicating whether the given file should be skipped.
-func ignore(p string) bool {
-	if !strings.HasSuffix(p, ".md") {
+func ignore(n string) bool {
+	if !strings.HasSuffix(n, ".md") {
 		return true
 	}
 
-	switch filepath.Base(p) {
+	switch n {
 	case "GEMINI.md":
 		return true
 	}

@@ -81,8 +81,9 @@ func (l *Lister) walk(
 	}
 
 	var (
-		hidden = hidden(path)
-		ignore = ignore(path)
+		name   = entry.Name()
+		hidden = hidden(name)
+		ignore = ignore(name)
 	)
 
 	// Ignore the directory; it's hidden
