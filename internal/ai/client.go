@@ -12,7 +12,7 @@ import (
 // Client defines a client for interacting with the Gemini API.
 //
 // TODO (jamesl33): Make the model configurable.
-// TODO (jamesl33): Handle the 2k context window.
+// TODO (jamesl33): Handle the 8k context window.
 type Client struct {
 	client *genai.Client
 	gcache *cache.Cache[string]
@@ -104,7 +104,7 @@ func (c *Client) Embed(ctx context.Context, content string) ([]float32, error) {
 		{Parts: []*genai.Part{part}},
 	}
 
-	resp, err := c.client.Models.EmbedContent(ctx, "gemini-embedding-001", contents, &genai.EmbedContentConfig{})
+	resp, err := c.client.Models.EmbedContent(ctx, "gemini-embedding-2-preview", contents, &genai.EmbedContentConfig{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to embed content: %w", err)
 	}
