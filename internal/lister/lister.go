@@ -8,7 +8,6 @@ import (
 	"iter"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/jamesl33/zk/internal/note"
 )
@@ -53,8 +52,8 @@ func (l *Lister) One(ctx context.Context) (*note.Note, error) {
 // Many returns an iterator containing matching notes.
 func (l *Lister) Many(ctx context.Context) iter.Seq2[*note.Note, error] {
 	return func(yield func(*note.Note, error) bool) {
-		err := filepath.WalkDir(l.options.path, func(path string, _ os.DirEntry, err error) error {
-			return l.walk(ctx, path, err, yield)
+		err := filepath.WalkDir(l.options.path, func(path string, entry os.DirEntry, err error) error {
+			return l.walk(ctx, path, entry, err, yield)
 		})
 		if err == nil || errors.Is(err, io.EOF) {
 			return
@@ -68,6 +67,7 @@ func (l *Lister) Many(ctx context.Context) iter.Seq2[*note.Note, error] {
 func (l *Lister) walk(
 	ctx context.Context,
 	path string,
+	entry os.DirEntry,
 	err error,
 	yield func(n *note.Note, err error) bool,
 ) error {
@@ -80,10 +80,18 @@ func (l *Lister) walk(
 		return fmt.Errorf("unexpected error walking %q: %w", path, err)
 	}
 
-	// Ignore as it's not a note, or is hidden
-	//
-	// TODO (jamesl33): Make this more configurable.
-	if hidden(path) || !strings.HasSuffix(path, ".md") || filepath.Base(path) == "GEMINI.md" {
+	var (
+		hidden = hidden(path)
+		ignore = ignore(path)
+	)
+
+	// Ignore the directory; it's hidden
+	if entry.IsDir() && hidden {
+		return filepath.SkipDir
+	}
+
+	// Ignore the note as it's hidden, or ignored
+	if hidden || ignore {
 		return nil
 	}
 
