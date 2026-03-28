@@ -2,34 +2,25 @@ package initialize
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"io/fs"
 	"os"
-
-	_ "embed"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
 
-//go:embed settings.json
-var settings []byte
+//go:embed .gemini
+var settings embed.FS
 
-//go:embed policies/zk.toml
-var policies []byte
-
-//go:embed instructions.md
+//go:embed GEMINI.md
 var instructions []byte
-
-//go:embed researcher.md
-var researcher []byte
-
-//go:embed maintainer.md
-var maintainer []byte
 
 // InitializeOptions defines the options for the initialize command.
 type InitializeOptions struct{}
 
 // Initialize defines the struct for the initialize command.
-
 type Initialize struct {
 	InitializeOptions
 }
@@ -39,7 +30,7 @@ func NewInitialize() *cobra.Command {
 	var index Initialize
 
 	cmd := cobra.Command{
-		Short: "Creates a 'GEMINI.md' file, with instructions on how to interact with the Zettelkasten",
+		Short: "Sets up Gemini CLI with instructions/settings on how to interact with the Zettelkasten",
 		Use:   "initialize",
 		RunE:  func(cmd *cobra.Command, _ []string) error { return index.Run(cmd.Context()) },
 	}
@@ -49,49 +40,47 @@ func NewInitialize() *cobra.Command {
 
 // Run initialization.
 func (i *Initialize) Run(ctx context.Context) error {
-	err := os.MkdirAll(".gemini", 0o755)
+	err := os.RemoveAll(".gemini")
 	if err != nil {
-		return fmt.Errorf("failed to create directory: %w", err)
-	}
-
-	err = os.MkdirAll(".gemini/policies", 0o755)
-	if err != nil {
-		return fmt.Errorf("failed to create directory: %w", err)
-	}
-
-	err = os.WriteFile(".gemini/settings.json", settings, 0o644)
-	if err != nil {
-		return fmt.Errorf("failed to write settings: %w", err)
-	}
-
-	err = os.WriteFile(".gemini/policies/zk.toml", policies, 0o644)
-	if err != nil {
-		return fmt.Errorf("failed to write policies: %w", err)
+		return fmt.Errorf("failed to remove existing '.gemini' directory: %w", err)
 	}
 
 	err = os.WriteFile("GEMINI.md", instructions, 0o644)
 	if err != nil {
-		return fmt.Errorf("failed to write instructions: %w", err)
+		return fmt.Errorf("failed to write 'GEMINI.md': %w", err)
 	}
 
-	err = os.MkdirAll(".gemini/skills/researcher", 0o755)
+	err = fs.WalkDir(settings, ".", i.cp)
 	if err != nil {
-		return fmt.Errorf("failed to create skill directory: %w", err)
+		return fmt.Errorf("failed to walk '.gemini' directory: %w", err)
 	}
 
-	err = os.WriteFile(".gemini/skills/researcher/SKILL.md", researcher, 0o644)
+	return nil
+}
+
+// cp the given file into the '.gemini' directory on disk.
+func (i *Initialize) cp(path string, entry fs.DirEntry, err error) error {
 	if err != nil {
-		return fmt.Errorf("failed to write researcher skill: %w", err)
+		return err
 	}
 
-	err = os.MkdirAll(".gemini/skills/maintainer", 0o755)
-	if err != nil {
-		return fmt.Errorf("failed to create skill directory: %w", err)
+	if entry.IsDir() {
+		return nil
 	}
 
-	err = os.WriteFile(".gemini/skills/maintainer/SKILL.md", maintainer, 0o644)
+	err = os.MkdirAll(filepath.Dir(path), 0o755)
 	if err != nil {
-		return fmt.Errorf("failed to write maintainer skill: %w", err)
+		return fmt.Errorf("failed to create directory %s: %w", path, err)
+	}
+
+	data, err := settings.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("failed to read embedded file %s: %w", path, err)
+	}
+
+	err = os.WriteFile(path, data, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to write file %s: %w", path, err)
 	}
 
 	return nil
