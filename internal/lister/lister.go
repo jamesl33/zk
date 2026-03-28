@@ -97,6 +97,12 @@ func (l *Lister) walk(
 	}
 
 	n, err := note.New(path)
+
+	// Ignore markdown files which aren't valid notes
+	if errors.Is(err, note.ErrNotNote) {
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to open note at %q: %w", path, err)
 	}

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"hash/crc32"
 	"io"
@@ -36,8 +37,6 @@ type Note struct {
 }
 
 // New returns a new note.
-//
-// TODO (jamesl33): Improve the handling of non-note markdown files.
 func New(path string) (*Note, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -55,16 +54,26 @@ func New(path string) (*Note, error) {
 	scanner.Buffer(make([]byte, 4096), bufio.MaxScanTokenSize)
 
 	// Throw away the first marker
-	_ = scanner.Scan()
+	ok := scanner.Scan()
+	if !ok {
+		return nil, ErrNotNote
+	}
 
 	// Scan the frontmatter
-	_ = scanner.Scan()
+	ok = scanner.Scan()
+	if !ok {
+		return nil, ErrNotNote
+	}
 
 	var fm Frontmatter
 
 	err = yaml.Unmarshal(scanner.Bytes(), &fm)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse frontmatter: %w", err)
+		return nil, errors.Join(ErrNotNote, fmt.Errorf("failed to parse frontmatter: %w", err))
+	}
+
+	if fm.Type == "" && fm.Title == "" && fm.Date == "" {
+		return nil, ErrNotNote
 	}
 
 	note := Note{
