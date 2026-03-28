@@ -111,3 +111,13 @@ When documenting shell scripts or commands, use the following format within synt
     ```
     $ echo $PLACEHOLDER | jq
     ```
+
+### 4.4. Managing Attachments
+
+Attachments (such as PDF documents, images, or other non-Markdown files) are managed according to the following conventions:
+
+-   **Storage**: Attachments are stored directly within the appropriate `1 Projects`, `2 Areas`, or `3 Resources` directory, alongside the notes that reference them. Do not create separate `attachments` folders.
+-   **Referencing**: Reference attachments within notes using WikiLink syntax with the exact filename (including extension). If referencing a specific part of a document (like a page number), include it in the link title.
+    -   **Format**: `[[$FILENAME.$EXT|$TITLE, p.$PAGE]]`
+    -   **Example**: `[[Document (2026).pdf|Document (2026), p.16]]`
+-   **Usage**: Internal attachments can be linked directly from `permanent` or `literature` notes without requiring a separate `bibliographic` note in `5 Bibliography`.
