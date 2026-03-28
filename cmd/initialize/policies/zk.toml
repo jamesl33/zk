@@ -1,0 +1,5 @@
+[[rule]]
+toolName = ["google_web_search", "save_memory"]
+decision = "deny"
+priority = 100
+deny_message = "This tool is disabled by the 'zk' policy."

@@ -13,6 +13,9 @@ import (
 //go:embed settings.json
 var settings []byte
 
+//go:embed policies/zk.toml
+var policies []byte
+
 //go:embed instructions.md
 var instructions []byte
 
@@ -26,6 +29,7 @@ var maintainer []byte
 type InitializeOptions struct{}
 
 // Initialize defines the struct for the initialize command.
+
 type Initialize struct {
 	InitializeOptions
 }
@@ -50,9 +54,19 @@ func (i *Initialize) Run(ctx context.Context) error {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
+	err = os.MkdirAll(".gemini/policies", 0o755)
+	if err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
 	err = os.WriteFile(".gemini/settings.json", settings, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to write settings: %w", err)
+	}
+
+	err = os.WriteFile(".gemini/policies/zk.toml", policies, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to write policies: %w", err)
 	}
 
 	err = os.WriteFile("GEMINI.md", instructions, 0o644)

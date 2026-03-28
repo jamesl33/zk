@@ -1,14 +1,4 @@
 {
-  "tools": {
-    "exclude": [
-      "delegate_to_agent",
-      "glob",
-      "google_web_search",
-      "list_directory",
-      "save_memory",
-      "search_file_content"
-    ]
-  },
   "mcpServers": {
     "zk": {
       "command": "zk",
@@ -18,5 +8,8 @@
       "timeout": 30000,
       "trust": true
     }
-  }
+  },
+  "policyPaths": [
+    "./.gemini/policies"
+  ]
 }
