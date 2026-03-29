@@ -50,7 +50,7 @@ func gtor(glob string) string {
 	br := regexp.MustCompile(`(?U:\\\[(.+)\\\])`)
 
 	// Matches bracket negations
-	nbr := regexp.MustCompile(`(?U:(^\[|[^\\]\[)!)`)
+	nbr := regexp.MustCompile(`(?U:((^|[^\\])\[)!)`)
 
 	// Escapes any special characters
 	glob = regexp.QuoteMeta(glob)
@@ -65,7 +65,7 @@ func gtor(glob string) string {
 	glob = br.ReplaceAllString(glob, "[$1]")
 
 	// For non-escaped opening brackets, handle negations
-	glob = nbr.ReplaceAllString(glob, "[^")
+	glob = nbr.ReplaceAllString(glob, "$1^")
 
 	return glob
 }
