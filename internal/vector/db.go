@@ -29,7 +29,7 @@ func init() {
 
 // DB exposes an API to index/find notes using SQLite vector search.
 type DB struct {
-	client *ai.Client
+	client ai.Client
 	db     *sql.DB
 }
 
@@ -45,6 +45,21 @@ func New(ctx context.Context, path string) (*DB, error) {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
+	vector := DB{
+		client: client,
+		db:     db,
+	}
+
+	err = vector.init(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize database: %w", err)
+	}
+
+	return &vector, nil
+}
+
+// init the database by creating the required table.
+func (d *DB) init(ctx context.Context) error {
 	// create the table if it doesn't already exist.
 	const create = `
 	CREATE table IF NOT EXISTS notes (
@@ -54,17 +69,12 @@ func New(ctx context.Context, path string) (*DB, error) {
 	);
 	`
 
-	_, err = db.ExecContext(ctx, create)
+	_, err := d.db.ExecContext(ctx, create)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create table: %w", err)
+		return fmt.Errorf("failed to create table: %w", err)
 	}
 
-	vector := DB{
-		client: client,
-		db:     db,
-	}
-
-	return &vector, nil
+	return nil
 }
 
 // Upsert adds the given note to the database (or updates it).

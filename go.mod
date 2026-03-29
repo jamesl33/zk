@@ -13,6 +13,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tliron/commonlog v0.2.21
 	github.com/tliron/glsp v0.2.2
+	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
 	google.golang.org/genai v1.52.0
 )
