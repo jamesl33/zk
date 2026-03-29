@@ -11,6 +11,9 @@ import (
 	"testing"
 
 	"github.com/jamesl33/zk/internal/matcher"
+	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/slices"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,6 +23,179 @@ tags: ["tag%d"]
 ---
 
 %s`
+
+func TestNewLister(t *testing.T) {
+	m := matcher.Any()
+
+	l, err := NewLister(WithPath("/tmp"), WithMatcher(m))
+	require.NoError(t, err)
+
+	assert.Equal(t, "/tmp", l.options.path)
+	assert.NotNil(t, l.options.matcher)
+}
+
+func TestListerMany(t *testing.T) {
+	seed := []struct {
+		name    string
+		content string
+	}{
+		{
+			name:    "note1.md",
+			content: "---\ntitle: Note 1\n---\nBody 1",
+		},
+		{
+			name:    "note2.md",
+			content: "---\ntitle: Note 2\n---\nBody 2",
+		},
+		{
+			name:    ".hidden.md",
+			content: "---\ntitle: Hidden\n---\nBody",
+		},
+		{
+			name:    "GEMINI.md",
+			content: "---\ntitle: Gemini\n---\nBody",
+		},
+		{
+			name:    "not-a-note.txt",
+			content: "just text",
+		},
+		{
+			name:    "invalid-frontmatter.md",
+			content: "---\ninvalid\n---\nBody",
+		},
+	}
+
+	tmp := t.TempDir()
+
+	for _, n := range seed {
+		err := os.WriteFile(filepath.Join(tmp, n.name), []byte(n.content), 0o644)
+		require.NoError(t, err)
+	}
+
+	l, err := NewLister(WithPath(tmp))
+	require.NoError(t, err)
+
+	actual, err := slices.Collect2[[]*note.Note](l.Many(t.Context()))
+	require.NoError(t, err)
+
+	expected := []*note.Note{
+		{
+			Path:        filepath.Join(tmp, "note1.md"),
+			Frontmatter: note.Frontmatter{Title: "Note 1"},
+		},
+		{
+			Path:        filepath.Join(tmp, "note2.md"),
+			Frontmatter: note.Frontmatter{Title: "Note 2"},
+		},
+	}
+
+	assert.Equal(t, expected, actual)
+}
+
+func TestListerOne(t *testing.T) {
+	tmp := t.TempDir()
+
+	err := os.WriteFile(filepath.Join(tmp, "note1.md"), []byte("---\ntitle: Note 1\n---\nBody 1"), 0o644)
+	require.NoError(t, err)
+
+	l, err := NewLister(WithPath(tmp))
+	require.NoError(t, err)
+
+	actual, err := l.One(t.Context())
+	require.NoError(t, err)
+
+	expected := &note.Note{
+		Path:        filepath.Join(tmp, "note1.md"),
+		Frontmatter: note.Frontmatter{Title: "Note 1"},
+	}
+
+	assert.Equal(t, expected, actual)
+}
+
+func TestListerManyWithMatcher(t *testing.T) {
+	tmp := t.TempDir()
+
+	err := os.WriteFile(filepath.Join(tmp, "note1.md"), []byte("---\ntitle: Note 1\n---\nBody 1"), 0o644)
+	require.NoError(t, err)
+
+	err = os.WriteFile(filepath.Join(tmp, "note2.md"), []byte("---\ntitle: Note 2\n---\nBody 2"), 0o644)
+	require.NoError(t, err)
+
+	m := func(n *note.Note) (bool, error) {
+		return n.Frontmatter.Title == "Note 2", nil
+	}
+
+	l, err := NewLister(WithPath(tmp), WithMatcher(m))
+	require.NoError(t, err)
+
+	actual, err := slices.Collect2[[]*note.Note](l.Many(t.Context()))
+	require.NoError(t, err)
+
+	expected := []*note.Note{
+		{
+			Path:        filepath.Join(tmp, "note2.md"),
+			Frontmatter: note.Frontmatter{Title: "Note 2"},
+		},
+	}
+
+	assert.Equal(t, expected, actual)
+}
+
+func TestListerManyWithRecursion(t *testing.T) {
+	tmp := t.TempDir()
+
+	err := os.MkdirAll(filepath.Join(tmp, "subdir", "subsubdir"), 0o755)
+	require.NoError(t, err)
+
+	err = os.WriteFile(filepath.Join(tmp, "note1.md"), []byte("---\ntitle: Note 1\n---\nBody 1"), 0o644)
+	require.NoError(t, err)
+
+	err = os.WriteFile(filepath.Join(tmp, "subdir", "note2.md"), []byte("---\ntitle: Note 2\n---\nBody 2"), 0o644)
+	require.NoError(t, err)
+
+	err = os.WriteFile(filepath.Join(tmp, "subdir", "subsubdir", "note3.md"), []byte("---\ntitle: Note 3\n---\nBody 3"), 0o644)
+	require.NoError(t, err)
+
+	l, err := NewLister(WithPath(tmp))
+	require.NoError(t, err)
+
+	actual, err := slices.Collect2[[]*note.Note](l.Many(t.Context()))
+	require.NoError(t, err)
+
+	expected := []*note.Note{
+		{
+			Path:        filepath.Join(tmp, "note1.md"),
+			Frontmatter: note.Frontmatter{Title: "Note 1"},
+		},
+		{
+			Path:        filepath.Join(tmp, "subdir", "note2.md"),
+			Frontmatter: note.Frontmatter{Title: "Note 2"},
+		},
+		{
+			Path:        filepath.Join(tmp, "subdir", "subsubdir", "note3.md"),
+			Frontmatter: note.Frontmatter{Title: "Note 3"},
+		},
+	}
+
+	assert.Equal(t, expected, actual)
+}
+
+func TestListerManyWithContextCancellation(t *testing.T) {
+	tmp := t.TempDir()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	l, err := NewLister(WithPath(tmp))
+	require.NoError(t, err)
+
+	next, stop := iter.Pull2(l.Many(ctx))
+	defer stop()
+
+	_, err, ok := next()
+	assert.True(t, ok)
+	assert.ErrorIs(t, err, context.Canceled)
+}
 
 func BenchmarkListerVariyingNotes(b *testing.B) {
 	for _, notes := range []int{10, 100, 1000, 10000, 100000} {
@@ -42,7 +218,7 @@ func BenchmarkListerVariyingNotes(b *testing.B) {
 			b.ResetTimer()
 
 			for b.Loop() {
-				iter, stop := iter.Pull2(l.Many(context.Background()))
+				iter, stop := iter.Pull2(l.Many(b.Context()))
 				defer stop()
 
 				count := 0
@@ -90,7 +266,7 @@ func BenchmarkListerVaryingSize(b *testing.B) {
 			b.ResetTimer()
 
 			for b.Loop() {
-				iter, stop := iter.Pull2(l.Many(context.Background()))
+				iter, stop := iter.Pull2(l.Many(b.Context()))
 				defer stop()
 
 				count := 0
@@ -142,7 +318,7 @@ func BenchmarkListerVaryingSizeWithABodyMatcher(b *testing.B) {
 			b.ResetTimer()
 
 			for b.Loop() {
-				iter, stop := iter.Pull2(l.Many(context.Background()))
+				iter, stop := iter.Pull2(l.Many(b.Context()))
 				defer stop()
 
 				count := 0
