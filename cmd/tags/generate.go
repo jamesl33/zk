@@ -65,7 +65,7 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 
 // generate tags for the given note.
 func (g *Generate) generate(ctx context.Context, n *note.Note) error {
-	n, err := links.Replace(ctx, n)
+	err := links.Replace(ctx, n)
 	if err != nil {
 		return fmt.Errorf("failed to replace links: %w", err)
 	}

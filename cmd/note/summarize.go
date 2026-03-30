@@ -42,7 +42,7 @@ func (s *Summarize) Run(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to open note: %w", err)
 	}
 
-	n, err = links.Replace(ctx, n)
+	err = links.Replace(ctx, n)
 	if err != nil {
 		return fmt.Errorf("failed to replace links: %w", err)
 	}
