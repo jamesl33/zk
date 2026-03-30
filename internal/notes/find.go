@@ -13,6 +13,8 @@ import (
 
 // Find finds notes which are semantically similar to the given note. It handles creating the database,
 // populating it, and finding related notes.
+//
+// TODO (jamesl33): Extract a struct out of this, to enable unit testing with a mock AI 'Client'.
 func Find(ctx context.Context, n *note.Note, fn func(n *note.Note) error) error {
 	db, err := vector.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
 	if err != nil {

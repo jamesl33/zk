@@ -13,6 +13,8 @@ import (
 )
 
 // Rewrite the links in a note so that links contain up-to-date titles.
+//
+// TODO (jamesl33): There's a huge amount of duplication between rewrite and replace.
 func Rewrite(ctx context.Context, n *note.Note) error {
 	body, err := n.GetBody()
 	if err != nil {
