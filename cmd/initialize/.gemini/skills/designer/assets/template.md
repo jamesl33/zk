@@ -1,43 +1,53 @@
 ---
 type: permanent
-title: "Design: {Project Name}"
-date: "{YYYY-MM-DD}"
+title: "[Project Name]"
+date: "[YYYY-MM-DD]"
 tags:
-  - design_doc
-  - {project_tag}
+  - design
+  - [tag]
 ---
 
-# Design: {Project Name}
+# Problem Statement
 
-## 1. Problem Statement
-
-*Synthesized from notes on current limitations.*
+[Synthesized from notes on current limitations.]
 
 - Context: [[$ID|Existing System Note]]
 - Pain Points: ...
 
-## 2. Proposed Solution
+# Goals
 
-*Synthesized from notes and insights.*
+[Synthesized from notes identifying problems the design aims to solve.]
+
+- Goal: ...
+
+# Non-Goals
+
+[Synthesized from notes identifying problems the design doesn't aim to solve.]
+
+- Non-Goal: ...
+
+# Proposed Solution
+
+[Synthesized from notes and insights.]
 
 - Objective: ...
 - Mechanism: ...
 
-## 3. Architecture & Components
+# Architecture & Components
 
-*Synthesized from technical notes.*
+[Synthesized from technical notes.]
 
 - Component A: [[$ID|Component Note]]
 - Component B: ...
 
-## 4. Implementation Plan
+# Implementation Plan
 
-*Broken down into actionable tasks.*
+[Broken down into actionable tasks.]
 
 1. Phase 1: ...
 2. Phase 2: ...
 
-## 5. Considerations & Risks
+# Considerations & Risks
 
 - Performance: ...
 - Security: ...
