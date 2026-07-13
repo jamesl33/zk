@@ -12,6 +12,7 @@ import (
 	"github.com/jamesl33/zk/internal/links"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/ptr"
 	"github.com/spf13/cobra"
 	"go.yaml.in/yaml/v4"
 )
@@ -65,11 +66,7 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 
 // generate tags for the given note.
 func (g *Generate) generate(ctx context.Context, n *note.Note) error {
-	err := links.Replace(ctx, n)
-	if err != nil {
-		return fmt.Errorf("failed to replace links: %w", err)
-	}
-
+	// Read the body before creating a copy of the note
 	body, err := n.GetBody()
 	if err != nil {
 		return fmt.Errorf("failed to get body: %w", err)
@@ -77,6 +74,14 @@ func (g *Generate) generate(ctx context.Context, n *note.Note) error {
 
 	if len(body) == 0 {
 		return nil
+	}
+
+	// Create a copy of the note, that we can modify in-place
+	cp := ptr.To(*n)
+
+	err = links.Replace(ctx, cp)
+	if err != nil {
+		return fmt.Errorf("failed to replace links: %w", err)
 	}
 
 	client, err := ai.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
@@ -137,6 +142,7 @@ Don't use tags unless there's enough information to catagorize.`
 		overlay.Tags[i] = strings.ReplaceAll(overlay.Tags[i], "-", "_")
 	}
 
+	// Update the original note so the unchanged body is re-written to disk
 	n.Frontmatter.Tags = overlay.Tags
 
 	err = n.Write()
