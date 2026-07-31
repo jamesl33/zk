@@ -5,7 +5,7 @@ description: Archiving completed or inactive projects in the Zettelkasten. Use w
 
 # Archiver
 
-This skill guides the process of archiving completed or inactive project directories in the Zettelkasten. It ensures that valuable knowledge, lessons learned, and insights are not lost in "cold storage," but are instead extracted, formalized into permanent notes, integrated into active areas or resources, and bidirectionally linked.
+This skill guides the process of archiving completed or inactive project directories in the Zettelkasten. It ensures that valuable knowledge, lessons learned, and insights are not lost in "cold storage," but are instead extracted, formalized into permanent notes, integrated into active areas or resources, and linked.
 
 ## Workflow
 
@@ -28,10 +28,9 @@ To archive a project directory, execute the following steps in sequence:
     - `2 Areas/{Area}/` if they relate to an ongoing area of responsibility.
     - `3 Resources/{Resource}/` if they relate to a topic of ongoing interest or research.
 
-### 3. Build Bidirectional Links
+### 3. Build Links
 *   Search your Zettelkasten using `regex_search_notes` or `semantic_search_notes` for existing related notes.
 *   Add WikiLinks `[[$NOTE_ID|$TITLE]]` from the new permanent notes to relevant existing notes.
-*   **Crucial Step**: Open those existing notes and add WikiLinks back to the newly created permanent notes to establish bidirectional connections.
 *   Link to/from any literature, bibliographic, or project notes that remain relevant.
 
 ### 4. Archive the Project Directory
@@ -46,6 +45,6 @@ To archive a project directory, execute the following steps in sequence:
 ## Rules
 
 1.  **Extract Before Moving**: Always perform the extraction of atomic permanent notes *before* moving the project folder to `4 Archives`. Once inside `4 Archives`, the content should be considered archived and read-only.
-2.  **No Dead Ends**: Every newly created permanent note must link to at least one existing active note, and be linked to in return.
+2.  **No Dead Ends**: Every newly created permanent note must link to at least one existing active note.
 3.  **Preserve Directory Structure**: When moving a project directory to `4 Archives`, preserve its contents and structure exactly. Do not flatten or delete project files.
 4.  **Do Not Remove `.gitkeep` Files**: When moving folders, ensure any `.gitkeep` files in empty directories are preserved so Git tracks the structure properly.
