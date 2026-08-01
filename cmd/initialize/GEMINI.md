@@ -72,7 +72,7 @@ tags:
 
 -   **`fleeting`**: Unprocessed ideas, quotes, or information. **Must be placed in `0 Inbox`**. They are meant to be processed later into other note types.
 -   **`bibliographic`**: A reference to a source (book, article, etc.). Contains the title and a link. **Must be placed in `5 Bibliography`**.
--   **`literature`**: Quotes or references from external resources, often using progressive summarization. Links to a `bibliographic` note.
+-   **`literature`**: Raw, copy-pasted quotes and complementary summaries/ideas from external resources, linked to a `bibliographic` note. Direct quotes are placed in blockquotes (`>`), while your summaries/analyses live outside them.
 -   **`permanent`**: Your own atomic, well-developed ideas, insights, or knowledge. This is the core of the Zettelkasten.
 -   **`index`**: A note that serves as a hub, linking to multiple other notes on a single topic.
 
@@ -82,18 +82,32 @@ tags:
 
 All notes (except for `index` notes) should be "atomic." This means each note should focus on a single, self-contained idea or topic.
 
-### 4.2. Progressive Summarization
+### 4.2. Literature Notes and Progressive Summarization
 
-When creating `literature` notes from sources, apply progressive summarization:
-1.  Capture the quote.
-2.  Emphasize the most interesting parts (e.g., using `**bold**`).
-3.  Highlight the absolute most important information within the emphasized sections (e.g., using `==highlight==`).
+Literature notes capture external knowledge and your active engagement with it. To ensure literature notes are taken correctly and do not degenerate into mere summaries in blockquotes, adhere to the following rules:
+
+1. **Only Copy-Pasted Text is Quoted:** Raw, verbatim quotes from the source must remain untouched and must be formatted using Markdown blockquotes (e.g., `> Quote`).
+2. **Ideas, Summarizations, and Highlights are Complementary:** 
+   - Do **not** place your own ideas, summarizations, or explanations inside blockquotes (`>`). They should be written as normal text directly underneath or alongside the quotes.
+   - Summarizing, highlighting, or applying progressive summarization to the raw quotes is still highly encouraged and perfectly fine.
+3. **Your Own Original Ideas/Extractions must be Permanent Notes:** If a concept sparks a new, original insight or requires a significant synthesis, do not leave it in the literature note. Capture it as a new `permanent` note.
+
+#### Progressive Summarization Workflow
+
+When processing direct quotes within `literature` notes:
+1. **Capture the quote:** Copy-paste the raw, verbatim text from the source inside a blockquote (`>`).
+2. **Emphasize key sections:** Bold the most interesting parts of the quote (e.g., `**bold**`).
+3. **Highlight crucial details:** Highlight the absolute most important information within the bolded sections (e.g., `==highlight==`).
+4. **Add complementary summary:** Write your own brief, unquoted summaries or thoughts below the blockquote.
 
 **Example:**
 
-> This is a simple quote, showing **how to use ==progressive summarization==**!
->
+> This is a simple raw quote from an external source, showing **how to use ==progressive summarization==** on the original text without modifying it.
 > — [[$LINK_TO_BIBLIOGRAPHIC_NOTE]]
+
+This raw quote contains a key concept that is summarized below.
+
+The system relies on progressive summarization to layer context on top of verbatim citations, allowing the reader to scan the core ideas quickly without losing the original quote's exact wording.
 
 ### 4.3. Shell Script Formatting
 
