@@ -5,6 +5,9 @@
       "args": [
         "mcp"
       ],
+      "env": {
+        "GEMINI_API_KEY": "$GEMINI_API_KEY"
+      },
       "timeout": 30000,
       "trust": true
     }
