@@ -11,6 +11,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//go:embed .geminiignore
+var ignore []byte
+
 //go:embed .gemini
 var settings embed.FS
 
@@ -43,6 +46,11 @@ func (i *Initialize) Run(ctx context.Context) error {
 	err := os.RemoveAll(".gemini")
 	if err != nil {
 		return fmt.Errorf("failed to remove existing '.gemini' directory: %w", err)
+	}
+
+	err = os.WriteFile(".geminiignore", ignore, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to write '.geminiignore': %w", err)
 	}
 
 	err = os.WriteFile("GEMINI.md", instructions, 0o644)
