@@ -2,10 +2,7 @@ package note
 
 import (
 	"context"
-	"fmt"
-	"time"
 
-	"github.com/jamesl33/zk/internal/note"
 	"github.com/spf13/cobra"
 )
 
@@ -42,25 +39,6 @@ func NewCreateLiterature() *cobra.Command {
 }
 
 // Run creates a new literature note.
-func (c *CreateLiterature) Run(ctx context.Context, path string) error {
-	fm := note.Frontmatter{
-		Type:  "literature",
-		Title: c.Title,
-		Date:  time.Now().Format("2006-01-02"),
-		Tags:  make([]string, 0),
-	}
-
-	n := note.Note{
-		Path:        note.Path(path),
-		Frontmatter: fm,
-	}
-
-	err := n.Create()
-	if err != nil {
-		return fmt.Errorf("failed to write note: %w", err)
-	}
-
-	fmt.Printf("%s\n", n.Path)
-
-	return nil
+func (c *CreateLiterature) Run(_ context.Context, path string) error {
+	return create("literature", c.Title, path)
 }

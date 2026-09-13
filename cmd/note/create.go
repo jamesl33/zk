@@ -1,6 +1,10 @@
 package note
 
 import (
+	"fmt"
+	"time"
+
+	"github.com/jamesl33/zk/internal/note"
 	"github.com/spf13/cobra"
 )
 
@@ -20,4 +24,29 @@ func NewCreate() *cobra.Command {
 	)
 
 	return &cmd
+}
+
+// create writes a new note of the given type/title at the given path and
+// prints the resulting path.
+func create(noteType, title, path string) error {
+	fm := note.Frontmatter{
+		Type:  note.Type(noteType),
+		Title: title,
+		Date:  time.Now().Format("2006-01-02"),
+		Tags:  make([]string, 0),
+	}
+
+	n := note.Note{
+		Path:        note.Path(path),
+		Frontmatter: fm,
+	}
+
+	err := n.Create()
+	if err != nil {
+		return fmt.Errorf("failed to write note: %w", err)
+	}
+
+	fmt.Printf("%s\n", n.Path)
+
+	return nil
 }
