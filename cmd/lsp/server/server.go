@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -131,13 +132,14 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 	}
 
 	dst, err := l.One(s.ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get note: %w", err)
-	}
 
 	// Note not found, broken link?
-	if dst == nil {
+	if errors.Is(err, lister.ErrNotFound) {
 		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get note: %w", err)
 	}
 
 	abs, err := filepath.Abs(dst.Path)

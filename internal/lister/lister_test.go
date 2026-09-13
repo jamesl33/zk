@@ -112,6 +112,17 @@ func TestListerOne(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestListerOneNotFound(t *testing.T) {
+	tmp := t.TempDir()
+
+	l, err := NewLister(WithPath(tmp))
+	require.NoError(t, err)
+
+	actual, err := l.One(t.Context())
+	require.ErrorIs(t, err, ErrNotFound)
+	assert.Nil(t, actual)
+}
+
 func TestListerManyWithMatcher(t *testing.T) {
 	tmp := t.TempDir()
 

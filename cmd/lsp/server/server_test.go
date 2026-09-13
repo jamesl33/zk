@@ -79,3 +79,20 @@ func TestTextDocumentDefinitionNoLinkAtCursor(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, result)
 }
+
+func TestTextDocumentDefinitionBrokenLink(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	src := "See [[20060102150406|Missing]]"
+	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	char := strings.Index(src, "20060102150406")
+
+	result, err := s.TextDocumentDefinition(nil, definitionParams(t, "source.md", 0, char))
+	require.NoError(t, err)
+	assert.Nil(t, result)
+}

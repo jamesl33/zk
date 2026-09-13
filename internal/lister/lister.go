@@ -32,6 +32,9 @@ func NewLister(opts ...func(o *Options)) (*Lister, error) {
 	return &lister, nil
 }
 
+// ErrNotFound is returned by One when no note matches.
+var ErrNotFound = errors.New("not found")
+
 // One returns the first match for the lister.
 func (l *Lister) One(ctx context.Context) (*note.Note, error) {
 	next, stop := iter.Pull2(l.Many(ctx))
@@ -39,7 +42,7 @@ func (l *Lister) One(ctx context.Context) (*note.Note, error) {
 
 	n, err, ok := next()
 	if !ok {
-		return nil, nil
+		return nil, ErrNotFound
 	}
 
 	if err != nil {
