@@ -47,6 +47,11 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 		path = args[0]
 	}
 
+	client, err := ai.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
+	if err != nil {
+		return fmt.Errorf("failed to create client: %w", err)
+	}
+
 	lister, err := lister.NewLister(
 		lister.WithPath(path),
 	)
@@ -55,7 +60,7 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 	}
 
 	err = iterator.ForEach2(lister.Many(ctx), func(n *note.Note) error {
-		return g.generate(ctx, n)
+		return g.generate(ctx, client, n)
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update notes: %w", err)
@@ -65,7 +70,7 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 }
 
 // generate tags for the given note.
-func (g *Generate) generate(ctx context.Context, n *note.Note) error {
+func (g *Generate) generate(ctx context.Context, client ai.Client, n *note.Note) error {
 	// Read the body before creating a copy of the note
 	body, err := n.GetBody()
 	if err != nil {
@@ -82,11 +87,6 @@ func (g *Generate) generate(ctx context.Context, n *note.Note) error {
 	err = links.Replace(ctx, cp)
 	if err != nil {
 		return fmt.Errorf("failed to replace links: %w", err)
-	}
-
-	client, err := ai.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
-	if err != nil {
-		return fmt.Errorf("failed to create client: %w", err)
 	}
 
 	example := "```yaml\ntags:\n  - tag_1\n  - tag_2\n```"
