@@ -41,7 +41,7 @@ func RegexSearchNotes(
 		return nil, nil, fmt.Errorf("failed to create entire matcher: %w", err)
 	}
 
-	var found []*note.Note
+	found := make([]*note.Note, 0)
 
 	err = notes.Search(ctx, input.Path, matcher.Or(pm, entire), func(n *note.Note) {
 		found = append(found, n)

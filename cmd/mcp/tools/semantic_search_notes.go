@@ -33,7 +33,7 @@ func SemanticSearchNotes(
 
 	n.SetBody(input.Query)
 
-	var found []*note.Note
+	found := make([]*note.Note, 0)
 
 	err := notes.Find(ctx, n, hs.Infallible(func(n *note.Note) {
 		found = append(found, n)

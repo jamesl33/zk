@@ -33,7 +33,7 @@ func FindRelatedNotes(
 		return nil, nil, fmt.Errorf("failed to open note: %w", err)
 	}
 
-	var found []*note.Note
+	found := make([]*note.Note, 0)
 
 	err = notes.Find(ctx, n, hs.Infallible(func(n *note.Note) {
 		found = append(found, n)

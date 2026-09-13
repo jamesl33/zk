@@ -32,7 +32,7 @@ func FindNotesLinkedTo(
 		return nil, nil, fmt.Errorf("failed to open note: %w", err)
 	}
 
-	var found []*note.Note
+	found := make([]*note.Note, 0)
 
 	err = notes.LinkedTo(ctx, n, func(n *note.Note) {
 		found = append(found, n)
