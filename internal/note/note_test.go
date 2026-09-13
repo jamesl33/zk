@@ -105,7 +105,7 @@ func TestNoteWrite(t *testing.T) {
 
 	n := Note{
 		Path:        path,
-		Frontmatter: Frontmatter{Type: TypePermanent, Title: "Test Note"},
+		Frontmatter: Frontmatter{Type: "permanent", Title: "Test Note"},
 	}
 
 	n.SetBody("Test body")
@@ -174,7 +174,7 @@ func TestNoteWriteTo(t *testing.T) {
 
 	n := Note{
 		Path:        path,
-		Frontmatter: Frontmatter{Type: TypePermanent, Title: "Test Note"},
+		Frontmatter: Frontmatter{Type: "permanent", Title: "Test Note"},
 	}
 
 	n.SetBody("Test body")
