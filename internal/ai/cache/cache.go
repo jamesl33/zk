@@ -29,20 +29,28 @@ func New[T any](
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	// create the table if it doesn't already exist. The prompt is stored
-	// alongside the value so that a checksum collision can be detected on
-	// lookup instead of silently returning the wrong cached result.
+	// create the table if it doesn't already exist.
 	const create = `
 	CREATE table IF NOT EXISTS %s (
 	  key integer unique,
-	  value blob,
-	  prompt text
+	  value blob
 	);
 	`
 
 	_, err = db.ExecContext(ctx, fmt.Sprintf(create, table))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create table: %w", err)
+	}
+
+	// Store the original prompt alongside the value so that a checksum
+	// collision can be detected on lookup instead of silently returning the
+	// wrong cached result. Older databases won't have this column yet, so
+	// add it here, ignoring the error if it's already present.
+	const alter = `ALTER TABLE %s ADD COLUMN prompt text`
+
+	_, err = db.ExecContext(ctx, fmt.Sprintf(alter, table))
+	if err != nil && !strings.Contains(err.Error(), "duplicate column name") {
+		return nil, fmt.Errorf("failed to alter table: %w", err)
 	}
 
 	cache := Cache[T]{
@@ -73,7 +81,7 @@ func (c *Cache[T]) Get(ctx context.Context, prompt string) (*T, error) {
 	`
 
 	var (
-		stored string
+		stored sql.NullString
 		result T
 	)
 
@@ -88,9 +96,10 @@ func (c *Cache[T]) Get(ctx context.Context, prompt string) (*T, error) {
 		return nil, fmt.Errorf("failed to query row: %w", err)
 	}
 
-	// Checksum collision with a different prompt, treat it as a cache miss
-	// rather than silently returning the wrong result.
-	if stored != prompt {
+	// Checksum collision with a different prompt (or a row predating the
+	// prompt column), treat it as a cache miss rather than silently
+	// returning the wrong result.
+	if !stored.Valid || stored.String != prompt {
 		return nil, nil
 	}
 
