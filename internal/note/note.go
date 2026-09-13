@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
-	"hash/crc32"
 	"io"
 	"os"
 	"os/exec"
@@ -144,15 +144,15 @@ func (n *Note) SetBody(body string) {
 }
 
 // Checksum returns a checksum of the entire note (including front-matter).
-func (n *Note) Checksum() (uint32, error) {
-	hasher := crc32.NewIEEE()
+func (n *Note) Checksum() ([]byte, error) {
+	hasher := sha256.New()
 
 	_, err := n.WriteTo(hasher)
 	if err != nil {
-		return 0, fmt.Errorf("failed to hash note: %w", err)
+		return nil, fmt.Errorf("failed to hash note: %w", err)
 	}
 
-	return hasher.Sum32(), nil
+	return hasher.Sum(nil), nil
 }
 
 // Edit opens the note in the users default editor.

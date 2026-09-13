@@ -102,7 +102,7 @@ func TestDBUpsertSuccess(t *testing.T) {
 
 	var (
 		name      string
-		checksum  uint32
+		checksum  []byte
 		embedding []byte
 	)
 

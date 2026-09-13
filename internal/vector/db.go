@@ -64,7 +64,7 @@ func (d *DB) init(ctx context.Context) error {
 	const create = `
 	CREATE table IF NOT EXISTS notes (
 	  name text unique,
-	  checksum integer,
+	  checksum blob,
 	  embedding blob NOT NULL
 	);
 	`
@@ -210,7 +210,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 }
 
 // skip returns a boolean indicating whether we need to update the index entry.
-func (d *DB) skip(ctx context.Context, name string, current uint32) (bool, error) {
+func (d *DB) skip(ctx context.Context, name string, current []byte) (bool, error) {
 	// query to acquire the existing checksum
 	const query = `
 	SELECT
@@ -221,7 +221,7 @@ func (d *DB) skip(ctx context.Context, name string, current uint32) (bool, error
 	  name = ?
 	`
 
-	var indexed uint32
+	var indexed []byte
 
 	err := d.db.QueryRowContext(ctx, query, name).Scan(&indexed)
 
@@ -234,7 +234,7 @@ func (d *DB) skip(ctx context.Context, name string, current uint32) (bool, error
 		return false, fmt.Errorf("failed to query for note checksum: %w", err)
 	}
 
-	return current == indexed, nil
+	return bytes.Equal(current, indexed), nil
 }
 
 // embed returns a vector embedding for the given note.
