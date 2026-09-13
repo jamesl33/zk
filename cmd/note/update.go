@@ -69,12 +69,17 @@ func (u *Update) path(args []string) (string, error) {
 
 	// No path provided, read from stdin
 	path, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
 		return "", fmt.Errorf("failed to read from stdin: %w", err)
 	}
 
 	// Strip whitespace
 	path = strings.TrimSuffix(path, "\n")
+
+	// No data at all, treat this the same as user-cancellation
+	if path == "" {
+		return "", io.EOF
+	}
 
 	return path, nil
 }
