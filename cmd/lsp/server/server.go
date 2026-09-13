@@ -97,15 +97,29 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 	}
 
 	var (
-		matches  = regex.Link.FindStringSubmatch(lines[params.Position.Line])
-		expected = 1 + regex.Link.NumSubexp()
+		cur     = lines[params.Position.Line]
+		matches = regex.Link.FindAllStringSubmatchIndex(cur, -1)
+		linkIdx = regex.Link.SubexpIndex("link")
 	)
 
-	if len(matches) != expected {
-		return nil, fmt.Errorf("unexpected number of regex matches")
+	name := ""
+
+	for _, match := range matches {
+		start, end := match[0], match[1]
+
+		if int(params.Position.Character) < start || int(params.Position.Character) >= end {
+			continue
+		}
+
+		name = cur[match[2*linkIdx]:match[2*linkIdx+1]]
+
+		break
 	}
 
-	name := matches[regex.Link.SubexpIndex("link")]
+	// The cursor isn't positioned on a link.
+	if name == "" {
+		return nil, nil
+	}
 
 	l, err := lister.NewLister(
 		// TODO (jamesl33): This should probably be 'git rev-parse --show-toplevel'?
