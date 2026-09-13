@@ -54,7 +54,7 @@ func (c *CreateBibliographic) Run(ctx context.Context) error {
 		Frontmatter: fm,
 	}
 
-	err := n.Write()
+	err := n.Create()
 	if err != nil {
 		return fmt.Errorf("failed to write note: %w", err)
 	}

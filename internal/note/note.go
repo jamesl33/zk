@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/jamesl33/zk/internal/ptr"
@@ -188,6 +189,35 @@ func (n *Note) Edit(ctx context.Context) error {
 	*n = *r
 
 	return nil
+}
+
+// Create writes a new note to disk, regenerating its identifier if a note
+// already exists at the same path so that an existing note is never
+// clobbered.
+func (n *Note) Create() error {
+	for {
+		file, err := os.OpenFile(n.Path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
+
+		if errors.Is(err, os.ErrExist) {
+			n.Path = filepath.Join(filepath.Dir(n.Path), Name())
+			time.Sleep(10 * time.Millisecond)
+
+			continue
+		}
+
+		if err != nil {
+			return fmt.Errorf("failed to open file at %q: %w", n.Path, err)
+		}
+
+		defer file.Close()
+
+		_, err = n.WriteTo(file)
+		if err != nil {
+			return fmt.Errorf("failed to write note to file: %w", err)
+		}
+
+		return nil
+	}
 }
 
 // Write the note out to disk.

@@ -123,6 +123,67 @@ func TestNoteWrite(t *testing.T) {
 	assert.Equal(t, "Test body", body)
 }
 
+func TestNoteCreate(t *testing.T) {
+	var (
+		tmp  = t.TempDir()
+		path = filepath.Join(tmp, "note.md")
+	)
+
+	n := Note{
+		Path:        path,
+		Frontmatter: Frontmatter{Type: "permanent", Title: "Test Note"},
+	}
+
+	n.SetBody("Test body")
+
+	err := n.Create()
+	require.NoError(t, err)
+	assert.Equal(t, path, n.Path)
+
+	// Verify by reading back
+	n2, err := New(path)
+	require.NoError(t, err)
+	assert.Equal(t, "Test Note", n2.Frontmatter.Title)
+}
+
+func TestNoteCreateCollision(t *testing.T) {
+	var (
+		tmp      = t.TempDir()
+		existing = filepath.Join(tmp, "existing.md")
+	)
+
+	orig := Note{
+		Path:        existing,
+		Frontmatter: Frontmatter{Type: "permanent", Title: "Original"},
+	}
+
+	orig.SetBody("Original body")
+
+	err := orig.Write()
+	require.NoError(t, err)
+
+	n := Note{
+		Path:        existing,
+		Frontmatter: Frontmatter{Type: "permanent", Title: "New"},
+	}
+
+	n.SetBody("New body")
+
+	err = n.Create()
+	require.NoError(t, err)
+	assert.NotEqual(t, existing, n.Path)
+
+	// The original note must not have been clobbered
+	o2, err := New(existing)
+	require.NoError(t, err)
+	assert.Equal(t, "Original", o2.Frontmatter.Title)
+
+	// The new note must have been written at the regenerated path
+	n2, err := New(n.Path)
+	require.NoError(t, err)
+	assert.Equal(t, "New", n2.Frontmatter.Title)
+}
+
 func TestNoteText(t *testing.T) {
 	n, err := New("testdata/20060102150405.md")
 	require.NoError(t, err)

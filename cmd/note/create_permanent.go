@@ -55,7 +55,7 @@ func (c *CreatePermanent) Run(ctx context.Context, path string) error {
 		Frontmatter: fm,
 	}
 
-	err := n.Write()
+	err := n.Create()
 	if err != nil {
 		return fmt.Errorf("failed to write note: %w", err)
 	}
