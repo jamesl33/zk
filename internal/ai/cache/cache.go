@@ -105,7 +105,9 @@ func (c *Cache[T]) Set(ctx context.Context, prompt string, result T) error {
 
 // checksum returns a fixed-size digest of the given prompt, used as the
 // cache key. SHA-256 is used (rather than a shorter checksum like CRC32) so
-// that two different prompts are never mistaken for the same cache entry.
+// that a collision between two different prompts is computationally
+// infeasible to find, rather than something a handful of cache entries
+// could realistically hit by chance.
 func checksum(prompt string) []byte {
 	sum := sha256.Sum256([]byte(prompt))
 	return sum[:]
