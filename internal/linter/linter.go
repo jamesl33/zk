@@ -3,6 +3,8 @@ package linter
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
@@ -30,7 +32,10 @@ func NewLinter() *Linter {
 
 // Lint performs linting of notes and returns a slice of linting errors.
 func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
-	ids := make([]string, 0)
+	var (
+		ids   = make([]string, 0)
+		paths = make(map[string][]string)
+	)
 
 	lstr, err := lister.NewLister(
 		lister.WithPath(path),
@@ -41,9 +46,37 @@ func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
 
 	err = iterator.ForEach2(lstr.Many(ctx), hs.Infallible(func(n *note.Note) {
 		ids = append(ids, n.Name())
+		paths[n.Name()] = append(paths[n.Name()], n.Path)
 	}))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list notes: %w", err)
+	}
+
+	errors := make([]*LintError, 0)
+
+	dupes := make([]string, 0, len(paths))
+
+	for id := range paths {
+		dupes = append(dupes, id)
+	}
+
+	slices.Sort(dupes)
+
+	for _, id := range dupes {
+		ps := paths[id]
+
+		if len(ps) <= 1 {
+			continue
+		}
+
+		for _, p := range ps {
+			err := LintError{
+				Path:    p,
+				Message: fmt.Sprintf("Identifier %q is used by multiple notes: %s (duplicate-id)", id, strings.Join(ps, ", ")),
+			}
+
+			errors = append(errors, &err)
+		}
 	}
 
 	entire, err := matcher.Entire("", "", regex.Link.String())
@@ -58,8 +91,6 @@ func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create lister: %w", err)
 	}
-
-	errors := make([]*LintError, 0)
 
 	err = iterator.ForEach2(lstr.Many(ctx), func(n *note.Note) error {
 		links, err := n.Links()

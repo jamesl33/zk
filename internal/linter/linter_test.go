@@ -90,6 +90,36 @@ func TestLinterLintLinkToSelf(t *testing.T) {
 	assert.Empty(t, errors)
 }
 
+func TestLinterLintDuplicateIdentifier(t *testing.T) {
+	var (
+		tmp   = t.TempDir()
+		note1 = filepath.Join(tmp, "20240101000001.md")
+		note2 = filepath.Join(tmp, "subdir", "20240101000001.md")
+	)
+
+	err := os.MkdirAll(filepath.Join(tmp, "subdir"), 0o755)
+	require.NoError(t, err)
+
+	err = os.WriteFile(note1, []byte("---\ntitle: Note 1\ndate: \"2024-01-01\"\n---\nBody 1"), 0o644)
+	require.NoError(t, err)
+
+	err = os.WriteFile(note2, []byte("---\ntitle: Note 2\ndate: \"2024-01-01\"\n---\nBody 2"), 0o644)
+	require.NoError(t, err)
+
+	l := NewLinter()
+
+	errors, err := l.Lint(t.Context(), tmp)
+	require.NoError(t, err)
+	require.Len(t, errors, 2)
+
+	paths := []string{errors[0].Path, errors[1].Path}
+	assert.ElementsMatch(t, []string{note1, note2}, paths)
+
+	for _, e := range errors {
+		assert.Contains(t, e.Message, "duplicate-id")
+	}
+}
+
 func TestLinterLintNestedDirectories(t *testing.T) {
 	var (
 		tmp   = t.TempDir()
