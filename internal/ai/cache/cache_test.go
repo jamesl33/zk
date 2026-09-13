@@ -51,33 +51,6 @@ func TestGet(t *testing.T) {
 	assert.Equal(t, "result", *actual)
 }
 
-func TestGetChecksumCollision(t *testing.T) {
-	var (
-		tmp  = t.TempDir()
-		path = filepath.Join(tmp, "cache.db")
-	)
-
-	c, err := New[string](t.Context(), path, "test_table")
-	require.NoError(t, err)
-
-	err = c.Set(t.Context(), "prompt", "result")
-	require.NoError(t, err)
-
-	// Simulate a checksum collision by rewriting the stored prompt for the
-	// same key to something else.
-	hasher := crc32.NewIEEE()
-
-	_, err = io.Copy(hasher, strings.NewReader("prompt"))
-	require.NoError(t, err)
-
-	_, err = c.db.Exec("UPDATE test_table SET prompt = ? WHERE key = ?", "other prompt", hasher.Sum32())
-	require.NoError(t, err)
-
-	actual, err := c.Get(t.Context(), "prompt")
-	require.NoError(t, err)
-	assert.Nil(t, actual)
-}
-
 func TestGetNotFound(t *testing.T) {
 	var (
 		tmp  = t.TempDir()

@@ -42,17 +42,6 @@ func New[T any](
 		return nil, fmt.Errorf("failed to create table: %w", err)
 	}
 
-	// Store the original prompt alongside the value so that a checksum
-	// collision can be detected on lookup instead of silently returning the
-	// wrong cached result. Older databases won't have this column yet, so
-	// add it here, ignoring the error if it's already present.
-	const alter = `ALTER TABLE %s ADD COLUMN prompt text`
-
-	_, err = db.ExecContext(ctx, fmt.Sprintf(alter, table))
-	if err != nil && !strings.Contains(err.Error(), "duplicate column name") {
-		return nil, fmt.Errorf("failed to alter table: %w", err)
-	}
-
 	cache := Cache[T]{
 		db:    db,
 		table: table,
@@ -73,19 +62,16 @@ func (c *Cache[T]) Get(ctx context.Context, prompt string) (*T, error) {
 	// query to acquire the existing prompt checksum
 	const query = `
 	SELECT
-	  prompt, value
+	  value
 	FROM
 	  %s
 	WHERE
 	  key = ?
 	`
 
-	var (
-		stored sql.NullString
-		result T
-	)
+	var result T
 
-	err = c.db.QueryRowContext(ctx, fmt.Sprintf(query, c.table), hasher.Sum32()).Scan(&stored, &result)
+	err = c.db.QueryRowContext(ctx, fmt.Sprintf(query, c.table), hasher.Sum32()).Scan(&result)
 
 	// Not found, we need to update
 	if errors.Is(err, sql.ErrNoRows) {
@@ -94,13 +80,6 @@ func (c *Cache[T]) Get(ctx context.Context, prompt string) (*T, error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to query row: %w", err)
-	}
-
-	// Checksum collision with a different prompt (or a row predating the
-	// prompt column), treat it as a cache miss rather than silently
-	// returning the wrong result.
-	if !stored.Valid || stored.String != prompt {
-		return nil, nil
 	}
 
 	return &result, nil
@@ -118,9 +97,9 @@ func (c *Cache[T]) Set(ctx context.Context, prompt string, result T) error {
 	// insert the embedding into the index
 	const insert = `
 	INSERT OR REPLACE INTO
-	  %s (key, value, prompt)
+	  %s
 	VALUES
-	  (?, ?, ?);
+	  (?, ?);
 	`
 
 	_, err = c.db.ExecContext(
@@ -128,7 +107,6 @@ func (c *Cache[T]) Set(ctx context.Context, prompt string, result T) error {
 		fmt.Sprintf(insert, c.table),
 		hasher.Sum32(),
 		result,
-		prompt,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to insert row: %w", err)
