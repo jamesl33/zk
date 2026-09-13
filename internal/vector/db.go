@@ -262,7 +262,7 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([]byte, error) {
 	}
 
 	// We didn't receive an embedding
-	if len(vec) == 1 {
+	if len(vec) == 0 {
 		return nil, nil
 	}
 
