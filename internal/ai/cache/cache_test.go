@@ -1,10 +1,7 @@
 package cache
 
 import (
-	"hash/crc32"
-	"io"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -97,15 +94,9 @@ func TestSet(t *testing.T) {
 	err = c.Set(t.Context(), "prompt", expected)
 	assert.NoError(t, err)
 
-	var (
-		actual []byte
-		hasher = crc32.NewIEEE()
-	)
+	var actual []byte
 
-	_, err = io.Copy(hasher, strings.NewReader("prompt"))
-	require.NoError(t, err)
-
-	err = c.db.QueryRow("SELECT value FROM test_table WHERE key = ?", hasher.Sum32()).Scan(&actual)
+	err = c.db.QueryRow("SELECT value FROM test_table WHERE key = ?", checksum("prompt")).Scan(&actual)
 	require.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }

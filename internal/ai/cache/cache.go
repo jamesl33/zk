@@ -2,12 +2,10 @@ package cache
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
-	"hash/crc32"
-	"io"
-	"strings"
 )
 
 // Cache defines a generic cache which is backed by a sqlite3 database.
@@ -32,7 +30,7 @@ func New[T any](
 	// create the table if it doesn't already exist.
 	const create = `
 	CREATE table IF NOT EXISTS %s (
-	  key integer unique,
+	  key blob unique,
 	  value blob
 	);
 	`
@@ -52,12 +50,7 @@ func New[T any](
 
 // Get a value from the cache.
 func (c *Cache[T]) Get(ctx context.Context, prompt string) (*T, error) {
-	hasher := crc32.NewIEEE()
-
-	_, err := io.Copy(hasher, strings.NewReader(prompt))
-	if err != nil {
-		return nil, fmt.Errorf("failed to hash prompt: %w", err)
-	}
+	key := checksum(prompt)
 
 	// query to acquire the existing prompt checksum
 	const query = `
@@ -71,7 +64,7 @@ func (c *Cache[T]) Get(ctx context.Context, prompt string) (*T, error) {
 
 	var result T
 
-	err = c.db.QueryRowContext(ctx, fmt.Sprintf(query, c.table), hasher.Sum32()).Scan(&result)
+	err := c.db.QueryRowContext(ctx, fmt.Sprintf(query, c.table), key).Scan(&result)
 
 	// Not found, we need to update
 	if errors.Is(err, sql.ErrNoRows) {
@@ -87,12 +80,7 @@ func (c *Cache[T]) Get(ctx context.Context, prompt string) (*T, error) {
 
 // Set a value in the cache.
 func (c *Cache[T]) Set(ctx context.Context, prompt string, result T) error {
-	hasher := crc32.NewIEEE()
-
-	_, err := io.Copy(hasher, strings.NewReader(prompt))
-	if err != nil {
-		return fmt.Errorf("failed to hash prompt: %w", err)
-	}
+	key := checksum(prompt)
 
 	// insert the embedding into the index
 	const insert = `
@@ -102,10 +90,10 @@ func (c *Cache[T]) Set(ctx context.Context, prompt string, result T) error {
 	  (?, ?);
 	`
 
-	_, err = c.db.ExecContext(
+	_, err := c.db.ExecContext(
 		ctx,
 		fmt.Sprintf(insert, c.table),
-		hasher.Sum32(),
+		key,
 		result,
 	)
 	if err != nil {
@@ -113,4 +101,12 @@ func (c *Cache[T]) Set(ctx context.Context, prompt string, result T) error {
 	}
 
 	return nil
+}
+
+// checksum returns a fixed-size digest of the given prompt, used as the
+// cache key. SHA-256 is used (rather than a shorter checksum like CRC32) so
+// that two different prompts are never mistaken for the same cache entry.
+func checksum(prompt string) []byte {
+	sum := sha256.Sum256([]byte(prompt))
+	return sum[:]
 }
