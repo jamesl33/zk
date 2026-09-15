@@ -120,7 +120,7 @@ func TestNoteWrite(t *testing.T) {
 
 	body, err := n2.GetBody()
 	require.NoError(t, err)
-	assert.Equal(t, "\nTest body", body)
+	assert.Equal(t, "\nTest body\n", body)
 }
 
 func TestNoteCreate(t *testing.T) {

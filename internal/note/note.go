@@ -265,8 +265,9 @@ func (n *Note) WriteTo(w io.Writer) (int64, error) {
 
 	// Frontmatter must always be separated from the body by a blank line, regardless of
 	// whether the body already has its own leading newline (e.g. read from an existing note)
-	// or not (e.g. set directly via 'SetBody').
-	_, err = b.WriteString("\n" + strings.TrimLeft(body, "\n"))
+	// or not (e.g. set directly via 'SetBody'). The file must also always end with a single
+	// trailing newline.
+	_, err = b.WriteString("\n" + strings.TrimRight(strings.TrimLeft(body, "\n"), "\n") + "\n")
 	if err != nil {
 		return 0, fmt.Errorf("failed to write body: %w", err)
 	}
