@@ -53,7 +53,7 @@ tags:
 
 ---
 
-- [$NOTE_ID|{Link Title}]
+- [[$NOTE_ID|{Link Title}]]
 - [{External Description}]({URL})
 ```
 
@@ -80,7 +80,11 @@ tags:
 
 ### 4.1. Atomic Notes
 
-All notes (except for `index` notes) should be "atomic." This means each note should focus on a single, self-contained idea or topic.
+All notes (except `index` notes) must be atomic, self-contained, and linked:
+
+-   **Atomic**: Focus on a single idea. If a note covers more than one, split it into separate notes.
+-   **Self-contained**: Understandable without the source material, other notes, or your memory of writing it. Write for a stranger.
+-   **Linked**: Every `permanent` note must link to at least one other note. A note with no links isn't part of the Zettelkasten, it's an orphan — `lint_notes` rejects it (`orphan-note`). Rewriting an idea in your own words and finding where it connects to existing notes is what produces understanding; it isn't a formatting step to do afterward.
 
 ### 4.2. Literature Notes and Progressive Summarization
 
