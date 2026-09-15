@@ -263,7 +263,10 @@ func (n *Note) WriteTo(w io.Writer) (int64, error) {
 		return 0, fmt.Errorf("failed to get body: %w", err)
 	}
 
-	_, err = b.WriteString(body)
+	// Frontmatter must always be separated from the body by a blank line, regardless of
+	// whether the body already has its own leading newline (e.g. read from an existing note)
+	// or not (e.g. set directly via 'SetBody').
+	_, err = b.WriteString("\n" + strings.TrimLeft(body, "\n"))
 	if err != nil {
 		return 0, fmt.Errorf("failed to write body: %w", err)
 	}
