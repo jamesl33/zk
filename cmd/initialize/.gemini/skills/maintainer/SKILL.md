@@ -22,8 +22,7 @@ This skill outlines the process for converting `fleeting` and `literature` notes
     *   Crucially, use `read_note` and `update_note` on the existing notes to add links back to your new note. This bidirectional linking is what builds a web of knowledge.
 
 4.  **File and Format**:
-    *   Use `create_note` (type `permanent`, with a `title` and `tags`) to create the new note in the appropriate location within `1 Projects`, `2 Areas`, or `3 Resources` — it generates the timestamp ID automatically, but leaves the body empty.
-    *   Use `update_note` on the note `create_note` just returned to write its body (the rewritten, atomic idea plus its links).
+    *   Use `create_note` (type `permanent`, with a `title`, `tags`, and the rewritten, atomic body including its links) to write the new note into the appropriate location within `1 Projects`, `2 Areas`, or `3 Resources` — it generates the timestamp ID automatically.
     *   If a fleeting or literature note splits into an existing note instead of a new one, use `update_note` to append to it directly.
 
 5.  **Archive the Original**: Once a `fleeting` note has been fully processed into one or more `permanent` notes, delete the original file from the `0 Inbox` using your shell tool to keep it clean. There is no MCP tool for deletion. Processed `literature` notes can stay where they are — they remain the citable record of the source.

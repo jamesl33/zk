@@ -26,6 +26,9 @@ type CreateNoteInput struct {
 
 	// Tags are the note's tags.
 	Tags []string `json:"tags" jsonschema:"The notes tags (e.g. short, simple, snake_case keywords to improve discoverability)"`
+
+	// Body is the note's initial body.
+	Body string `json:"body" jsonschema:"The notes initial body, without frontmatter"`
 }
 
 // CreateNoteOutput defines the output for the CreateNote tool.
@@ -58,6 +61,8 @@ func CreateNote(
 			Tags:  tags,
 		},
 	}
+
+	n.SetBody(input.Body)
 
 	err := n.Create()
 	if err != nil {

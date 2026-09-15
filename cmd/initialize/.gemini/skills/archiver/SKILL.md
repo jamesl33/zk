@@ -16,7 +16,7 @@ To archive a project directory, execute the following steps in sequence:
 *   Review all notes, documents, and files in this directory to identify key ideas, technical patterns, solutions, or insights that have long-term value beyond the project itself.
 
 ### 2. Extract Atomic Permanent Notes
-*   For every valuable, reusable concept or insight identified, create a new `permanent` note using `zk note create permanent` or the `create_note` tool (this generates the ID and frontmatter, but leaves the body empty — write it with `update_note`, see step 3).
+*   For every valuable, reusable concept or insight identified, create a new `permanent` note using `zk note create permanent` or the `create_note` tool (this generates the ID and frontmatter automatically).
 *   **Atomize**: Ensure each new note represents exactly one self-contained, atomic idea.
 *   **Metadata**:
     - Set the frontmatter `type` to `permanent`.
@@ -28,7 +28,7 @@ To archive a project directory, execute the following steps in sequence:
 
 ### 3. Build Links
 *   Search your Zettelkasten using `regex_search_notes` or `semantic_search_notes` for existing related notes. If the topic has an `index` note, link to it as well.
-*   Use `update_note` to write each new permanent note's body, including WikiLinks `[[$NOTE_ID|$TITLE]]` to relevant existing notes — a note with none is rejected by `lint_notes` (`orphan-note`).
+*   Include WikiLinks `[[$NOTE_ID|$TITLE]]` to relevant existing notes in each new permanent note's body — a note with none is rejected by `lint_notes` (`orphan-note`).
 *   Link to/from any literature, bibliographic, or project notes that remain relevant.
 
 ### 4. Archive the Project Directory

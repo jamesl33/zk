@@ -166,7 +166,7 @@ Use this to read the full content of a note found via one of the search tools.
 	)
 
 	description = `
-Create a new note.
+Create a new note, including its body.
 
 Follow the vault's conventions when choosing a directory for the note's type:
 
@@ -174,7 +174,8 @@ Follow the vault's conventions when choosing a directory for the note's type:
 	- bibliographic notes go in '5 Bibliography'
 	- permanent, literature and index notes go in '1 Projects', '2 Areas' or '3 Resources', whichever fits the note's subject
 
-The note's identifier and filename are generated automatically.
+The note's identifier and filename are generated automatically. To edit a note after creation,
+use 'update_note'.
 `
 
 	mcp.AddTool(

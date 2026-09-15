@@ -12,13 +12,12 @@ for the exact literature note format (blockquoted quotes, progressive summarizat
 ## Workflow
 
 1.  **Record the Source**: Use `create_note` (type `bibliographic`, path `5 Bibliography`) with
-    the source's title. Then use `update_note` to set the body to the citation (author, URL/ISBN,
-    date accessed).
+    the source's title and a body containing the citation (author, URL/ISBN, date accessed).
 
 2.  **Write the Literature Note**: Use `create_note` (type `literature`, same directory as the
-    bibliographic note it's linked to) with a title describing the note's focus. Then use
-    `update_note` to write the body: verbatim quotes in blockquotes, your own summaries as plain
-    text alongside them, and a WikiLink `[[$NOTE_ID|$TITLE]]` back to the bibliographic note.
+    bibliographic note it's linked to) with a title describing the note's focus, and a body
+    containing verbatim quotes in blockquotes, your own summaries as plain text alongside them,
+    and a WikiLink `[[$NOTE_ID|$TITLE]]` back to the bibliographic note.
 
 3.  **Keep it Raw**: A literature note only records the source plus light commentary. If something
     sparks an original idea worth developing, don't expand it here — that becomes a new
