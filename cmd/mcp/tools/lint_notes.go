@@ -16,7 +16,10 @@ type LintError struct {
 }
 
 // LintNotesInput defines the input for the LintNotes tool.
-type LintNotesInput struct{}
+type LintNotesInput struct {
+	// Path is the directory to lint.
+	Path string `json:"path" jsonschema:"The directory to lint, use '.' to lint everything"`
+}
 
 // LintNotesOutput defines the output for the LintNotes tool.
 type LintNotesOutput struct {
@@ -30,7 +33,12 @@ func LintNotes(
 	_ *mcp.CallToolRequest,
 	input *LintNotesInput,
 ) (*mcp.CallToolResult, *LintNotesOutput, error) {
-	errors, err := linter.NewLinter().Lint(ctx, ".")
+	path := input.Path
+	if path == "" {
+		path = "."
+	}
+
+	errors, err := linter.NewLinter().Lint(ctx, path)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to lint notes: %w", err)
 	}

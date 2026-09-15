@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"os"
 
 	"github.com/jamesl33/zk/internal/ai/cache"
 	"google.golang.org/genai"
@@ -11,18 +12,32 @@ import (
 
 // Gemini defines a client for interacting with the Gemini API.
 //
-// TODO (jamesl33): Make the model configurable.
 // TODO (jamesl33): Handle the 8k context window.
 type Gemini struct {
-	client *genai.Client
-	gcache *cache.Cache[string]
-	ecache *cache.Cache[[]byte]
+	client    *genai.Client
+	gcache    *cache.Cache[string]
+	ecache    *cache.Cache[[]byte]
+	model     string
+	embedding string
 }
 
 var _ Client = (*Gemini)(nil)
 
+// Option configures a Gemini client.
+type Option func(*Gemini)
+
+// WithModel overrides the model used for text generation.
+func WithModel(model string) Option {
+	return func(g *Gemini) { g.model = model }
+}
+
+// WithEmbedModel overrides the model used for embedding.
+func WithEmbedModel(model string) Option {
+	return func(g *Gemini) { g.embedding = model }
+}
+
 // New creates a new client for interacting with the Gemini API.
-func New(ctx context.Context, path string) (*Gemini, error) {
+func New(ctx context.Context, path string, opts ...Option) (*Gemini, error) {
 	ai, err := genai.NewClient(ctx, &genai.ClientConfig{
 		Backend: genai.BackendGeminiAPI,
 	})
@@ -41,9 +56,27 @@ func New(ctx context.Context, path string) (*Gemini, error) {
 	}
 
 	client := Gemini{
-		client: ai,
-		gcache: gca,
-		ecache: eca,
+		client:    ai,
+		gcache:    gca,
+		ecache:    eca,
+		model:     "gemini-2.5-flash",
+		embedding: "gemini-embedding-2-preview",
+	}
+
+	// The model is deliberately taken from the environment rather than a per-call argument: the
+	// response/embedding cache keys on the prompt/content alone, so switching models between
+	// invocations against the same vault would silently serve stale results from a different
+	// model. An Option can still override it explicitly (e.g. for tests).
+	if model := os.Getenv("ZK_GEMINI_MODEL"); model != "" {
+		client.model = model
+	}
+
+	if model := os.Getenv("ZK_GEMINI_EMBED_MODEL"); model != "" {
+		client.embedding = model
+	}
+
+	for _, opt := range opts {
+		opt(&client)
 	}
 
 	return &client, nil
@@ -68,7 +101,7 @@ func (g *Gemini) Generate(ctx context.Context, prompt string) (string, error) {
 		{Parts: []*genai.Part{part}},
 	}
 
-	resp, err := g.client.Models.GenerateContent(ctx, "gemini-2.5-flash", contents, &genai.GenerateContentConfig{})
+	resp, err := g.client.Models.GenerateContent(ctx, g.model, contents, &genai.GenerateContentConfig{})
 	if err != nil {
 		return "", fmt.Errorf("failed to generate content: %w", err)
 	}
@@ -106,7 +139,7 @@ func (g *Gemini) Embed(ctx context.Context, content string) ([]float32, error) {
 		{Parts: []*genai.Part{part}},
 	}
 
-	resp, err := g.client.Models.EmbedContent(ctx, "gemini-embedding-2-preview", contents, &genai.EmbedContentConfig{})
+	resp, err := g.client.Models.EmbedContent(ctx, g.embedding, contents, &genai.EmbedContentConfig{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to embed content: %w", err)
 	}

@@ -15,22 +15,22 @@ To produce a high-quality design document, you must traverse the note graph to g
 
 Start by performing a semantic search to identify the "seed" notes for the design topic.
 
--   Use `mcp_zk_semantic_search_notes` with a broad description of the design problem.
+-   Use `semantic_search_notes` with a broad description of the design problem.
 -   Look for `permanent` notes (your ideas) and `fleeting` notes (captured problems).
 
 ### Step B: Literature Anchoring
 
 Identify the theoretical or external basis for the design.
 
--   Use `mcp_zk_find_notes_linked_from` on the seed notes to find `literature` notes.
+-   Use `find_notes_linked_from` on the seed notes to find `literature` notes.
 -   Follow links to `bibliographic` notes to confirm the original source material.
 
 ### Step C: Contextual Expansion
 
 Find related concepts that might not be directly linked but share semantic relevance.
 
--   Use `mcp_zk_find_related_notes` to find overlapping architectural patterns or previous designs.
--   Use `mcp_zk_regex_search_notes` for specific technical keywords (e.g., `#architecture`, `#api`, `#trigram`).
+-   Use `find_related_notes` to find overlapping architectural patterns or previous designs.
+-   Use `regex_search_notes` for specific technical keywords (e.g., `#architecture`, `#api`, `#trigram`).
 
 ## 2. Synthesis & Template
 
@@ -48,16 +48,16 @@ Once you have identified the core notes, use the `assets/template.md` to structu
 
 ```bash
 # Semantic search for the design topic
-mcp_zk_semantic_search_notes query="Trigram indexing for Zettelkasten search"
+semantic_search_notes query="Trigram indexing for Zettelkasten search"
 
 # Find notes linked TO a key technical note
-mcp_zk_find_notes_linked_to path="2 Areas/Linux/20260206094342.md"
+find_notes_linked_to path="2 Areas/Linux/20260206094342.md"
 ```
 
 ### Reading and Validating
 
--   Use `read_file` to extract the content of identified notes.
--   Use `mcp_zk_lint_notes` after creating the design doc to ensure it follows vault standards.
+-   Use `read_note` to extract the content of identified notes.
+-   Use `lint_notes` after creating the design doc to ensure it follows vault standards.
 
 ---
 

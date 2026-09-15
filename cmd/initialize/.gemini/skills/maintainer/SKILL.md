@@ -16,16 +16,13 @@ This skill outlines the process for converting `fleeting` notes into `permanent`
     *   **Atomize**: Ensure the note is "atomic"—meaning it focuses on a single idea. If a fleeting note contains multiple distinct ideas, break it down into several new `permanent` notes.
 
 3.  **Connect to the Network**: Think about how this new, atomic idea fits within your existing knowledge.
-    *   Search your vault for related notes.
+    *   Search your vault for related notes using `regex_search_notes` or `semantic_search_notes`.
     *   Add links from your new note to existing ones.
-    *   Crucially, open the existing notes and add links back to your new note. This bidirectional linking is what builds a web of knowledge.
+    *   Crucially, use `read_note` and `update_note` on the existing notes to add links back to your new note. This bidirectional linking is what builds a web of knowledge.
 
 4.  **File and Format**:
-    *   Create a new note with a unique timestamp ID (`YYYYMMDDHHMMSS`).
-    *   Set the frontmatter `type` to `permanent`.
-    *   Give it a clear, descriptive `title`.
-    *   Add relevant `tags` to make it discoverable.
-    *   Move the newly created `permanent` note to the appropriate location within `1 Projects`, `2 Areas`, or `3 Resources`.
+    *   Use `create_note` (type `permanent`, with a `title` and `tags`) to write the new note directly into the appropriate location within `1 Projects`, `2 Areas`, or `3 Resources` — it generates the timestamp ID automatically.
+    *   If a fleeting note splits into an existing note instead of a new one, use `update_note` to append to it.
 
 5.  **Archive the Original**: Once the `fleeting` note has been fully processed into one or more `permanent` notes, delete the original file from the `0 Inbox` to keep it clean.
 

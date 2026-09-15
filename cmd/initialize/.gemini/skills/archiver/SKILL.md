@@ -16,7 +16,7 @@ To archive a project directory, execute the following steps in sequence:
 *   Review all notes, documents, and files in this directory to identify key ideas, technical patterns, solutions, or insights that have long-term value beyond the project itself.
 
 ### 2. Extract Atomic Permanent Notes
-*   For every valuable, reusable concept or insight identified, create a new `permanent` note using `zk note create permanent` or through the `mcp_zk` tools.
+*   For every valuable, reusable concept or insight identified, create a new `permanent` note using `zk note create permanent` or the `create_note` tool.
 *   **Atomize**: Ensure each new note represents exactly one self-contained, atomic idea.
 *   **Naming**: Generate a unique timestamp ID (`YYYYMMDDHHMMSS`) for the filename and frontmatter.
 *   **Metadata**:
