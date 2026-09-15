@@ -23,10 +23,10 @@ The vault is organized into the following top-level directories. You must place 
 ```
 
 -   **0 Inbox**: For `fleeting` notes. Unprocessed ideas and temporary information.
--   **1 Projects**: Active projects with defined goals. Each project gets its own sub-directory.
--   **2 Areas**: Active areas of responsibility or focus. Each area gets its own sub-directory.
--   **3 Resources**: Topics of ongoing interest. Each resource gets its own sub-directory.
--   **4 Archives**: Inactive items from Projects, Areas, and Resources.
+-   **1 Projects**: Active work with a goal *and* a deadline or finish line. Each project gets its own sub-directory.
+-   **2 Areas**: Active areas of responsibility or focus, maintained indefinitely with no deadline. Each area gets its own sub-directory.
+-   **3 Resources**: Topics of ongoing interest, kept for future reference. Each resource gets its own sub-directory.
+-   **4 Archives**: Inactive items from Projects, Areas, and Resources. A project archives on completion; an area or resource archives once it's no longer active or relevant.
 -   **5 Bibliography**: A flat collection of `bibliographic` notes.
 
 ### 2.2. Note Identifier

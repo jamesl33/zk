@@ -1,6 +1,6 @@
 ---
 name: maintainer
-description: "A skill to guide the process of converting fleeting and literature notes into permanent notes, including a linting and fixing step."
+description: "A skill to guide the process of converting fleeting and literature notes into permanent notes, and reviewing Projects/Areas/Resources for items that should be archived, including a linting and fixing step."
 ---
 
 # Maintainer Skill
@@ -28,6 +28,15 @@ This skill outlines the process for converting `fleeting` and `literature` notes
 5.  **Archive the Original**: Once a `fleeting` note has been fully processed into one or more `permanent` notes, delete the original file from the `0 Inbox` using your shell tool to keep it clean. There is no MCP tool for deletion. Processed `literature` notes can stay where they are — they remain the citable record of the source.
 
 6.  **Lint and Fix**: Run `lint_notes` to check for any issues, such as broken links, and fix any errors that are found.
+
+7.  **Review Projects, Areas, and Resources**: Check `1 Projects`, `2 Areas`, and `3 Resources` for
+    directories that no longer belong there:
+    *   A project whose goal is met or abandoned.
+    *   An area of responsibility you no longer maintain.
+    *   A resource you're no longer interested in.
+
+    Confirm with the user before handing any of these off to the `archiver` skill — don't archive
+    on your own judgment alone.
 
 ## Rules
 
