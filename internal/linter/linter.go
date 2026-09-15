@@ -44,15 +44,35 @@ func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
 		return nil, fmt.Errorf("failed to create lister: %w", err)
 	}
 
-	err = iterator.ForEach2(lstr.Many(ctx), hs.Infallible(func(n *note.Note) {
+	errors := make([]*LintError, 0)
+
+	err = iterator.ForEach2(lstr.Many(ctx), func(n *note.Note) error {
 		ids = append(ids, n.Name())
 		paths[n.Name()] = append(paths[n.Name()], n.Path)
-	}))
+
+		// A permanent note that links to nothing is a dead end: it can't be reached from, or
+		// built on, the rest of the vault.
+		if n.Frontmatter.Type == note.Type("permanent") {
+			links, err := n.Links()
+			if err != nil {
+				return fmt.Errorf("failed to get links: %w", err)
+			}
+
+			if len(links) == 0 {
+				err := LintError{
+					Path:    n.Path,
+					Message: "Permanent note has no links (orphan-note)",
+				}
+
+				errors = append(errors, &err)
+			}
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list notes: %w", err)
 	}
-
-	errors := make([]*LintError, 0)
 
 	dupes := make([]string, 0, len(paths))
 

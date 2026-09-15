@@ -19,6 +19,10 @@ Use `regex_search_notes`. This is best when you know a specific keyword, phrase,
 - **To find a title:** `regex_search_notes(expression='(?i)progressive summarization')`
 - **To find content:** `regex_search_notes(expression='a specific phrase in a note')`
 
+### For a known topic:
+
+Check whether an `index` note exists for it first, e.g. `semantic_search_notes(query='index of notes about X')` or `regex_search_notes(expression='(?i)index.*X')`. An index note is a hub linking to everything on that topic, so it's often a faster starting point than a fresh search.
+
 ### For general ideas or concepts:
 
 Use `semantic_search_notes`. This is best for finding notes related to a topic, even if they don't contain the exact keywords.
