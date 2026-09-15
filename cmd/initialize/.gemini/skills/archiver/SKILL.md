@@ -36,7 +36,7 @@ To archive a project directory, execute the following steps in sequence:
 ### 4. Archive the Project Directory
 *   Move the entire project directory from `1 Projects/{ProjectName}` into `4 Archives/{ProjectName}`.
 *   Ensure all project-specific fleeting notes, meeting notes, and attachments stay within the moved directory.
-*   *Command:* Use a standard move (e.g., `mv "1 Projects/MyProject" "4 Archives/"`).
+*   *Command:* Use your shell tool to move it (e.g., `mv "1 Projects/MyProject" "4 Archives/"`). There is no MCP tool for moving files.
 
 ### 5. Lint and Validate
 *   Run the Zettelkasten linter (`lint_notes` or `zk lint`) to check for any broken links or frontmatter issues.

@@ -24,11 +24,11 @@ This skill outlines the process for converting `fleeting` notes into `permanent`
     *   Use `create_note` (type `permanent`, with a `title` and `tags`) to write the new note directly into the appropriate location within `1 Projects`, `2 Areas`, or `3 Resources` — it generates the timestamp ID automatically.
     *   If a fleeting note splits into an existing note instead of a new one, use `update_note` to append to it.
 
-5.  **Archive the Original**: Once the `fleeting` note has been fully processed into one or more `permanent` notes, delete the original file from the `0 Inbox` to keep it clean.
+5.  **Archive the Original**: Once the `fleeting` note has been fully processed into one or more `permanent` notes, delete the original file from the `0 Inbox` using your shell tool to keep it clean. There is no MCP tool for deletion.
 
 6.  **Lint and Fix**: Run `lint_notes` to check for any issues, such as broken links, and fix any errors that are found.
 
 ## Rules
 
-1. Don't touch the `4 Archive` directory, consider it to be read-only
+1. Don't touch the `4 Archives` directory, consider it to be read-only
 2. Don't remove any `.gitkeep` files

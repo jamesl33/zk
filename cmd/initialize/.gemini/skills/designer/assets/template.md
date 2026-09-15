@@ -11,7 +11,7 @@ tags:
 
 [Synthesized from notes on current limitations.]
 
-- Context: [[$ID|Existing System Note]]
+- Context: [[$NOTE_ID|Existing System Note]]
 - Pain Points: ...
 
 # Goals
@@ -37,7 +37,7 @@ tags:
 
 [Synthesized from technical notes.]
 
-- Component A: [[$ID|Component Note]]
+- Component A: [[$NOTE_ID|Component Note]]
 - Component B: ...
 
 # Implementation Plan
@@ -51,9 +51,9 @@ tags:
 
 - Performance: ...
 - Security: ...
-- Trade-offs: [[$ID|Trade-off Note]]
+- Trade-offs: [[$NOTE_ID|Trade-off Note]]
 
 ---
 
-- [[$ID|Related Literature]]
-- [[$ID|Reference Note]]
+- [[$NOTE_ID|Related Literature]]
+- [[$NOTE_ID|Reference Note]]

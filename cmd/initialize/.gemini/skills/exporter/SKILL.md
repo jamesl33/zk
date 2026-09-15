@@ -34,7 +34,7 @@ This skill guides the transformation of a Zettelkasten note into a "flat" Markdo
 
 ### 4. Flatten the Metadata
 
-- Remove Zettelkasten-specific YAML frontmatter like `type`, `ID`, and `date`.
+- Remove Zettelkasten-specific YAML frontmatter: `type`, `date`, and `tags` (the note ID lives only in the filename, not in frontmatter).
 - Retain the `title` as a primary `# H1` header.
 - Convert `tags` into a simple comma-separated list or remove them if not appropriate for the output format.
 

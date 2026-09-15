@@ -39,7 +39,7 @@ Once you have identified the core notes, use the `assets/template.md` to structu
 ### Synthesis Rules:
 
 1.  **Atomic Integration**: Map each section of the design document to specific atomic notes from your research.
-2.  **Back-Linking**: Every major claim or architectural decision should ideally have a WikiLink `[[$ID|$TITLE]]` to the source note in the Zettelkasten.
+2.  **Back-Linking**: Every major claim or architectural decision should ideally have a WikiLink `[[$NOTE_ID|$TITLE]]` to the source note in the Zettelkasten.
 3.  **Progressive Refinement**: If a section is thin (e.g., "Implementation Plan"), perform another targeted search to find actionable sub-tasks.
 
 ## 3. Tool Usage Examples
@@ -57,6 +57,7 @@ find_notes_linked_to path="2 Areas/Linux/20260206094342.md"
 ### Reading and Validating
 
 -   Use `read_note` to extract the content of identified notes.
+-   Once `assets/template.md` is filled in, persist it with `create_note` (type `permanent`), placed under `1 Projects/{ProjectName}` if this is for an active project, or `3 Resources/{Topic}` if it's general design reference. Pass the filled-in body as the note content — `create_note` generates the ID and frontmatter.
 -   Use `lint_notes` after creating the design doc to ensure it follows vault standards.
 
 ---
