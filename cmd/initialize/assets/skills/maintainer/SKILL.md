@@ -18,8 +18,7 @@ This skill outlines the process for converting `fleeting` and `literature` notes
 3.  **Connect to the Network**: Think about how this new, atomic idea fits within your existing knowledge. A `permanent` note with no links is rejected by `lint_notes` (`orphan-note`), so this step is mandatory, not optional.
     *   Search your vault for related notes using `regex_search_notes` or `semantic_search_notes`.
     *   If the topic already has an `index` note, link to it — that's its purpose. If the topic is new and substantial enough to gather multiple notes over time, consider creating one (`create_note`, type `index`).
-    *   Add links from your new note to existing ones (or to the topic's `index` note, if nothing more specific fits yet).
-    *   Crucially, use `read_note` and `update_note` on the existing notes to add links back to your new note. This bidirectional linking is what builds a web of knowledge.
+    *   Add links from your new note to existing ones (or to the topic's `index` note, if nothing more specific fits yet). Links don't need to be bidirectional — a link from the new note is enough.
 
 4.  **File and Format**:
     *   Use `create_note` (type `permanent`, with a `title`, `tags`, and the rewritten, atomic body including its links) to write the new note into the appropriate location within `1 Projects`, `2 Areas`, or `3 Resources` — it generates the timestamp ID automatically.
