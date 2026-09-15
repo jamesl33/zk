@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__zk__list_notes",
+      "mcp__zk__lint_notes",
+      "mcp__zk__regex_search_notes",
+      "mcp__zk__semantic_search_notes",
+      "mcp__zk__find_related_notes",
+      "mcp__zk__find_notes_linked_to",
+      "mcp__zk__find_notes_linked_from",
+      "mcp__zk__read_note",
+      "mcp__zk__create_note",
+      "mcp__zk__update_note"
+    ],
+    "deny": [
+      "WebSearch",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./.envrc)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./**/*.crt)",
+      "Read(./**/*.pfx)",
+      "Read(./**/*credentials*.json)",
+      "Read(./**/*serviceaccount*.json)",
+      "Read(./.aws/**)",
+      "Read(./.gcloud/**)",
+      "Read(./.ssh/**)",
+      "Read(./secrets/**)"
+    ]
+  }
+}

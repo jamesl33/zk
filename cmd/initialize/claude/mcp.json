@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "zk": {
+      "command": "zk",
+      "args": [
+        "mcp"
+      ]
+    }
+  }
+}

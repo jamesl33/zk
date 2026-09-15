@@ -6,8 +6,8 @@ description: Capture an external source (article, book, paper, video, conversati
 # Librarian Skill
 
 This skill captures external material into the Zettelkasten, keeping what the source says
-(`literature`) separate from what you think about it (`permanent`). See `GEMINI.md` section 4.2
-for the exact literature note format (blockquoted quotes, progressive summarization).
+(`literature`) separate from what you think about it (`permanent`). See the vault's instructions
+file section 4.2 for the exact literature note format (blockquoted quotes, progressive summarization).
 
 ## Workflow
 
