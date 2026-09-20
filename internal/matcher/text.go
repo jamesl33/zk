@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jamesl33/zk/internal/glob"
 	"github.com/jamesl33/zk/internal/note"
 )
 
@@ -17,7 +18,7 @@ func text(f, g, r string, extract func(n *note.Note) (string, error)) (Matcher, 
 	}
 
 	if g != "" {
-		patterns = append(patterns, gtor(g))
+		patterns = append(patterns, glob.ToRegexp(g))
 	}
 
 	if r != "" {
@@ -58,32 +59,4 @@ func insensitive(patterns ...string) bool {
 	}
 
 	return true
-}
-
-// gtor returns a regular expression which is functionally equivalent to the provided glob pattern.
-//
-// https://en.wikipedia.org/wiki/Glob_(programming)
-func gtor(glob string) string {
-	// Matches brackets
-	br := regexp.MustCompile(`(?U:\\\[(.+)\\\])`)
-
-	// Matches bracket negations
-	nbr := regexp.MustCompile(`(?U:((^|[^\\])\[)!)`)
-
-	// Escapes any special characters
-	glob = regexp.QuoteMeta(glob)
-
-	// Convert question marks
-	glob = strings.ReplaceAll(glob, "\\?", ".")
-
-	// Convert wildcards
-	glob = strings.ReplaceAll(glob, "\\*", ".*")
-
-	// Remove escape sequences for brackets
-	glob = br.ReplaceAllString(glob, "[$1]")
-
-	// For non-escaped opening brackets, handle negations
-	glob = nbr.ReplaceAllString(glob, "$1^")
-
-	return glob
 }
