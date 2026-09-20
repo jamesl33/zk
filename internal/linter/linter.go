@@ -118,7 +118,7 @@ func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
 		return nil, fmt.Errorf("failed to create lister: %w", err)
 	}
 
-	linkIdx := regex.Link.SubexpIndex("link")
+	idx := regex.Link.SubexpIndex("link")
 
 	err = iterator.ForEach2(lstr.Many(ctx), func(n *note.Note) error {
 		raw, err := os.ReadFile(n.Path)
@@ -129,7 +129,7 @@ func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
 		body := string(raw)
 
 		for _, match := range regex.Link.FindAllStringSubmatchIndex(body, -1) {
-			name := body[match[2*linkIdx]:match[2*linkIdx+1]]
+			name := body[match[2*idx]:match[2*idx+1]]
 
 			if slices.Contains(ids, name) {
 				continue
