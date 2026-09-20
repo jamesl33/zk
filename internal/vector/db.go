@@ -19,6 +19,7 @@ import (
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/sqlite"
+	"github.com/jamesl33/zk/internal/vault"
 )
 
 // Enable SQLite vector search
@@ -180,10 +181,15 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 		return make([]*note.Note, 0), nil
 	}
 
+	root, err := vault.Root(".")
+	if err != nil {
+		return nil, fmt.Errorf("failed to find vault root: %w", err)
+	}
+
 	matchers := hs.Map(names, func(n string) matcher.Matcher { return matcher.Name(n) })
 
 	lister, err := lister.NewLister(
-		lister.WithPath("."),
+		lister.WithPath(root),
 		lister.WithMatcher(matcher.Or(matchers...)),
 	)
 	if err != nil {

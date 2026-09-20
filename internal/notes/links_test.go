@@ -13,12 +13,14 @@ import (
 func TestLinkedFrom(t *testing.T) {
 	tmp := t.TempDir()
 
-	// We must change the working directory because LinkedFrom hardcodes "."
+	// We must change the working directory because LinkedFrom resolves the vault root
 	cwd, err := os.Getwd()
 	require.NoError(t, err)
 
 	require.NoError(t, os.Chdir(tmp))
 	defer os.Chdir(cwd)
+
+	require.NoError(t, os.Mkdir(filepath.Join(tmp, ".zk"), 0o755))
 
 	// Create notes
 	// note1.md has links to 20060102150405 and 20060102150406
@@ -108,6 +110,8 @@ func TestLinkedTo(t *testing.T) {
 	require.NoError(t, os.Chdir(tmp))
 	defer os.Chdir(cwd)
 
+	require.NoError(t, os.Mkdir(filepath.Join(tmp, ".zk"), 0o755))
+
 	// note2.md and note3.md link to note1.md
 	err = os.WriteFile(filepath.Join(tmp, "20060102150404.md"), []byte("---\ntitle: Note 1\n---\nBody 1"), 0o644)
 	require.NoError(t, err)
@@ -143,6 +147,8 @@ func TestLinkedToNoLinks(t *testing.T) {
 
 	require.NoError(t, os.Chdir(tmp))
 	defer os.Chdir(cwd)
+
+	require.NoError(t, os.Mkdir(filepath.Join(tmp, ".zk"), 0o755))
 
 	err = os.WriteFile(filepath.Join(tmp, "20060102150404.md"), []byte("---\ntitle: Note 1\n---\nBody 1"), 0o644)
 	require.NoError(t, err)

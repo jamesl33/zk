@@ -37,7 +37,8 @@ func NewDelete() *cobra.Command {
 
 // Run tag deletion.
 func (d *Delete) Run(ctx context.Context, remove string) error {
-	if _, err := vault.Root("."); err != nil {
+	root, err := vault.Root(".")
+	if err != nil {
 		return err
 	}
 
@@ -47,7 +48,7 @@ func (d *Delete) Run(ctx context.Context, remove string) error {
 	}
 
 	lister, err := lister.NewLister(
-		lister.WithPath("."),
+		lister.WithPath(root),
 		lister.WithMatcher(tags),
 	)
 	if err != nil {

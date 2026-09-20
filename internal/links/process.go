@@ -10,6 +10,7 @@ import (
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/regex"
+	"github.com/jamesl33/zk/internal/vault"
 )
 
 // process runs the given function to perform replacements for all the links within the given note.
@@ -32,10 +33,15 @@ func process(
 		return nil
 	}
 
+	root, err := vault.Root(".")
+	if err != nil {
+		return fmt.Errorf("failed to find vault root: %w", err)
+	}
+
 	matchers := hs.Map(links, func(n string) matcher.Matcher { return matcher.Name(n) })
 
 	lister, err := lister.NewLister(
-		lister.WithPath("."),
+		lister.WithPath(root),
 		lister.WithMatcher(matcher.Or(matchers...)),
 	)
 	if err != nil {

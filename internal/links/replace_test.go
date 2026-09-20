@@ -21,6 +21,8 @@ func TestReplace(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Chdir(cwd)
 
+	require.NoError(t, os.Mkdir(filepath.Join(tmp, ".zk"), 0o755))
+
 	err = os.WriteFile(
 		filepath.Join(tmp, "20251129123456.md"),
 		[]byte("---\ntype: permanent\ntitle: Linked Note Title\n---\nBody"),

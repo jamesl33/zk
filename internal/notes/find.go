@@ -8,6 +8,7 @@ import (
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/jamesl33/zk/internal/vector"
 )
 
@@ -41,8 +42,13 @@ func Find(ctx context.Context, n *note.Note, fn func(n *note.Note) error) error 
 
 // populate the index by updating embeddings for notes that have been updated.
 func populate(ctx context.Context, db *vector.DB) error {
+	root, err := vault.Root(".")
+	if err != nil {
+		return fmt.Errorf("failed to find vault root: %w", err)
+	}
+
 	lister, err := lister.NewLister(
-		lister.WithPath("."),
+		lister.WithPath(root),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create lister: %w", err)

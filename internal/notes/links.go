@@ -10,6 +10,7 @@ import (
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/vault"
 )
 
 // LinkedFrom finds notes which are linked from the given note and calls the function for each note.
@@ -26,8 +27,13 @@ func LinkedFrom(ctx context.Context, n *note.Note, fn func(n *note.Note)) error 
 		return nil
 	}
 
+	root, err := vault.Root(".")
+	if err != nil {
+		return fmt.Errorf("failed to find vault root: %w", err)
+	}
+
 	lister, err := lister.NewLister(
-		lister.WithPath("."),
+		lister.WithPath(root),
 		lister.WithMatcher(matcher.Or(matchers...)),
 	)
 	if err != nil {
@@ -57,8 +63,13 @@ func LinkedTo(ctx context.Context, n *note.Note, fn func(n *note.Note)) error {
 		return fmt.Errorf("failed to create matcher: %w", err)
 	}
 
+	root, err := vault.Root(".")
+	if err != nil {
+		return fmt.Errorf("failed to find vault root: %w", err)
+	}
+
 	lister, err := lister.NewLister(
-		lister.WithPath("."),
+		lister.WithPath(root),
 		lister.WithMatcher(matcher),
 	)
 	if err != nil {

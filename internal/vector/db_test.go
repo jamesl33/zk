@@ -187,13 +187,15 @@ func TestDBFindSuccess(t *testing.T) {
 		mclient = mock_ai.NewMockClient(ctrl)
 	)
 
-	// Find lists within the current working directory, so we must be within that directory
+	// Find lists within the vault root, so we must be within that directory
 	cwd, err := os.Getwd()
 	require.NoError(t, err)
 
 	err = os.Chdir(tmp)
 	require.NoError(t, err)
 	defer os.Chdir(cwd)
+
+	require.NoError(t, os.Mkdir(filepath.Join(tmp, ".zk"), 0o755))
 
 	db, err := sql.Open("sqlite3", ":memory:")
 	require.NoError(t, err)
