@@ -281,6 +281,80 @@ func TestTextDocumentDidOpenNoDiagnosticsForValidLink(t *testing.T) {
 	assert.Empty(t, published.Diagnostics)
 }
 
+func hoverParams(t *testing.T, path string, line, char int) *protocol.HoverParams {
+	t.Helper()
+
+	abs, err := filepath.Abs(path)
+	require.NoError(t, err)
+
+	return &protocol.HoverParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{URI: "file://" + abs},
+			Position:     protocol.Position{Line: protocol.UInteger(line), Character: protocol.UInteger(char)},
+		},
+	}
+}
+
+func TestTextDocumentHoverShowsLinkedNoteTitle(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	require.NoError(t, os.Mkdir(".zk", 0o755))
+
+	target := note.Note{Path: "20060102150405.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Target"}}
+	require.NoError(t, target.Write())
+
+	src := "See [[20060102150405|Target]]"
+	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	char := strings.Index(src, "20060102150405")
+
+	result, err := s.TextDocumentHover(nil, hoverParams(t, "source.md", 0, char))
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	content, ok := result.Contents.(protocol.MarkupContent)
+	require.True(t, ok)
+	assert.Contains(t, content.Value, "Target")
+}
+
+func TestTextDocumentHoverNoLinkAtCursor(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	src := "No links on this line"
+	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	result, err := s.TextDocumentHover(nil, hoverParams(t, "source.md", 0, 0))
+	require.NoError(t, err)
+	assert.Nil(t, result)
+}
+
+func TestTextDocumentHoverBrokenLink(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	require.NoError(t, os.Mkdir(".zk", 0o755))
+
+	src := "See [[20060102150406|Missing]]"
+	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	char := strings.Index(src, "20060102150406")
+
+	result, err := s.TextDocumentHover(nil, hoverParams(t, "source.md", 0, char))
+	require.NoError(t, err)
+	assert.Nil(t, result)
+}
+
 func TestTextDocumentDefinitionSelectsLinkUnderCursor(t *testing.T) {
 	tmp := t.TempDir()
 	chdir(t, tmp)

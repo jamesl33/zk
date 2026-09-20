@@ -43,6 +43,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 		TextDocumentDefinition: server.TextDocumentDefinition,
 		TextDocumentReferences: server.TextDocumentReferences,
 		TextDocumentCompletion: server.TextDocumentCompletion,
+		TextDocumentHover:      server.TextDocumentHover,
 		TextDocumentDidOpen:    server.TextDocumentDidOpen,
 		TextDocumentDidSave:    server.TextDocumentDidSave,
 	}
@@ -57,6 +58,7 @@ func (s *Server) Initialize(_ *glsp.Context, _ *protocol.InitializeParams) (any,
 	capabilities.DefinitionProvider = true
 	capabilities.ReferencesProvider = true
 	capabilities.CompletionProvider = &protocol.CompletionOptions{TriggerCharacters: []string{"["}}
+	capabilities.HoverProvider = true
 
 	si := protocol.InitializeResultServerInfo{
 		Name:    "zk",
@@ -100,31 +102,7 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 		return nil, fmt.Errorf("failed to read source file: %w", err)
 	}
 
-	lines := strings.Split(string(src), "\n")
-
-	if params.Position.Line >= uint32(len(lines)) {
-		return nil, nil
-	}
-
-	var (
-		cur     = lines[params.Position.Line]
-		matches = regex.Link.FindAllStringSubmatchIndex(cur, -1)
-		linkIdx = regex.Link.SubexpIndex("link")
-	)
-
-	name := ""
-
-	for _, match := range matches {
-		start, end := match[0], match[1]
-
-		if int(params.Position.Character) < start || int(params.Position.Character) >= end {
-			continue
-		}
-
-		name = cur[match[2*linkIdx]:match[2*linkIdx+1]]
-
-		break
-	}
+	name := linkAtCursor(strings.Split(string(src), "\n"), params.Position)
 
 	// The cursor isn't positioned on a link.
 	if name == "" {
@@ -136,23 +114,14 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 		return nil, fmt.Errorf("failed to find vault root: %w", err)
 	}
 
-	l, err := lister.NewLister(
-		lister.WithPath(root),
-		lister.WithMatcher(matcher.Name(name)),
-	)
+	dst, err := resolveNote(s.ctx, root, name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create lister: %w", err)
+		return nil, err
 	}
-
-	dst, err := l.One(s.ctx)
 
 	// Note not found, broken link?
-	if errors.Is(err, lister.ErrNotFound) {
+	if dst == nil {
 		return nil, nil
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get note: %w", err)
 	}
 
 	abs, err := filepath.Abs(dst.Path)
@@ -165,7 +134,7 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 		return nil, fmt.Errorf("failed to get note text: %w", err)
 	}
 
-	lines = strings.Split(body, "\n")
+	lines := strings.Split(body, "\n")
 
 	// Place the cursor at the beginning of the note title
 	var (
@@ -298,6 +267,56 @@ func (s *Server) TextDocumentCompletion(_ *glsp.Context, params *protocol.Comple
 	return items, nil
 }
 
+// TextDocumentHover previews the note linked from the WikiLink under the cursor.
+func (s *Server) TextDocumentHover(_ *glsp.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
+	u, err := url.Parse(params.TextDocument.URI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse document URI: %w", err)
+	}
+
+	src, err := os.ReadFile(u.Path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read source file: %w", err)
+	}
+
+	name := linkAtCursor(strings.Split(string(src), "\n"), params.Position)
+
+	// The cursor isn't positioned on a link.
+	if name == "" {
+		return nil, nil
+	}
+
+	root, err := vault.Root(".")
+	if err != nil {
+		return nil, fmt.Errorf("failed to find vault root: %w", err)
+	}
+
+	dst, err := resolveNote(s.ctx, root, name)
+	if err != nil {
+		return nil, err
+	}
+
+	// Note not found, broken link?
+	if dst == nil {
+		return nil, nil
+	}
+
+	value := fmt.Sprintf("**%s**", dst.Frontmatter.Title)
+
+	if len(dst.Frontmatter.Tags) > 0 {
+		value += fmt.Sprintf("\n\nTags: %s", strings.Join(dst.Frontmatter.Tags, ", "))
+	}
+
+	hover := protocol.Hover{
+		Contents: protocol.MarkupContent{
+			Kind:  protocol.MarkupKindMarkdown,
+			Value: value,
+		},
+	}
+
+	return &hover, nil
+}
+
 // TextDocumentDidOpen publishes diagnostics for the note that was opened.
 func (s *Server) TextDocumentDidOpen(ctx *glsp.Context, params *protocol.DidOpenTextDocumentParams) error {
 	s.publishDiagnostics(ctx, params.TextDocument.URI)
@@ -389,6 +408,52 @@ func noteExists(ctx context.Context, root, name string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// linkAtCursor returns the name of the note linked from the WikiLink under the given cursor
+// position, or an empty string if the cursor isn't positioned on a link.
+func linkAtCursor(lines []string, pos protocol.Position) string {
+	if pos.Line >= uint32(len(lines)) {
+		return ""
+	}
+
+	var (
+		cur     = lines[pos.Line]
+		linkIdx = regex.Link.SubexpIndex("link")
+	)
+
+	for _, match := range regex.Link.FindAllStringSubmatchIndex(cur, -1) {
+		if int(pos.Character) < match[0] || int(pos.Character) >= match[1] {
+			continue
+		}
+
+		return cur[match[2*linkIdx]:match[2*linkIdx+1]]
+	}
+
+	return ""
+}
+
+// resolveNote returns the note with the given name in the vault rooted at root, or nil if no such note exists.
+func resolveNote(ctx context.Context, root, name string) (*note.Note, error) {
+	l, err := lister.NewLister(
+		lister.WithPath(root),
+		lister.WithMatcher(matcher.Name(name)),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create lister: %w", err)
+	}
+
+	n, err := l.One(ctx)
+
+	if errors.Is(err, lister.ErrNotFound) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get note: %w", err)
+	}
+
+	return n, nil
 }
 
 // linkMatch is a single WikiLink occurrence within a note body.
