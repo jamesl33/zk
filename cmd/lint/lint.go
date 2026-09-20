@@ -9,7 +9,11 @@ import (
 )
 
 // LintOptions defines the options for the lint command.
-type LintOptions struct{}
+type LintOptions struct {
+	// Archives includes the '4 Archives' directory in the linting results; it's excluded by
+	// default.
+	Archives bool
+}
 
 // Lint defines the struct for the lint command.
 type Lint struct {
@@ -27,6 +31,8 @@ func NewLint() *cobra.Command {
 		RunE:  func(cmd *cobra.Command, args []string) error { return lint.Run(cmd.Context(), args) },
 	}
 
+	cmd.Flags().BoolVar(&lint.Archives, "archives", false, "Include the '4 Archives' directory in the results")
+
 	return &cmd
 }
 
@@ -38,7 +44,12 @@ func (l *Lint) Run(ctx context.Context, args []string) error {
 		path = args[0]
 	}
 
-	errors, err := linter.NewLinter().Lint(ctx, path)
+	var opts []func(*linter.LintOptions)
+	if l.Archives {
+		opts = append(opts, linter.WithArchives())
+	}
+
+	errors, err := linter.NewLinter().Lint(ctx, path, opts...)
 	if err != nil {
 		return fmt.Errorf("failed to lint notes: %w", err)
 	}

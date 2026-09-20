@@ -263,6 +263,46 @@ func TestLinterLintNonPermanentNoteWithNoLinks(t *testing.T) {
 	assert.Empty(t, errors)
 }
 
+func TestLinterLintExcludesArchivesByDefault(t *testing.T) {
+	var (
+		tmp     = t.TempDir()
+		archive = filepath.Join(tmp, archiveDir)
+		note1   = filepath.Join(archive, "20240101000001.md")
+	)
+
+	require.NoError(t, os.MkdirAll(archive, 0o755))
+
+	err := os.WriteFile(note1, []byte("---\ntype: permanent\ntitle: Note 1\ndate: \"2024-01-01\"\n---\nNo links here"), 0o644)
+	require.NoError(t, err)
+
+	l := NewLinter()
+
+	errors, err := l.Lint(t.Context(), tmp)
+	require.NoError(t, err)
+	assert.Empty(t, errors)
+}
+
+func TestLinterLintIncludesArchivesWithOption(t *testing.T) {
+	var (
+		tmp     = t.TempDir()
+		archive = filepath.Join(tmp, archiveDir)
+		note1   = filepath.Join(archive, "20240101000001.md")
+	)
+
+	require.NoError(t, os.MkdirAll(archive, 0o755))
+
+	err := os.WriteFile(note1, []byte("---\ntype: permanent\ntitle: Note 1\ndate: \"2024-01-01\"\n---\nNo links here"), 0o644)
+	require.NoError(t, err)
+
+	l := NewLinter()
+
+	errors, err := l.Lint(t.Context(), tmp, WithArchives())
+	require.NoError(t, err)
+	require.Len(t, errors, 1)
+	assert.Equal(t, note1, errors[0].Path)
+	assert.Equal(t, "Permanent note has no links (orphan-note)", errors[0].Message)
+}
+
 func TestLinterLintInvalidPath(t *testing.T) {
 	l := NewLinter()
 

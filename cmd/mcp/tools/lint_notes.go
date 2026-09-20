@@ -21,6 +21,10 @@ type LintError struct {
 type LintNotesInput struct {
 	// Path is the directory to lint.
 	Path string `json:"path" jsonschema:"The directory to lint, use '.' to lint everything"`
+
+	// Archives includes the '4 Archives' directory in the linting results; it's excluded by
+	// default.
+	Archives bool `json:"archives,omitempty" jsonschema:"Include the '4 Archives' directory in the results, false by default"`
 }
 
 // LintNotesOutput defines the output for the LintNotes tool.
@@ -40,7 +44,12 @@ func LintNotes(
 		path = "."
 	}
 
-	errors, err := linter.NewLinter().Lint(ctx, path)
+	var opts []func(*linter.LintOptions)
+	if input.Archives {
+		opts = append(opts, linter.WithArchives())
+	}
+
+	errors, err := linter.NewLinter().Lint(ctx, path, opts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to lint notes: %w", err)
 	}

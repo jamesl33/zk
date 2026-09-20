@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -36,8 +37,32 @@ func NewLinter() *Linter {
 	return &Linter{}
 }
 
+// archiveDir is the directory holding archived notes; it's excluded from linting by default
+// since archived notes are considered read-only and their issues aren't worth fixing.
+const archiveDir = "4 Archives"
+
+// LintOptions encapsulates the options for linting notes.
+type LintOptions struct {
+	// archives controls whether notes under archiveDir are included in the results.
+	archives bool
+}
+
+// WithArchives includes notes under archiveDir in the linting results; they're excluded by
+// default.
+func WithArchives() func(*LintOptions) {
+	return func(o *LintOptions) {
+		o.archives = true
+	}
+}
+
 // Lint performs linting of notes and returns a slice of linting errors.
-func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
+func (l *Linter) Lint(ctx context.Context, path string, opts ...func(*LintOptions)) ([]*LintError, error) {
+	var o LintOptions
+
+	for _, opt := range opts {
+		opt(&o)
+	}
+
 	ids, paths, errors, err := lintOrphans(ctx, path)
 	if err != nil {
 		return nil, err
@@ -52,7 +77,22 @@ func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
 
 	errors = append(errors, linkErrors...)
 
+	if !o.archives {
+		errors = slices.DeleteFunc(errors, func(e *LintError) bool { return inArchive(e.Path) })
+	}
+
 	return errors, nil
+}
+
+// inArchive returns a boolean indicating whether path has archiveDir as one of its components.
+func inArchive(path string) bool {
+	for _, part := range strings.Split(filepath.ToSlash(path), "/") {
+		if part == archiveDir {
+			return true
+		}
+	}
+
+	return false
 }
 
 // lintOrphans lists every note under path, flagging permanent notes that link to nothing
