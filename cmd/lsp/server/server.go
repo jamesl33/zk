@@ -14,6 +14,7 @@ import (
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/ptr"
 	"github.com/jamesl33/zk/internal/regex"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/tliron/glsp"
 	protocol "github.com/tliron/glsp/protocol_3_16"
 )
@@ -120,9 +121,13 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 		return nil, nil
 	}
 
+	root, err := vault.Root(".")
+	if err != nil {
+		return nil, fmt.Errorf("failed to find vault root: %w", err)
+	}
+
 	l, err := lister.NewLister(
-		// TODO (jamesl33): This should probably be 'git rev-parse --show-toplevel'?
-		lister.WithPath("."),
+		lister.WithPath(root),
 		lister.WithMatcher(matcher.Name(name)),
 	)
 	if err != nil {
