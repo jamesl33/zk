@@ -195,6 +195,10 @@ func (n *Note) Edit(ctx context.Context) error {
 // already exists at the same path so that an existing note is never
 // clobbered.
 func (n *Note) Create() error {
+	if err := os.MkdirAll(filepath.Dir(n.Path), 0o755); err != nil {
+		return fmt.Errorf("failed to create directory for %q: %w", n.Path, err)
+	}
+
 	for {
 		file, err := os.OpenFile(n.Path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
 
