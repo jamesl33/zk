@@ -10,6 +10,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/jamesl33/zk/internal/hs"
+	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
@@ -40,6 +42,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 		SetTrace:               server.SetTrace,
 		TextDocumentDefinition: server.TextDocumentDefinition,
 		TextDocumentReferences: server.TextDocumentReferences,
+		TextDocumentCompletion: server.TextDocumentCompletion,
 	}
 
 	return &server, nil
@@ -51,6 +54,7 @@ func (s *Server) Initialize(_ *glsp.Context, _ *protocol.InitializeParams) (any,
 
 	capabilities.DefinitionProvider = true
 	capabilities.ReferencesProvider = true
+	capabilities.CompletionProvider = &protocol.CompletionOptions{TriggerCharacters: []string{"["}}
 
 	si := protocol.InitializeResultServerInfo{
 		Name:    "zk",
@@ -236,4 +240,63 @@ func (s *Server) TextDocumentReferences(_ *glsp.Context, params *protocol.Refere
 	}
 
 	return locs, nil
+}
+
+// TextDocumentCompletion provides note name completions inside an open WikiLink.
+func (s *Server) TextDocumentCompletion(_ *glsp.Context, params *protocol.CompletionParams) (any, error) {
+	u, err := url.Parse(params.TextDocument.URI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse document URI: %w", err)
+	}
+
+	src, err := os.ReadFile(u.Path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read source file: %w", err)
+	}
+
+	lines := strings.Split(string(src), "\n")
+
+	if params.Position.Line >= uint32(len(lines)) {
+		return nil, nil
+	}
+
+	var (
+		cur  = lines[params.Position.Line]
+		char = min(int(params.Position.Character), len(cur))
+		open = strings.LastIndex(cur[:char], "[[")
+	)
+
+	// The cursor isn't inside an open link.
+	if open == -1 || strings.LastIndex(cur[:char], "]]") > open {
+		return nil, nil
+	}
+
+	root, err := vault.Root(".")
+	if err != nil {
+		return nil, fmt.Errorf("failed to find vault root: %w", err)
+	}
+
+	l, err := lister.NewLister(
+		lister.WithPath(root),
+		lister.WithMatcher(matcher.Any()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create lister: %w", err)
+	}
+
+	items := []protocol.CompletionItem{}
+
+	err = iterator.ForEach2(l.Many(s.ctx), hs.Infallible(func(n *note.Note) {
+		items = append(items, protocol.CompletionItem{
+			Label:      fmt.Sprintf("%s %s", n.Name(), n.Frontmatter.Title),
+			InsertText: ptr.To(fmt.Sprintf("%s|%s", n.Name(), n.Frontmatter.Title)),
+			FilterText: ptr.To(fmt.Sprintf("%s %s", n.Name(), n.Frontmatter.Title)),
+			Detail:     ptr.To(n.Path),
+		})
+	}))
+	if err != nil {
+		return nil, fmt.Errorf("failed to list notes: %w", err)
+	}
+
+	return items, nil
 }

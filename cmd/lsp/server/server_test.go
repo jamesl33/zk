@@ -143,6 +143,76 @@ func mustAbs(t *testing.T, path string) string {
 	return abs
 }
 
+func completionParams(t *testing.T, path string, line, char int) *protocol.CompletionParams {
+	t.Helper()
+
+	abs, err := filepath.Abs(path)
+	require.NoError(t, err)
+
+	return &protocol.CompletionParams{
+		TextDocumentPositionParams: protocol.TextDocumentPositionParams{
+			TextDocument: protocol.TextDocumentIdentifier{URI: "file://" + abs},
+			Position:     protocol.Position{Line: protocol.UInteger(line), Character: protocol.UInteger(char)},
+		},
+	}
+}
+
+func TestTextDocumentCompletionInsideOpenLink(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	require.NoError(t, os.Mkdir(".zk", 0o755))
+
+	target := note.Note{Path: "20060102150405.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Target"}}
+	require.NoError(t, target.Write())
+
+	src := "See [["
+	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	result, err := s.TextDocumentCompletion(nil, completionParams(t, "source.md", 0, len(src)))
+	require.NoError(t, err)
+
+	items, ok := result.([]protocol.CompletionItem)
+	require.True(t, ok)
+	require.Len(t, items, 1)
+	assert.Contains(t, items[0].Label, "Target")
+}
+
+func TestTextDocumentCompletionOutsideLink(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	src := "No link here"
+	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	result, err := s.TextDocumentCompletion(nil, completionParams(t, "source.md", 0, len(src)))
+	require.NoError(t, err)
+	assert.Nil(t, result)
+}
+
+func TestTextDocumentCompletionAfterClosedLink(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	require.NoError(t, os.Mkdir(".zk", 0o755))
+
+	src := "See [[20060102150405|Target]] "
+	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	result, err := s.TextDocumentCompletion(nil, completionParams(t, "source.md", 0, len(src)))
+	require.NoError(t, err)
+	assert.Nil(t, result)
+}
+
 func TestTextDocumentDefinitionSelectsLinkUnderCursor(t *testing.T) {
 	tmp := t.TempDir()
 	chdir(t, tmp)
