@@ -320,7 +320,7 @@ func BenchmarkListerVaryingSizeWithABodyMatcher(b *testing.B) {
 				require.NoError(b, err)
 			}
 
-			matcher, err := matcher.Body("", "", ".*")
+			matcher, err := matcher.Body("", "", ".*", false)
 			require.NoError(b, err)
 
 			l, err := NewLister(WithPath(tmp), WithMatcher(matcher))

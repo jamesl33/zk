@@ -9,7 +9,20 @@ import (
 )
 
 func TestPathMatch(t *testing.T) {
-	m, err := Path("note.md", "", "")
+	m, err := Path("note.md", "", "", false)
+	require.NoError(t, err)
+
+	n := &note.Note{
+		Path: "note.md",
+	}
+
+	actual, err := m(n)
+	require.NoError(t, err)
+	assert.True(t, actual)
+}
+
+func TestPathMatchIgnoreCase(t *testing.T) {
+	m, err := Path("NOTE.MD", "", "", true)
 	require.NoError(t, err)
 
 	n := &note.Note{
@@ -22,7 +35,7 @@ func TestPathMatch(t *testing.T) {
 }
 
 func TestPathNoMatch(t *testing.T) {
-	m, err := Path("note.md", "", "")
+	m, err := Path("note.md", "", "", false)
 	require.NoError(t, err)
 
 	n := &note.Note{

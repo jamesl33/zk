@@ -9,7 +9,7 @@ import (
 )
 
 // text returns a text matcher for the given fixed/glob/regex patterns.
-func text(f, g, r string, extract func(n *note.Note) (string, error)) (Matcher, error) {
+func text(f, g, r string, insensitive bool, extract func(n *note.Note) (string, error)) (Matcher, error) {
 	patterns := make([]string, 0, 3)
 
 	if f != "" {
@@ -28,9 +28,15 @@ func text(f, g, r string, extract func(n *note.Note) (string, error)) (Matcher, 
 		return Any(), nil
 	}
 
-	// Enable multi-line search
+	// Enable multi-line search, and case-insensitive search when requested
+	flags := "m"
+	if insensitive {
+		flags += "i"
+	}
+
 	pattern := fmt.Sprintf(
-		"(?m:%s)",
+		"(?%s:%s)",
+		flags,
 		strings.Join(patterns, "|"),
 	)
 

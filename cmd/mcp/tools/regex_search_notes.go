@@ -31,12 +31,12 @@ func RegexSearchNotes(
 	_ *mcp.CallToolRequest,
 	input *RegexSearchNotesInput,
 ) (*mcp.CallToolResult, *RegexSearchNotesOutput, error) {
-	pm, err := matcher.Path("", "", input.Expression)
+	pm, err := matcher.Path("", "", input.Expression, false)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create path matcher: %w", err)
 	}
 
-	entire, err := matcher.Entire("", "", input.Expression)
+	entire, err := matcher.Entire("", "", input.Expression, false)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create entire matcher: %w", err)
 	}

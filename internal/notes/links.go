@@ -52,7 +52,7 @@ func LinkedTo(ctx context.Context, n *note.Note, fn func(n *note.Note)) error {
 		pattern = fmt.Sprintf(`\[\[%s(\|.*?)?\]\]`, name)
 	)
 
-	matcher, err := matcher.Body("", "", pattern)
+	matcher, err := matcher.Body("", "", pattern, false)
 	if err != nil {
 		return fmt.Errorf("failed to create matcher: %w", err)
 	}

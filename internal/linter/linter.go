@@ -99,7 +99,7 @@ func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
 		}
 	}
 
-	entire, err := matcher.Entire("", "", regex.Link.String())
+	entire, err := matcher.Entire("", "", regex.Link.String(), false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create entire matcher: %w", err)
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 // Frontmatter returns a matcher which matches against the marshalled representation of the frontmatter.
-func Frontmatter(f, g, r string) (Matcher, error) {
+func Frontmatter(f, g, r string, insensitive bool) (Matcher, error) {
 	extract := func(n *note.Note) (string, error) {
 		data, err := yaml.Marshal(n.Frontmatter)
 		if err != nil {
@@ -18,5 +18,5 @@ func Frontmatter(f, g, r string) (Matcher, error) {
 		return string(data), nil
 	}
 
-	return text(f, g, r, func(n *note.Note) (string, error) { return extract(n) })
+	return text(f, g, r, insensitive, func(n *note.Note) (string, error) { return extract(n) })
 }

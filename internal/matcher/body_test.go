@@ -12,7 +12,19 @@ func TestBodyMatch(t *testing.T) {
 	n := &note.Note{}
 	n.SetBody("This is the body")
 
-	m, err := Body("the body", "", "")
+	m, err := Body("the body", "", "", false)
+	require.NoError(t, err)
+
+	actual, err := m(n)
+	require.NoError(t, err)
+	assert.True(t, actual)
+}
+
+func TestBodyMatchIgnoreCase(t *testing.T) {
+	n := &note.Note{}
+	n.SetBody("This is the body")
+
+	m, err := Body("THE BODY", "", "", true)
 	require.NoError(t, err)
 
 	actual, err := m(n)
@@ -24,7 +36,7 @@ func TestBodyNoMatch(t *testing.T) {
 	n := &note.Note{}
 	n.SetBody("Other content")
 
-	m, err := Body("the body", "", "")
+	m, err := Body("the body", "", "", false)
 	require.NoError(t, err)
 
 	actual, err := m(n)

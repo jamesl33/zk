@@ -13,17 +13,18 @@ import (
 )
 
 // ListOptions defines the options for the list command.
-//
-// TODO (jamesl33): Add support for case-insensitive listing.
 type ListOptions struct {
-	// Fixed filters notes by title using a case-sensitive fixed-string search.
+	// Fixed filters notes by title using a fixed-string search.
 	Fixed string
 
-	// Glob filters notes by title using a case-sensitive glob pattern.
+	// Glob filters notes by title using a glob pattern.
 	Glob string
 
 	// Regex filters notes by title using a regular expression (RE2).
 	Regex string
+
+	// IgnoreCase makes the fixed/glob/regex filters above case-insensitive.
+	IgnoreCase bool
 }
 
 // List defines the struct for the list command.
@@ -63,6 +64,14 @@ func NewList() *cobra.Command {
 		"Filter notes by title using a regular expression (RE2)",
 	)
 
+	cmd.Flags().BoolVarP(
+		&list.IgnoreCase,
+		"ignore-case",
+		"i",
+		false,
+		"Make the fixed/glob/regex filters case-insensitive",
+	)
+
 	cmd.AddCommand(
 		NewListTagged(),
 	)
@@ -78,12 +87,12 @@ func (l *List) Run(ctx context.Context, args []string) error {
 		path = args[0]
 	}
 
-	pm, err := matcher.Path(l.Fixed, l.Glob, l.Regex)
+	pm, err := matcher.Path(l.Fixed, l.Glob, l.Regex, l.IgnoreCase)
 	if err != nil {
 		return fmt.Errorf("failed to create path matcher: %w", err)
 	}
 
-	title, err := matcher.Title(l.Fixed, l.Glob, l.Regex)
+	title, err := matcher.Title(l.Fixed, l.Glob, l.Regex, l.IgnoreCase)
 	if err != nil {
 		return fmt.Errorf("failed to create title matcher: %w", err)
 	}

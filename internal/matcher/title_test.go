@@ -9,7 +9,20 @@ import (
 )
 
 func TestTitleMatch(t *testing.T) {
-	m, err := Title("My Title", "", "")
+	m, err := Title("My Title", "", "", false)
+	require.NoError(t, err)
+
+	n := &note.Note{
+		Frontmatter: note.Frontmatter{Title: "My Title"},
+	}
+
+	actual, err := m(n)
+	require.NoError(t, err)
+	assert.True(t, actual)
+}
+
+func TestTitleMatchIgnoreCase(t *testing.T) {
+	m, err := Title("MY TITLE", "", "", true)
 	require.NoError(t, err)
 
 	n := &note.Note{
@@ -22,7 +35,7 @@ func TestTitleMatch(t *testing.T) {
 }
 
 func TestTitleNoMatch(t *testing.T) {
-	m, err := Title("My Title", "", "")
+	m, err := Title("My Title", "", "", false)
 	require.NoError(t, err)
 
 	n := &note.Note{

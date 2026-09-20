@@ -72,12 +72,12 @@ func (s *Search) Run(ctx context.Context, args []string) error {
 		path = args[0]
 	}
 
-	pm, err := matcher.Path(s.Fixed, s.Glob, s.Regex)
+	pm, err := matcher.Path(s.Fixed, s.Glob, s.Regex, false)
 	if err != nil {
 		return fmt.Errorf("failed to create path matcher: %w", err)
 	}
 
-	entire, err := matcher.Entire(s.Fixed, s.Glob, s.Regex)
+	entire, err := matcher.Entire(s.Fixed, s.Glob, s.Regex, false)
 	if err != nil {
 		return fmt.Errorf("failed to create entire matcher: %w", err)
 	}

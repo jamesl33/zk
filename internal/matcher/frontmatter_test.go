@@ -16,7 +16,23 @@ func TestFrontmatterMatch(t *testing.T) {
 		},
 	}
 
-	m, err := Frontmatter("tag1", "", "")
+	m, err := Frontmatter("tag1", "", "", false)
+	require.NoError(t, err)
+
+	actual, err := m(n)
+	require.NoError(t, err)
+	assert.True(t, actual)
+}
+
+func TestFrontmatterMatchIgnoreCase(t *testing.T) {
+	n := &note.Note{
+		Frontmatter: note.Frontmatter{
+			Title: "Test",
+			Tags:  []string{"tag1"},
+		},
+	}
+
+	m, err := Frontmatter("TAG1", "", "", true)
 	require.NoError(t, err)
 
 	actual, err := m(n)
@@ -32,7 +48,7 @@ func TestFrontmatterNoMatch(t *testing.T) {
 		},
 	}
 
-	m, err := Frontmatter("nonexistent", "", "")
+	m, err := Frontmatter("nonexistent", "", "", false)
 	require.NoError(t, err)
 
 	actual, err := m(n)

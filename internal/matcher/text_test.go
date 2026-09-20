@@ -93,7 +93,7 @@ func TestTextMatch(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m, err := text(tt.fixed, tt.glob, tt.regex, extract)
+			m, err := text(tt.fixed, tt.glob, tt.regex, false, extract)
 			require.NoError(t, err)
 
 			n := &note.Note{Frontmatter: note.Frontmatter{Title: tt.title}}
@@ -107,7 +107,7 @@ func TestTextMatch(t *testing.T) {
 func TestTextNoMatch(t *testing.T) {
 	extract := func(n *note.Note) (string, error) { return n.Frontmatter.Title, nil }
 
-	m, err := text("Other", "", "", extract)
+	m, err := text("Other", "", "", false, extract)
 	require.NoError(t, err)
 
 	n := &note.Note{Frontmatter: note.Frontmatter{Title: "My Note"}}
@@ -116,10 +116,34 @@ func TestTextNoMatch(t *testing.T) {
 	assert.False(t, actual)
 }
 
+func TestTextMatchIgnoreCase(t *testing.T) {
+	extract := func(n *note.Note) (string, error) { return n.Frontmatter.Title, nil }
+
+	m, err := text("MY NOTE", "", "", true, extract)
+	require.NoError(t, err)
+
+	n := &note.Note{Frontmatter: note.Frontmatter{Title: "my note"}}
+	actual, err := m(n)
+	require.NoError(t, err)
+	assert.True(t, actual)
+}
+
+func TestTextNoMatchCaseSensitiveByDefault(t *testing.T) {
+	extract := func(n *note.Note) (string, error) { return n.Frontmatter.Title, nil }
+
+	m, err := text("MY NOTE", "", "", false, extract)
+	require.NoError(t, err)
+
+	n := &note.Note{Frontmatter: note.Frontmatter{Title: "my note"}}
+	actual, err := m(n)
+	require.NoError(t, err)
+	assert.False(t, actual)
+}
+
 func TestTextError(t *testing.T) {
 	extract := func(n *note.Note) (string, error) { return "", errors.New("error") }
 
-	m, err := text("pattern", "", "", extract)
+	m, err := text("pattern", "", "", false, extract)
 	require.NoError(t, err)
 
 	_, err = m(&note.Note{})

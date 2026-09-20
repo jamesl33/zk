@@ -15,7 +15,7 @@ func TestEntireMatch(t *testing.T) {
 	n.SetBody("Body content")
 
 	// Match title
-	m, err := Entire("Title", "", "")
+	m, err := Entire("Title", "", "", false)
 	require.NoError(t, err)
 
 	actual, err := m(n)
@@ -23,10 +23,24 @@ func TestEntireMatch(t *testing.T) {
 	assert.True(t, actual)
 
 	// Match body
-	m, err = Entire("content", "", "")
+	m, err = Entire("content", "", "", false)
 	require.NoError(t, err)
 
 	actual, err = m(n)
+	require.NoError(t, err)
+	assert.True(t, actual)
+}
+
+func TestEntireMatchIgnoreCase(t *testing.T) {
+	n := &note.Note{
+		Frontmatter: note.Frontmatter{Title: "Title"},
+	}
+	n.SetBody("Body content")
+
+	m, err := Entire("CONTENT", "", "", true)
+	require.NoError(t, err)
+
+	actual, err := m(n)
 	require.NoError(t, err)
 	assert.True(t, actual)
 }
@@ -38,7 +52,7 @@ func TestEntireNoMatch(t *testing.T) {
 
 	n.SetBody("Body content")
 
-	m, err := Entire("nothing", "", "")
+	m, err := Entire("nothing", "", "", false)
 	require.NoError(t, err)
 
 	actual, err := m(n)
