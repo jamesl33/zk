@@ -15,7 +15,7 @@ func TestEntireMatch(t *testing.T) {
 	n.SetBody("Body content")
 
 	// Match title
-	m, err := Entire("Title", "", "", false)
+	m, err := Entire("Title", "", "")
 	require.NoError(t, err)
 
 	actual, err := m(n)
@@ -23,7 +23,7 @@ func TestEntireMatch(t *testing.T) {
 	assert.True(t, actual)
 
 	// Match body
-	m, err = Entire("content", "", "", false)
+	m, err = Entire("content", "", "")
 	require.NoError(t, err)
 
 	actual, err = m(n)
@@ -31,18 +31,32 @@ func TestEntireMatch(t *testing.T) {
 	assert.True(t, actual)
 }
 
-func TestEntireMatchIgnoreCase(t *testing.T) {
+func TestEntireMatchSmartCaseInsensitive(t *testing.T) {
 	n := &note.Note{
 		Frontmatter: note.Frontmatter{Title: "Title"},
 	}
-	n.SetBody("Body content")
+	n.SetBody("Body CONTENT")
 
-	m, err := Entire("CONTENT", "", "", true)
+	m, err := Entire("content", "", "")
 	require.NoError(t, err)
 
 	actual, err := m(n)
 	require.NoError(t, err)
 	assert.True(t, actual)
+}
+
+func TestEntireNoMatchSmartCaseSensitive(t *testing.T) {
+	n := &note.Note{
+		Frontmatter: note.Frontmatter{Title: "Title"},
+	}
+	n.SetBody("Body content")
+
+	m, err := Entire("CONTENT", "", "")
+	require.NoError(t, err)
+
+	actual, err := m(n)
+	require.NoError(t, err)
+	assert.False(t, actual)
 }
 
 func TestEntireNoMatch(t *testing.T) {
@@ -52,7 +66,7 @@ func TestEntireNoMatch(t *testing.T) {
 
 	n.SetBody("Body content")
 
-	m, err := Entire("nothing", "", "", false)
+	m, err := Entire("nothing", "", "")
 	require.NoError(t, err)
 
 	actual, err := m(n)

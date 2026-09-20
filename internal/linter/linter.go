@@ -180,7 +180,7 @@ func lintDuplicateIDs(paths map[string][]string) []*LintError {
 func lintBrokenLinks(ctx context.Context, path string, ids []string) ([]*LintError, error) {
 	errors := make([]*LintError, 0)
 
-	entire, err := matcher.Entire("", "", regex.Link.String(), false)
+	entire, err := matcher.Entire("", "", regex.Link.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create entire matcher: %w", err)
 	}

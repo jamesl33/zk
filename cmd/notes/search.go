@@ -21,9 +21,6 @@ type SearchOptions struct {
 
 	// Regex filters notes by title/content using a regular expression (RE2).
 	Regex string
-
-	// IgnoreCase makes the fixed/glob/regex filters above case-insensitive.
-	IgnoreCase bool
 }
 
 // Search defines the struct for the search command.
@@ -46,29 +43,21 @@ func NewSearch() *cobra.Command {
 		&search.Fixed,
 		"fixed",
 		"",
-		"Filter notes by title/content using a case-sensitive fixed-string search",
+		"Filter notes by title/content using a fixed-string search (smart case)",
 	)
 
 	cmd.Flags().StringVar(
 		&search.Glob,
 		"glob",
 		"",
-		"Filter notes by title/content using a case-sensitive glob pattern",
+		"Filter notes by title/content using a glob pattern (smart case)",
 	)
 
 	cmd.Flags().StringVar(
 		&search.Regex,
 		"regex",
 		"",
-		"Filter notes by title/content using a regular expression (RE2)",
-	)
-
-	cmd.Flags().BoolVarP(
-		&search.IgnoreCase,
-		"ignore-case",
-		"i",
-		false,
-		"Make the fixed/glob/regex filters case-insensitive",
+		"Filter notes by title/content using a regular expression (RE2, smart case)",
 	)
 
 	return &cmd
@@ -86,12 +75,12 @@ func (s *Search) Run(ctx context.Context, args []string) error {
 		path = args[0]
 	}
 
-	pm, err := matcher.Path(s.Fixed, s.Glob, s.Regex, s.IgnoreCase)
+	pm, err := matcher.Path(s.Fixed, s.Glob, s.Regex)
 	if err != nil {
 		return fmt.Errorf("failed to create path matcher: %w", err)
 	}
 
-	entire, err := matcher.Entire(s.Fixed, s.Glob, s.Regex, s.IgnoreCase)
+	entire, err := matcher.Entire(s.Fixed, s.Glob, s.Regex)
 	if err != nil {
 		return fmt.Errorf("failed to create entire matcher: %w", err)
 	}

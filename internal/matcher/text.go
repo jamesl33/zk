@@ -9,7 +9,7 @@ import (
 )
 
 // text returns a text matcher for the given fixed/glob/regex patterns.
-func text(f, g, r string, insensitive bool, extract func(n *note.Note) (string, error)) (Matcher, error) {
+func text(f, g, r string, extract func(n *note.Note) (string, error)) (Matcher, error) {
 	patterns := make([]string, 0, 3)
 
 	if f != "" {
@@ -28,9 +28,9 @@ func text(f, g, r string, insensitive bool, extract func(n *note.Note) (string, 
 		return Any(), nil
 	}
 
-	// Enable multi-line search, and case-insensitive search when requested
+	// Enable multi-line search, and case-insensitive search unless a pattern has an uppercase letter
 	flags := "m"
-	if insensitive {
+	if insensitive(f, g, r) {
 		flags += "i"
 	}
 
@@ -46,6 +46,18 @@ func text(f, g, r string, insensitive bool, extract func(n *note.Note) (string, 
 	}
 
 	return eandm(extract, parsed.MatchString), nil
+}
+
+// insensitive reports whether the given patterns should be matched case-insensitively: insensitive unless one of the
+// patterns contains an uppercase letter.
+func insensitive(patterns ...string) bool {
+	for _, p := range patterns {
+		if strings.ToLower(p) != p {
+			return false
+		}
+	}
+
+	return true
 }
 
 // gtor returns a regular expression which is functionally equivalent to the provided glob pattern.

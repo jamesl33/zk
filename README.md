@@ -47,7 +47,7 @@ function zkgt -d "Generates tags for the given directory/note"
 end
 
 function zklo -d "Lists notes, then picks and opens one"
-    set -l notes (zk notes list --ignore-case $argv)
+    set -l notes (zk notes list $argv)
     test -n "$notes"; or return 1
     set -l note (printf '%s\n' $notes | zk notes pick)
     test -n "$note"; or return 1
@@ -107,7 +107,7 @@ function zkoa -d "Consumes the 'zk' note listing output then opens all the notes
 end
 
 function zkp -d "List notes, picks one then prints the path"
-    set -l notes (zk notes list --ignore-case $argv)
+    set -l notes (zk notes list $argv)
     test -n "$notes"; or return 1
     printf '%s\n' $notes | zk notes pick
 end
@@ -120,7 +120,7 @@ function zkqc -d "Quick-capture text as a fleeting note, no editor"
 end
 
 function zkso -d "Search notes, picks one then opens it"
-    set -l candidates (zk notes search --ignore-case $argv)
+    set -l candidates (zk notes search $argv)
     test -n "$candidates"; or return 1
     set -l note (printf '%s\n' $candidates | zk notes pick)
     test -n "$note"; or return 1

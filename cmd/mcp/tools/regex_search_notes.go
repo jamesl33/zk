@@ -36,12 +36,12 @@ func RegexSearchNotes(
 		return nil, nil, err
 	}
 
-	pm, err := matcher.Path("", "", input.Expression, false)
+	pm, err := matcher.Path("", "", input.Expression)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create path matcher: %w", err)
 	}
 
-	entire, err := matcher.Entire("", "", input.Expression, false)
+	entire, err := matcher.Entire("", "", input.Expression)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create entire matcher: %w", err)
 	}
