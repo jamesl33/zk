@@ -12,6 +12,8 @@ import (
 
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
+	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/notes"
 	"github.com/jamesl33/zk/internal/ptr"
 	"github.com/jamesl33/zk/internal/regex"
 	"github.com/jamesl33/zk/internal/vault"
@@ -37,6 +39,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 		Shutdown:               server.Shutdown,
 		SetTrace:               server.SetTrace,
 		TextDocumentDefinition: server.TextDocumentDefinition,
+		TextDocumentReferences: server.TextDocumentReferences,
 	}
 
 	return &server, nil
@@ -47,6 +50,7 @@ func (s *Server) Initialize(_ *glsp.Context, _ *protocol.InitializeParams) (any,
 	capabilities := s.CreateServerCapabilities()
 
 	capabilities.DefinitionProvider = true
+	capabilities.ReferencesProvider = true
 
 	si := protocol.InitializeResultServerInfo{
 		Name:    "zk",
@@ -175,4 +179,61 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 	}
 
 	return loc, nil
+}
+
+// TextDocumentReferences provides the locations of all notes which link to the note in the given document.
+func (s *Server) TextDocumentReferences(_ *glsp.Context, params *protocol.ReferenceParams) ([]protocol.Location, error) {
+	u, err := url.Parse(params.TextDocument.URI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse document URI: %w", err)
+	}
+
+	n, err := note.New(u.Path)
+
+	// The document isn't a note, nothing links to it.
+	if errors.Is(err, note.ErrNotNote) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to open note: %w", err)
+	}
+
+	var (
+		locs    = []protocol.Location{}
+		linkIdx = regex.Link.SubexpIndex("link")
+	)
+
+	err = notes.LinkedTo(s.ctx, n, func(src *note.Note) {
+		abs, aerr := filepath.Abs(src.Path)
+		if aerr != nil {
+			return
+		}
+
+		body, berr := src.Text()
+		if berr != nil {
+			return
+		}
+
+		for i, line := range strings.Split(body, "\n") {
+			for _, match := range regex.Link.FindAllStringSubmatchIndex(line, -1) {
+				if line[match[2*linkIdx]:match[2*linkIdx+1]] != n.Name() {
+					continue
+				}
+
+				locs = append(locs, protocol.Location{
+					URI: "file://" + abs,
+					Range: protocol.Range{
+						Start: protocol.Position{Line: protocol.UInteger(i), Character: protocol.UInteger(match[0])},
+						End:   protocol.Position{Line: protocol.UInteger(i), Character: protocol.UInteger(match[1])},
+					},
+				})
+			}
+		}
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to find linked notes: %w", err)
+	}
+
+	return locs, nil
 }
