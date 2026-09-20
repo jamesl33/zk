@@ -15,7 +15,6 @@ import (
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/notes"
 	"github.com/jamesl33/zk/internal/ptr"
 	"github.com/jamesl33/zk/internal/regex"
 	"github.com/jamesl33/zk/internal/vault"
@@ -41,7 +40,6 @@ func NewServer(ctx context.Context) (*Server, error) {
 		Shutdown:               server.Shutdown,
 		SetTrace:               server.SetTrace,
 		TextDocumentDefinition: server.TextDocumentDefinition,
-		TextDocumentReferences: server.TextDocumentReferences,
 		TextDocumentCompletion: server.TextDocumentCompletion,
 		TextDocumentHover:      server.TextDocumentHover,
 		TextDocumentDidOpen:    server.TextDocumentDidOpen,
@@ -56,7 +54,6 @@ func (s *Server) Initialize(_ *glsp.Context, _ *protocol.InitializeParams) (any,
 	capabilities := s.CreateServerCapabilities()
 
 	capabilities.DefinitionProvider = true
-	capabilities.ReferencesProvider = true
 	capabilities.CompletionProvider = &protocol.CompletionOptions{TriggerCharacters: []string{"["}}
 	capabilities.HoverProvider = true
 
@@ -154,58 +151,6 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 	}
 
 	return loc, nil
-}
-
-// TextDocumentReferences provides the locations of all notes which link to the note in the given document.
-func (s *Server) TextDocumentReferences(_ *glsp.Context, params *protocol.ReferenceParams) ([]protocol.Location, error) {
-	u, err := url.Parse(params.TextDocument.URI)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse document URI: %w", err)
-	}
-
-	n, err := note.New(u.Path)
-
-	// The document isn't a note, nothing links to it.
-	if errors.Is(err, note.ErrNotNote) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to open note: %w", err)
-	}
-
-	locs := []protocol.Location{}
-
-	err = notes.LinkedTo(s.ctx, n, func(src *note.Note) {
-		abs, aerr := filepath.Abs(src.Path)
-		if aerr != nil {
-			return
-		}
-
-		body, berr := src.Text()
-		if berr != nil {
-			return
-		}
-
-		for _, m := range findLinks(body) {
-			if m.Name != n.Name() {
-				continue
-			}
-
-			locs = append(locs, protocol.Location{
-				URI: "file://" + abs,
-				Range: protocol.Range{
-					Start: protocol.Position{Line: protocol.UInteger(m.Line), Character: protocol.UInteger(m.Start)},
-					End:   protocol.Position{Line: protocol.UInteger(m.Line), Character: protocol.UInteger(m.End)},
-				},
-			})
-		}
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to find linked notes: %w", err)
-	}
-
-	return locs, nil
 }
 
 // TextDocumentCompletion provides note name completions inside an open WikiLink.
