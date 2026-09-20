@@ -11,7 +11,8 @@ import (
 )
 
 // maxContextTokens is the approximate context window supported by the embedding model; inputs
-// larger than this are rejected up front rather than sent to the API to fail.
+// larger than this are rejected up front rather than sent to the API to fail. Notes are expected
+// to stay small/atomic (Zettelkasten style), so this limit should rarely be hit in practice.
 const maxContextTokens = 8000
 
 // Gemini defines a client for interacting with the Gemini API.
