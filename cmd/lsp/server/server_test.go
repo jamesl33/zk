@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/tliron/glsp"
 	protocol "github.com/tliron/glsp/protocol_3_16"
 
 	"github.com/stretchr/testify/assert"
@@ -211,6 +212,73 @@ func TestTextDocumentCompletionAfterClosedLink(t *testing.T) {
 	result, err := s.TextDocumentCompletion(nil, completionParams(t, "source.md", 0, len(src)))
 	require.NoError(t, err)
 	assert.Nil(t, result)
+}
+
+func TestTextDocumentDidSavePublishesBrokenLinkDiagnostic(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	require.NoError(t, os.Mkdir(".zk", 0o755))
+
+	src := "See [[20060102150405|Missing]]"
+	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
+
+	abs, err := filepath.Abs("source.md")
+	require.NoError(t, err)
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	var published protocol.PublishDiagnosticsParams
+
+	ctx := &glsp.Context{
+		Notify: func(method string, params any) {
+			assert.Equal(t, string(protocol.ServerTextDocumentPublishDiagnostics), method)
+			published = params.(protocol.PublishDiagnosticsParams)
+		},
+	}
+
+	err = s.TextDocumentDidSave(ctx, &protocol.DidSaveTextDocumentParams{
+		TextDocument: protocol.TextDocumentIdentifier{URI: "file://" + abs},
+	})
+	require.NoError(t, err)
+
+	require.Len(t, published.Diagnostics, 1)
+	assert.Contains(t, published.Diagnostics[0].Message, "20060102150405")
+}
+
+func TestTextDocumentDidOpenNoDiagnosticsForValidLink(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	require.NoError(t, os.Mkdir(".zk", 0o755))
+
+	target := note.Note{Path: "20060102150405.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Target"}}
+	require.NoError(t, target.Write())
+
+	src := "See [[20060102150405|Target]]"
+	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
+
+	abs, err := filepath.Abs("source.md")
+	require.NoError(t, err)
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	var published protocol.PublishDiagnosticsParams
+
+	ctx := &glsp.Context{
+		Notify: func(method string, params any) {
+			published = params.(protocol.PublishDiagnosticsParams)
+		},
+	}
+
+	err = s.TextDocumentDidOpen(ctx, &protocol.DidOpenTextDocumentParams{
+		TextDocument: protocol.TextDocumentItem{URI: "file://" + abs},
+	})
+	require.NoError(t, err)
+
+	assert.Empty(t, published.Diagnostics)
 }
 
 func TestTextDocumentDefinitionSelectsLinkUnderCursor(t *testing.T) {

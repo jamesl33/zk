@@ -43,6 +43,8 @@ func NewServer(ctx context.Context) (*Server, error) {
 		TextDocumentDefinition: server.TextDocumentDefinition,
 		TextDocumentReferences: server.TextDocumentReferences,
 		TextDocumentCompletion: server.TextDocumentCompletion,
+		TextDocumentDidOpen:    server.TextDocumentDidOpen,
+		TextDocumentDidSave:    server.TextDocumentDidSave,
 	}
 
 	return &server, nil
@@ -203,10 +205,7 @@ func (s *Server) TextDocumentReferences(_ *glsp.Context, params *protocol.Refere
 		return nil, fmt.Errorf("failed to open note: %w", err)
 	}
 
-	var (
-		locs    = []protocol.Location{}
-		linkIdx = regex.Link.SubexpIndex("link")
-	)
+	locs := []protocol.Location{}
 
 	err = notes.LinkedTo(s.ctx, n, func(src *note.Note) {
 		abs, aerr := filepath.Abs(src.Path)
@@ -219,20 +218,18 @@ func (s *Server) TextDocumentReferences(_ *glsp.Context, params *protocol.Refere
 			return
 		}
 
-		for i, line := range strings.Split(body, "\n") {
-			for _, match := range regex.Link.FindAllStringSubmatchIndex(line, -1) {
-				if line[match[2*linkIdx]:match[2*linkIdx+1]] != n.Name() {
-					continue
-				}
-
-				locs = append(locs, protocol.Location{
-					URI: "file://" + abs,
-					Range: protocol.Range{
-						Start: protocol.Position{Line: protocol.UInteger(i), Character: protocol.UInteger(match[0])},
-						End:   protocol.Position{Line: protocol.UInteger(i), Character: protocol.UInteger(match[1])},
-					},
-				})
+		for _, m := range findLinks(body) {
+			if m.Name != n.Name() {
+				continue
 			}
+
+			locs = append(locs, protocol.Location{
+				URI: "file://" + abs,
+				Range: protocol.Range{
+					Start: protocol.Position{Line: protocol.UInteger(m.Line), Character: protocol.UInteger(m.Start)},
+					End:   protocol.Position{Line: protocol.UInteger(m.Line), Character: protocol.UInteger(m.End)},
+				},
+			})
 		}
 	})
 	if err != nil {
@@ -299,4 +296,125 @@ func (s *Server) TextDocumentCompletion(_ *glsp.Context, params *protocol.Comple
 	}
 
 	return items, nil
+}
+
+// TextDocumentDidOpen publishes diagnostics for the note that was opened.
+func (s *Server) TextDocumentDidOpen(ctx *glsp.Context, params *protocol.DidOpenTextDocumentParams) error {
+	s.publishDiagnostics(ctx, params.TextDocument.URI)
+
+	return nil
+}
+
+// TextDocumentDidSave publishes diagnostics for the note that was saved.
+func (s *Server) TextDocumentDidSave(ctx *glsp.Context, params *protocol.DidSaveTextDocumentParams) error {
+	s.publishDiagnostics(ctx, params.TextDocument.URI)
+
+	return nil
+}
+
+// publishDiagnostics scans the note at the given URI for broken links and notifies the client.
+func (s *Server) publishDiagnostics(ctx *glsp.Context, uri protocol.DocumentUri) {
+	diags, err := s.diagnostics(uri)
+	if err != nil {
+		return
+	}
+
+	ctx.Notify(string(protocol.ServerTextDocumentPublishDiagnostics), protocol.PublishDiagnosticsParams{
+		URI:         uri,
+		Diagnostics: diags,
+	})
+}
+
+// diagnostics scans the note at the given URI for links which point at notes that don't exist.
+func (s *Server) diagnostics(uri protocol.DocumentUri) ([]protocol.Diagnostic, error) {
+	u, err := url.Parse(string(uri))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse document URI: %w", err)
+	}
+
+	src, err := os.ReadFile(u.Path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read source file: %w", err)
+	}
+
+	root, err := vault.Root(".")
+	if err != nil {
+		return nil, fmt.Errorf("failed to find vault root: %w", err)
+	}
+
+	diags := []protocol.Diagnostic{}
+
+	for _, m := range findLinks(string(src)) {
+		exists, err := noteExists(s.ctx, root, m.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		if exists {
+			continue
+		}
+
+		diags = append(diags, protocol.Diagnostic{
+			Range: protocol.Range{
+				Start: protocol.Position{Line: protocol.UInteger(m.Line), Character: protocol.UInteger(m.Start)},
+				End:   protocol.Position{Line: protocol.UInteger(m.Line), Character: protocol.UInteger(m.End)},
+			},
+			Severity: ptr.To(protocol.DiagnosticSeverityWarning),
+			Source:   ptr.To("zk"),
+			Message:  fmt.Sprintf("note not found: %q", m.Name),
+		})
+	}
+
+	return diags, nil
+}
+
+// noteExists reports whether a note with the given name exists in the vault rooted at root.
+func noteExists(ctx context.Context, root, name string) (bool, error) {
+	l, err := lister.NewLister(
+		lister.WithPath(root),
+		lister.WithMatcher(matcher.Name(name)),
+	)
+	if err != nil {
+		return false, fmt.Errorf("failed to create lister: %w", err)
+	}
+
+	_, err = l.One(ctx)
+
+	if errors.Is(err, lister.ErrNotFound) {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, fmt.Errorf("failed to get note: %w", err)
+	}
+
+	return true, nil
+}
+
+// linkMatch is a single WikiLink occurrence within a note body.
+type linkMatch struct {
+	Line       int
+	Start, End int
+	Name       string
+}
+
+// findLinks returns every WikiLink occurrence within the given body.
+func findLinks(body string) []linkMatch {
+	var (
+		matches = []linkMatch{}
+		linkIdx = regex.Link.SubexpIndex("link")
+	)
+
+	for i, line := range strings.Split(body, "\n") {
+		for _, m := range regex.Link.FindAllStringSubmatchIndex(line, -1) {
+			matches = append(matches, linkMatch{
+				Line:  i,
+				Start: m[0],
+				End:   m[1],
+				Name:  line[m[2*linkIdx]:m[2*linkIdx+1]],
+			})
+		}
+	}
+
+	return matches
 }
