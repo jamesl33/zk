@@ -5,7 +5,7 @@ description: "A skill to guide the process of converting fleeting and literature
 
 # Maintainer Skill
 
-This skill outlines the process for converting `fleeting` and `literature` notes into `permanent` notes within the Zettelkasten. `literature` notes are produced by the `librarian` skill; both are raw material waiting to be distilled.
+This skill outlines the process for converting `fleeting` notes into `permanent` notes within the Zettelkasten. `literature` notes are produced by the `librarian` skill and are references, not raw material — leave them as-is unless an idea inside one is worth distilling into a `permanent` note.
 
 ## Workflow
 
