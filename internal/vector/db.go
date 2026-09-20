@@ -18,9 +18,8 @@ import (
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/sqlite"
 )
-
-// TODO (jamesl33): Make this safe across instances of 'zk'.
 
 // Enable SQLite vector search
 func init() {
@@ -40,7 +39,7 @@ func New(ctx context.Context, path string) (*DB, error) {
 		return nil, fmt.Errorf("failed to create client: %w", err)
 	}
 
-	db, err := sql.Open("sqlite3", path)
+	db, err := sqlite.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}

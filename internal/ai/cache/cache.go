@@ -6,6 +6,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
+	"github.com/jamesl33/zk/internal/sqlite"
 )
 
 // Cache defines a generic cache which is backed by a sqlite3 database.
@@ -20,7 +22,7 @@ func New[T any](
 	path string,
 	table string,
 ) (*Cache[T], error) {
-	db, err := sql.Open("sqlite3", path)
+	db, err := sqlite.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
