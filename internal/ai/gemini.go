@@ -10,9 +10,11 @@ import (
 	"google.golang.org/genai"
 )
 
+// maxContextTokens is the approximate context window supported by the embedding model; inputs
+// larger than this are rejected up front rather than sent to the API to fail.
+const maxContextTokens = 8000
+
 // Gemini defines a client for interacting with the Gemini API.
-//
-// TODO (jamesl33): Handle the 8k context window.
 type Gemini struct {
 	client    *genai.Client
 	gcache    *cache.Cache[string]
@@ -101,6 +103,10 @@ func (g *Gemini) Generate(ctx context.Context, prompt string) (string, error) {
 		{Parts: []*genai.Part{part}},
 	}
 
+	if err := g.checkSize(ctx, g.model, contents); err != nil {
+		return "", err
+	}
+
 	resp, err := g.client.Models.GenerateContent(ctx, g.model, contents, &genai.GenerateContentConfig{})
 	if err != nil {
 		return "", fmt.Errorf("failed to generate content: %w", err)
@@ -139,6 +145,10 @@ func (g *Gemini) Embed(ctx context.Context, content string) ([]float32, error) {
 		{Parts: []*genai.Part{part}},
 	}
 
+	if err := g.checkSize(ctx, g.embedding, contents); err != nil {
+		return nil, err
+	}
+
 	resp, err := g.client.Models.EmbedContent(ctx, g.embedding, contents, &genai.EmbedContentConfig{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to embed content: %w", err)
@@ -161,6 +171,20 @@ func (g *Gemini) Embed(ctx context.Context, content string) ([]float32, error) {
 	}
 
 	return result, nil
+}
+
+// checkSize returns an error if the given contents exceed the supported context window.
+func (g *Gemini) checkSize(ctx context.Context, model string, contents []*genai.Content) error {
+	resp, err := g.client.Models.CountTokens(ctx, model, contents, &genai.CountTokensConfig{})
+	if err != nil {
+		return fmt.Errorf("failed to count tokens: %w", err)
+	}
+
+	if resp.TotalTokens > maxContextTokens {
+		return fmt.Errorf("input is too large (%d tokens, max %d)", resp.TotalTokens, maxContextTokens)
+	}
+
+	return nil
 }
 
 // sf32toblob converts a slice of float32 to a blob.
