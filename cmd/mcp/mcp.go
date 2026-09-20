@@ -196,6 +196,19 @@ Only the fields provided are changed, everything else is left untouched.
 		tools.UpdateNote,
 	)
 
+	description = `
+Delete a note.
+
+This permanently removes the note from disk. It does not rewrite links in other notes that
+point to it; run 'lint_notes' afterwards to find any broken links left behind.
+`
+
+	mcp.AddTool(
+		server,
+		&mcp.Tool{Name: "delete_note", Description: strings.TrimSpace(description)},
+		tools.DeleteNote,
+	)
+
 	err := server.Run(ctx, &mcp.StdioTransport{})
 	if err != nil {
 		return fmt.Errorf("failed to run server: %w", err)
