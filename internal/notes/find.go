@@ -42,7 +42,7 @@ func Find(ctx context.Context, n *note.Note, fn func(n *note.Note) error) error 
 
 // populate the index by updating embeddings for notes that have been updated.
 func populate(ctx context.Context, db *vector.DB) error {
-	root, err := vault.Root(".")
+	root, err := vault.RootRel(".")
 	if err != nil {
 		return fmt.Errorf("failed to find vault root: %w", err)
 	}

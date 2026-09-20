@@ -31,3 +31,25 @@ func Root(path string) (string, error) {
 		abs = parent
 	}
 }
+
+// RootRel returns the vault root as a path relative to the current working directory. It's
+// intended for callers which pass the root to a lister, so that resulting note paths are relative
+// rather than absolute, while still allowing the vault to be searched from a subdirectory.
+func RootRel(path string) (string, error) {
+	root, err := Root(path)
+	if err != nil {
+		return "", err
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	rel, err := filepath.Rel(wd, root)
+	if err != nil {
+		return "", err
+	}
+
+	return rel, nil
+}

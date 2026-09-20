@@ -37,7 +37,7 @@ func NewDelete() *cobra.Command {
 
 // Run tag deletion.
 func (d *Delete) Run(ctx context.Context, remove string) error {
-	root, err := vault.Root(".")
+	root, err := vault.RootRel(".")
 	if err != nil {
 		return err
 	}

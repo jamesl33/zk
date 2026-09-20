@@ -106,7 +106,7 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 		return nil, nil
 	}
 
-	root, err := vault.Root(".")
+	root, err := vault.RootRel(".")
 	if err != nil {
 		return nil, fmt.Errorf("failed to find vault root: %w", err)
 	}
@@ -182,7 +182,7 @@ func (s *Server) TextDocumentCompletion(_ *glsp.Context, params *protocol.Comple
 		return nil, nil
 	}
 
-	root, err := vault.Root(".")
+	root, err := vault.RootRel(".")
 	if err != nil {
 		return nil, fmt.Errorf("failed to find vault root: %w", err)
 	}
@@ -231,7 +231,7 @@ func (s *Server) TextDocumentHover(_ *glsp.Context, params *protocol.HoverParams
 		return nil, nil
 	}
 
-	root, err := vault.Root(".")
+	root, err := vault.RootRel(".")
 	if err != nil {
 		return nil, fmt.Errorf("failed to find vault root: %w", err)
 	}
@@ -301,7 +301,7 @@ func (s *Server) diagnostics(uri protocol.DocumentUri) ([]protocol.Diagnostic, e
 		return nil, fmt.Errorf("failed to read source file: %w", err)
 	}
 
-	root, err := vault.Root(".")
+	root, err := vault.RootRel(".")
 	if err != nil {
 		return nil, fmt.Errorf("failed to find vault root: %w", err)
 	}

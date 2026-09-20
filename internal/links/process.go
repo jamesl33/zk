@@ -33,7 +33,7 @@ func process(
 		return nil
 	}
 
-	root, err := vault.Root(".")
+	root, err := vault.RootRel(".")
 	if err != nil {
 		return fmt.Errorf("failed to find vault root: %w", err)
 	}

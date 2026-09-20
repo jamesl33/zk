@@ -27,7 +27,7 @@ func LinkedFrom(ctx context.Context, n *note.Note, fn func(n *note.Note)) error 
 		return nil
 	}
 
-	root, err := vault.Root(".")
+	root, err := vault.RootRel(".")
 	if err != nil {
 		return fmt.Errorf("failed to find vault root: %w", err)
 	}
@@ -63,7 +63,7 @@ func LinkedTo(ctx context.Context, n *note.Note, fn func(n *note.Note)) error {
 		return fmt.Errorf("failed to create matcher: %w", err)
 	}
 
-	root, err := vault.Root(".")
+	root, err := vault.RootRel(".")
 	if err != nil {
 		return fmt.Errorf("failed to find vault root: %w", err)
 	}

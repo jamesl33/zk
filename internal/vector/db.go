@@ -181,7 +181,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 		return make([]*note.Note, 0), nil
 	}
 
-	root, err := vault.Root(".")
+	root, err := vault.RootRel(".")
 	if err != nil {
 		return nil, fmt.Errorf("failed to find vault root: %w", err)
 	}
