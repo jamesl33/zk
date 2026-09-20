@@ -7,6 +7,7 @@ import (
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -34,6 +35,10 @@ func NewFind() *cobra.Command {
 
 // Run finds some related notes.
 func (f *Find) Run(ctx context.Context, query string) error {
+	if _, err := vault.Root("."); err != nil {
+		return err
+	}
+
 	n := &note.Note{
 		// We just want to set the body
 	}

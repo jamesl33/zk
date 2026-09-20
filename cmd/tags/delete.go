@@ -9,6 +9,7 @@ import (
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -36,6 +37,10 @@ func NewDelete() *cobra.Command {
 
 // Run tag deletion.
 func (d *Delete) Run(ctx context.Context, remove string) error {
+	if _, err := vault.Root("."); err != nil {
+		return err
+	}
+
 	tags, err := matcher.Tags([]string{remove}, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create matcher: %w", err)

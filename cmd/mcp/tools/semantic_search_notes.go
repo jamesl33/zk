@@ -6,6 +6,7 @@ import (
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -27,6 +28,10 @@ func SemanticSearchNotes(
 	_ *mcp.CallToolRequest,
 	input *SemanticSearchNotesInput,
 ) (*mcp.CallToolResult, *SemanticSearchNotesOutput, error) {
+	if _, err := vault.Root("."); err != nil {
+		return nil, nil, err
+	}
+
 	n := &note.Note{
 		// We just want to set the body
 	}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +30,10 @@ func NewCreate() *cobra.Command {
 // create writes a new note of the given type/title at the given path and
 // prints the resulting path.
 func create(noteType, title, path string) error {
+	if _, err := vault.Root("."); err != nil {
+		return err
+	}
+
 	fm := note.Frontmatter{
 		Type:  note.Type(noteType),
 		Title: title,

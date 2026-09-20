@@ -22,21 +22,7 @@ func TestRootFindsZkMarker(t *testing.T) {
 	assert.Equal(t, root, found)
 }
 
-func TestRootFindsGitMarker(t *testing.T) {
-	root := t.TempDir()
-
-	require.NoError(t, os.Mkdir(filepath.Join(root, ".git"), 0o755))
-
-	sub := filepath.Join(root, "a")
-	require.NoError(t, os.MkdirAll(sub, 0o755))
-
-	found, err := Root(sub)
-	require.NoError(t, err)
-	assert.Equal(t, root, found)
-}
-
 func TestRootNotFound(t *testing.T) {
-	found, err := Root(t.TempDir())
-	require.NoError(t, err)
-	assert.Equal(t, ".", found)
+	_, err := Root(t.TempDir())
+	assert.ErrorIs(t, err, ErrNotFound)
 }

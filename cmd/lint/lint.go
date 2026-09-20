@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jamesl33/zk/internal/linter"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -38,6 +39,10 @@ func NewLint() *cobra.Command {
 
 // Run lints the notes, printing warnings/errors.
 func (l *Lint) Run(ctx context.Context, args []string) error {
+	if _, err := vault.Root("."); err != nil {
+		return err
+	}
+
 	path := "."
 
 	if len(args) >= 1 {

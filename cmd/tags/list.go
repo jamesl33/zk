@@ -10,6 +10,7 @@ import (
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -37,6 +38,10 @@ func NewList() *cobra.Command {
 
 // Run the list tags command.
 func (l *List) Run(ctx context.Context, args []string) error {
+	if _, err := vault.Root("."); err != nil {
+		return err
+	}
+
 	path := "."
 
 	if len(args) >= 1 {

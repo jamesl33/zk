@@ -10,6 +10,7 @@ import (
 	"github.com/jamesl33/zk/internal/ai"
 	"github.com/jamesl33/zk/internal/links"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/mitchellh/go-wordwrap"
 	"github.com/spf13/cobra"
 )
@@ -37,6 +38,10 @@ func NewSummarize() *cobra.Command {
 }
 
 func (s *Summarize) Run(ctx context.Context, path string) error {
+	if _, err := vault.Root("."); err != nil {
+		return err
+	}
+
 	n, err := note.New(path)
 	if err != nil {
 		return fmt.Errorf("failed to open note: %w", err)

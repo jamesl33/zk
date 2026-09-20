@@ -7,6 +7,7 @@ import (
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -75,6 +76,10 @@ func NewSearch() *cobra.Command {
 
 // Run searches notes (e.g. titles, bodies).
 func (s *Search) Run(ctx context.Context, args []string) error {
+	if _, err := vault.Root("."); err != nil {
+		return err
+	}
+
 	path := "."
 
 	if len(args) >= 1 {

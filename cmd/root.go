@@ -14,18 +14,16 @@ import (
 	"github.com/jamesl33/zk/cmd/note"
 	"github.com/jamesl33/zk/cmd/notes"
 	"github.com/jamesl33/zk/cmd/tags"
-	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 )
 
 // rootCommand defines the root of the command chain.
 var rootCommand = &cobra.Command{
-	Short:             "A composable command-line tool for interacting with a Markdown Zettelkasten.",
-	Use:               "zk",
-	SilenceErrors:     true,
-	SilenceUsage:      true,
-	TraverseChildren:  true,
-	PersistentPreRunE: func(*cobra.Command, []string) error { _, err := vault.Root("."); return err },
+	Short:            "A composable command-line tool for interacting with a Markdown Zettelkasten.",
+	Use:              "zk",
+	SilenceErrors:    true,
+	SilenceUsage:     true,
+	TraverseChildren: true,
 }
 
 // init sets up the CLI.

@@ -6,6 +6,7 @@ import (
 
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/linter"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -39,6 +40,10 @@ func LintNotes(
 	_ *mcp.CallToolRequest,
 	input *LintNotesInput,
 ) (*mcp.CallToolResult, *LintNotesOutput, error) {
+	if _, err := vault.Root("."); err != nil {
+		return nil, nil, err
+	}
+
 	path := input.Path
 	if path == "" {
 		path = "."

@@ -9,6 +9,7 @@ import (
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -55,6 +56,10 @@ func NewListTagged() *cobra.Command {
 
 // Run lists tagged notes.
 func (l *ListTagged) Run(ctx context.Context, args []string) error {
+	if _, err := vault.Root("."); err != nil {
+		return err
+	}
+
 	path := "."
 
 	if len(args) >= 1 {

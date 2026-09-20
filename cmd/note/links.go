@@ -6,6 +6,7 @@ import (
 
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -53,6 +54,10 @@ func NewLinks() *cobra.Command {
 
 // Run the command to find linked notes.
 func (l *Links) Run(ctx context.Context, path string) error {
+	if _, err := vault.Root("."); err != nil {
+		return err
+	}
+
 	n, err := note.New(path)
 	if err != nil {
 		return fmt.Errorf("failed to open note: %w", err)

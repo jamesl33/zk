@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -43,6 +44,10 @@ func CreateNote(
 	_ *mcp.CallToolRequest,
 	input *CreateNoteInput,
 ) (*mcp.CallToolResult, *CreateNoteOutput, error) {
+	if _, err := vault.Root("."); err != nil {
+		return nil, nil, err
+	}
+
 	if !slices.Contains(validNoteTypes, note.Type(input.Type)) {
 		return nil, nil, fmt.Errorf("invalid note type: %q", input.Type)
 	}

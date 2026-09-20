@@ -7,6 +7,7 @@ import (
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -31,6 +32,10 @@ func RegexSearchNotes(
 	_ *mcp.CallToolRequest,
 	input *RegexSearchNotesInput,
 ) (*mcp.CallToolResult, *RegexSearchNotesOutput, error) {
+	if _, err := vault.Root("."); err != nil {
+		return nil, nil, err
+	}
+
 	pm, err := matcher.Path("", "", input.Expression, false)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create path matcher: %w", err)

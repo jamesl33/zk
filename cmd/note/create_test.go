@@ -1,6 +1,7 @@
 package note
 
 import (
+	"os"
 	"path/filepath"
 	"regexp"
 	"testing"
@@ -14,7 +15,15 @@ import (
 func TestCreate(t *testing.T) {
 	tmp := t.TempDir()
 
-	err := create("permanent", "Test Note", tmp)
+	require.NoError(t, os.Mkdir(filepath.Join(tmp, ".zk"), 0o755))
+
+	cwd, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(tmp))
+	t.Cleanup(func() { require.NoError(t, os.Chdir(cwd)) })
+
+	err = create("permanent", "Test Note", tmp)
 	require.NoError(t, err)
 
 	matches, err := filepath.Glob(filepath.Join(tmp, "*.md"))

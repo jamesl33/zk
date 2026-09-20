@@ -13,6 +13,7 @@ import (
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/ptr"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 	"go.yaml.in/yaml/v4"
 )
@@ -41,6 +42,10 @@ func NewGenerate() *cobra.Command {
 
 // Run tag generation.
 func (g *Generate) Run(ctx context.Context, args []string) error {
+	if _, err := vault.Root("."); err != nil {
+		return err
+	}
+
 	path := "."
 
 	if len(args) >= 1 {

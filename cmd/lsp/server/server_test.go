@@ -42,6 +42,8 @@ func TestTextDocumentDefinitionSelectsLinkUnderCursor(t *testing.T) {
 	tmp := t.TempDir()
 	chdir(t, tmp)
 
+	require.NoError(t, os.Mkdir(".zk", 0o755))
+
 	target := note.Note{Path: "20060102150406.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Target"}}
 	require.NoError(t, target.Write())
 
@@ -83,6 +85,8 @@ func TestTextDocumentDefinitionNoLinkAtCursor(t *testing.T) {
 func TestTextDocumentDefinitionBrokenLink(t *testing.T) {
 	tmp := t.TempDir()
 	chdir(t, tmp)
+
+	require.NoError(t, os.Mkdir(".zk", 0o755))
 
 	src := "See [[20060102150406|Missing]]"
 	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))

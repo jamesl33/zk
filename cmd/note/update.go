@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/jamesl33/zk/internal/note"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -36,6 +37,10 @@ func NewUpdate() *cobra.Command {
 
 // Run opens a new editor for the given note.
 func (u *Update) Run(ctx context.Context, args []string) error {
+	if _, err := vault.Root("."); err != nil {
+		return err
+	}
+
 	path, err := u.path(args)
 
 	// User didn't provide input, exit cleanly (this better handles exiting pickers early)

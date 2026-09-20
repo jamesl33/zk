@@ -6,6 +6,7 @@ import (
 
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes"
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -27,6 +28,10 @@ func FindNotesLinkedFrom(
 	_ *mcp.CallToolRequest,
 	input *FindNotesLinkedFromInput,
 ) (*mcp.CallToolResult, *FindNotesLinkedFromOutput, error) {
+	if _, err := vault.Root("."); err != nil {
+		return nil, nil, err
+	}
+
 	n, err := note.New(input.Path)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to open note: %w", err)
