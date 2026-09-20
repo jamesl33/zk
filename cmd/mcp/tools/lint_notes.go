@@ -13,6 +13,8 @@ import (
 type LintError struct {
 	Path    string `json:"path" jsonschema:"The path to the note"`
 	Message string `json:"message" jsonschema:"A description of the linting failure"`
+	Line    int    `json:"line" jsonschema:"The 1-based line number the error occurs on, or 0 if it applies to the whole note"`
+	Column  int    `json:"column" jsonschema:"The 1-based column the error occurs on, or 0 if line is also 0"`
 }
 
 // LintNotesInput defines the input for the LintNotes tool.

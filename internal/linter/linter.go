@@ -3,10 +3,10 @@ package linter
 import (
 	"context"
 	"fmt"
+	"os"
 	"slices"
 	"strings"
 
-	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/matcher"
@@ -15,11 +15,17 @@ import (
 )
 
 // LintError defines a single linting error.
-//
-// TODO (jamesl33): Add line number?
 type LintError struct {
 	Path    string
 	Message string
+
+	// Line is the 1-based line number the error occurs on, or 0 if the error applies to the
+	// whole note (e.g. 'orphan-note', 'duplicate-id') rather than a specific line.
+	Line int
+
+	// Column is the 1-based column (character offset within Line) the error occurs on, or 0 if
+	// Line is also 0.
+	Column int
 }
 
 // Linter is a struct that contains the logic for linting notes.
@@ -112,16 +118,30 @@ func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
 		return nil, fmt.Errorf("failed to create lister: %w", err)
 	}
 
+	linkIdx := regex.Link.SubexpIndex("link")
+
 	err = iterator.ForEach2(lstr.Many(ctx), func(n *note.Note) error {
-		links, err := n.Links()
+		raw, err := os.ReadFile(n.Path)
 		if err != nil {
-			return fmt.Errorf("failed to get links: %w", err)
+			return fmt.Errorf("failed to read note: %w", err)
 		}
 
-		for _, link := range hs.Difference(links, ids) {
+		body := string(raw)
+
+		for _, match := range regex.Link.FindAllStringSubmatchIndex(body, -1) {
+			name := body[match[2*linkIdx]:match[2*linkIdx+1]]
+
+			if slices.Contains(ids, name) {
+				continue
+			}
+
+			line, col := position(body, match[0])
+
 			err := LintError{
 				Path:    n.Path,
-				Message: fmt.Sprintf("Link %q is broken (linkcheck)", link),
+				Line:    line,
+				Column:  col,
+				Message: fmt.Sprintf("Link %q is broken (linkcheck)", name),
 			}
 
 			errors = append(errors, &err)
@@ -134,4 +154,18 @@ func (l *Linter) Lint(ctx context.Context, path string) ([]*LintError, error) {
 	}
 
 	return errors, nil
+}
+
+// position returns the 1-based line and column for the given byte offset within body.
+func position(body string, offset int) (int, int) {
+	before := body[:offset]
+
+	line := strings.Count(before, "\n") + 1
+
+	col := len(before)
+	if idx := strings.LastIndex(before, "\n"); idx != -1 {
+		col = len(before) - idx - 1
+	}
+
+	return line, col + 1
 }

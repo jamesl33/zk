@@ -55,6 +55,26 @@ func TestLinterLintBrokenLink(t *testing.T) {
 	require.Len(t, errors, 1)
 	assert.Equal(t, note1, errors[0].Path)
 	assert.Equal(t, fmt.Sprintf("Link %q is broken (linkcheck)", "20240101000002"), errors[0].Message)
+	assert.Equal(t, 5, errors[0].Line)
+	assert.Equal(t, 1, errors[0].Column)
+}
+
+func TestLinterLintBrokenLinkMidLine(t *testing.T) {
+	var (
+		tmp   = t.TempDir()
+		note1 = filepath.Join(tmp, "20240101000001.md")
+	)
+
+	err := os.WriteFile(note1, []byte("---\ntitle: Note 1\ndate: \"2024-01-01\"\n---\nSee [[20240101000002]] above"), 0o644)
+	require.NoError(t, err)
+
+	l := NewLinter()
+
+	errors, err := l.Lint(t.Context(), tmp)
+	require.NoError(t, err)
+	require.Len(t, errors, 1)
+	assert.Equal(t, 5, errors[0].Line)
+	assert.Equal(t, 5, errors[0].Column)
 }
 
 func TestLinterLintMultipleBrokenLinks(t *testing.T) {

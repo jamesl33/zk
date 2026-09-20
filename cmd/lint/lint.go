@@ -44,6 +44,11 @@ func (l *Lint) Run(ctx context.Context, args []string) error {
 	}
 
 	for _, err := range errors {
+		if err.Line > 0 {
+			fmt.Printf("%q:%d:%d: %s\n", err.Path, err.Line, err.Column, err.Message)
+			continue
+		}
+
 		fmt.Printf("%q: %s\n", err.Path, err.Message)
 	}
 
