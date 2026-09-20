@@ -27,11 +27,19 @@ The tool is designed to be compostable, allow aliases/functions which improve ov
 
 ```fish
 function zkfn -d "Finds notes related to a given note, then picks and opens one"
-    zk note find $argv | zk notes pick | zk note update -
+    set -l candidates (zk note find $argv)
+    test -n "$candidates"; or return 1
+    set -l note (printf '%s\n' $candidates | zk notes pick)
+    test -n "$note"; or return 1
+    printf '%s\n' $note | zk note update -
 end
 
 function zkfo -d "Find notes based on a semantic query then picks and opens one"
-    zk notes find $argv | zk notes pick | zk note update -
+    set -l candidates (zk notes find $argv)
+    test -n "$candidates"; or return 1
+    set -l note (printf '%s\n' $candidates | zk notes pick)
+    test -n "$note"; or return 1
+    printf '%s\n' $note | zk note update -
 end
 
 function zkgt -d "Generates tags for the given directory/note"
@@ -39,15 +47,23 @@ function zkgt -d "Generates tags for the given directory/note"
 end
 
 function zklo -d "Lists notes, then picks and opens one"
-    zk notes list --ignore-case $argv | zk notes pick | zk note update -
+    set -l notes (zk notes list --ignore-case $argv)
+    test -n "$notes"; or return 1
+    set -l note (printf '%s\n' $notes | zk notes pick)
+    test -n "$note"; or return 1
+    printf '%s\n' $note | zk note update -
 end
 
 function zknb -d "Creates a new bibliographic note"
-    zk note create bibliographic $argv | zk note update -
+    set -l note (zk note create bibliographic $argv)
+    test -n "$note"; or return 1
+    printf '%s\n' $note | zk note update -
 end
 
 function zknf -d "Creates a new fleeting note"
-    zk note create fleeting $argv | zk note update -
+    set -l note (zk note create fleeting $argv)
+    test -n "$note"; or return 1
+    printf '%s\n' $note | zk note update -
 end
 
 function zkni -d "Creates a new index note, fzf-picked directory (ctrl-n: type new directory)"
@@ -55,7 +71,9 @@ function zkni -d "Creates a new index note, fzf-picked directory (ctrl-n: type n
     set -l dir $result[3]
     test "$result[2]" = ctrl-n; and set dir $result[1]
     test -n "$dir"; or return 1
-    zk note create index $dir $argv | zk note update -
+    set -l note (zk note create index $dir $argv)
+    test -n "$note"; or return 1
+    printf '%s\n' $note | zk note update -
 end
 
 function zknl -d "Creates a new literature note, fzf-picked directory (ctrl-n: type new directory)"
@@ -63,7 +81,9 @@ function zknl -d "Creates a new literature note, fzf-picked directory (ctrl-n: t
     set -l dir $result[3]
     test "$result[2]" = ctrl-n; and set dir $result[1]
     test -n "$dir"; or return 1
-    zk note create literature $dir $argv | zk note update -
+    set -l note (zk note create literature $dir $argv)
+    test -n "$note"; or return 1
+    printf '%s\n' $note | zk note update -
 end
 
 function zknp -d "Creates a new permanent note, fzf-picked directory (ctrl-n: type new directory)"
@@ -71,7 +91,9 @@ function zknp -d "Creates a new permanent note, fzf-picked directory (ctrl-n: ty
     set -l dir $result[3]
     test "$result[2]" = ctrl-n; and set dir $result[1]
     test -n "$dir"; or return 1
-    zk note create permanent $dir $argv | zk note update -
+    set -l note (zk note create permanent $dir $argv)
+    test -n "$note"; or return 1
+    printf '%s\n' $note | zk note update -
 end
 
 function zkoa -d "Consumes the 'zk' note listing output then opens all the notes in the default editor"
@@ -85,7 +107,9 @@ function zkoa -d "Consumes the 'zk' note listing output then opens all the notes
 end
 
 function zkp -d "List notes, picks one then prints the path"
-    zk notes list --ignore-case $argv | zk notes pick
+    set -l notes (zk notes list --ignore-case $argv)
+    test -n "$notes"; or return 1
+    printf '%s\n' $notes | zk notes pick
 end
 
 function zkqc -d "Quick-capture text as a fleeting note, no editor"
@@ -96,11 +120,23 @@ function zkqc -d "Quick-capture text as a fleeting note, no editor"
 end
 
 function zkso -d "Search notes, picks one then opens it"
-    zk notes search --ignore-case $argv | zk notes pick | zk note update -
+    set -l candidates (zk notes search --ignore-case $argv)
+    test -n "$candidates"; or return 1
+    set -l note (printf '%s\n' $candidates | zk notes pick)
+    test -n "$note"; or return 1
+    printf '%s\n' $note | zk note update -
 end
 
 function zkt -d "Lists all tags, picks one, finds notes that have the tag, picks one and updates it"
-    zk tags list $argv | fzf | xargs -r zk notes list tagged --with | zk notes pick | zk note update -
+    set -l tags (zk tags list $argv)
+    test -n "$tags"; or return 1
+    set -l tag (printf '%s\n' $tags | fzf)
+    test -n "$tag"; or return 1
+    set -l notes (zk notes list tagged --with $tag)
+    test -n "$notes"; or return 1
+    set -l note (printf '%s\n' $notes | zk notes pick)
+    test -n "$note"; or return 1
+    printf '%s\n' $note | zk note update -
 end
 ```
 
