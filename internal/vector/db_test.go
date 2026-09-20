@@ -26,6 +26,28 @@ func newNote(t *testing.T, tmp, name, content string) *note.Note {
 	return n
 }
 
+func TestNew(t *testing.T) {
+	tmp := t.TempDir()
+
+	db, err := New(t.Context(), filepath.Join(tmp, "zk.sqlite3"))
+	require.NoError(t, err)
+	defer db.Close()
+
+	var name string
+
+	err = db.db.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='notes'").Scan(&name)
+	require.NoError(t, err)
+	assert.Equal(t, "notes", name)
+}
+
+func TestNewClientFailure(t *testing.T) {
+	tmp := t.TempDir()
+
+	// Passing a directory as the database path causes cache/client creation to fail.
+	_, err := New(t.Context(), tmp)
+	assert.Error(t, err)
+}
+
 func TestDBInit(t *testing.T) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	require.NoError(t, err)
