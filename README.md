@@ -39,7 +39,7 @@ function zkgt -d "Generates tags for the given directory/note"
 end
 
 function zklo -d "Lists notes, then picks and opens one"
-    zk notes list $argv | zk notes pick | zk note update -
+    zk notes list --ignore-case $argv | zk notes pick | zk note update -
 end
 
 function zknb -d "Creates a new bibliographic note"
@@ -50,24 +50,53 @@ function zknf -d "Creates a new fleeting note"
     zk note create fleeting $argv | zk note update -
 end
 
-function zkni -d "Creates a new index note"
-    zk note create index $argv | zk note update -
+function zkni -d "Creates a new index note, fzf-picked directory (ctrl-n: type new directory)"
+    set -l result (fd -t d . "1 Projects" "2 Areas" "3 Resources" | fzf --print-query --expect=ctrl-n)
+    set -l dir $result[3]
+    test "$result[2]" = ctrl-n; and set dir $result[1]
+    test -n "$dir"; or return 1
+    zk note create index $dir $argv | zk note update -
 end
 
-function zknl -d "Creates a new literature note"
-    zk note create literature $argv | zk note update -
+function zknl -d "Creates a new literature note, fzf-picked directory (ctrl-n: type new directory)"
+    set -l result (fd -t d . "1 Projects" "2 Areas" "3 Resources" | fzf --print-query --expect=ctrl-n)
+    set -l dir $result[3]
+    test "$result[2]" = ctrl-n; and set dir $result[1]
+    test -n "$dir"; or return 1
+    zk note create literature $dir $argv | zk note update -
 end
 
-function zknp -d "Creates a new permanent note"
-    zk note create permanent $argv | zk note update -
+function zknp -d "Creates a new permanent note, fzf-picked directory (ctrl-n: type new directory)"
+    set -l result (fd -t d . "1 Projects" "2 Areas" "3 Resources" | fzf --print-query --expect=ctrl-n)
+    set -l dir $result[3]
+    test "$result[2]" = ctrl-n; and set dir $result[1]
+    test -n "$dir"; or return 1
+    zk note create permanent $dir $argv | zk note update -
+end
+
+function zkoa -d "Consumes the 'zk' note listing output then opens all the notes in the default editor"
+    set -l paths
+
+    while read path
+        set paths $paths (echo $path | awk -F '\x01' '{ print $NF }')
+    end
+
+	$EDITOR $paths
 end
 
 function zkp -d "List notes, picks one then prints the path"
-    zk notes list $argv | zk notes pick
+    zk notes list --ignore-case $argv | zk notes pick
+end
+
+function zkqc -d "Quick-capture text as a fleeting note, no editor"
+    set -l path (zk note create fleeting --title "$argv[1]")
+    test -n "$path"; or return 1
+    truncate -s -1 $path
+    printf "%s\n" "$argv[2]" >> $path
 end
 
 function zkso -d "Search notes, picks one then opens it"
-    zk notes search $argv | zk notes pick | zk note update -
+    zk notes search --ignore-case $argv | zk notes pick | zk note update -
 end
 
 function zkt -d "Lists all tags, picks one, finds notes that have the tag, picks one and updates it"
@@ -119,32 +148,25 @@ vim.keymap.set(
 	end
 )
 
+-- Pick a PARA directory via 'fzf', then create the given note type inside it.
+local zk_note_create_in_dir = function(type)
+	require 'fzf-lua'.fzf_exec("fd -t d . '1 Projects' '2 Areas' '3 Resources'", {
+		actions = {
+			['default'] = function(selected)
+				zk_file_edit(vim.fn.system { 'zk', 'note', 'create', type, selected[1] })
+			end,
+		},
+	})
+end
+
 -- Create a new index note.
-vim.keymap.set(
-	'n',
-	'<leader>zkni',
-	function()
-		zk_file_edit(vim.fn.system { 'zk', 'note', 'create', 'index', vim.fn.input('Path: ', '', 'dir') })
-	end
-)
+vim.keymap.set('n', '<leader>zkni', function() zk_note_create_in_dir('index') end)
 
 -- Create a new literature note.
-vim.keymap.set(
-	'n',
-	'<leader>zknl',
-	function()
-		zk_file_edit(vim.fn.system { 'zk', 'note', 'create', 'literature', vim.fn.input('Path: ', '', 'dir') })
-	end
-)
+vim.keymap.set('n', '<leader>zknl', function() zk_note_create_in_dir('literature') end)
 
 -- Create a new permanent note.
-vim.keymap.set(
-	'n',
-	'<leader>zknp',
-	function()
-		zk_file_edit(vim.fn.system { 'zk', 'note', 'create', 'permanent', vim.fn.input('Path: ', '', 'dir') })
-	end
-)
+vim.keymap.set('n', '<leader>zknp', function() zk_note_create_in_dir('permanent') end)
 
 -- List notes.
 vim.keymap.set(
