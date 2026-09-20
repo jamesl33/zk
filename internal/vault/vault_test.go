@@ -36,6 +36,7 @@ func TestRootFindsGitMarker(t *testing.T) {
 }
 
 func TestRootNotFound(t *testing.T) {
-	_, err := Root(t.TempDir())
-	assert.ErrorIs(t, err, ErrNotFound)
+	found, err := Root(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, ".", found)
 }

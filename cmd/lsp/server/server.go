@@ -122,9 +122,7 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 	}
 
 	root, err := vault.Root(".")
-	if errors.Is(err, vault.ErrNotFound) {
-		root = "."
-	} else if err != nil {
+	if err != nil {
 		return nil, fmt.Errorf("failed to find vault root: %w", err)
 	}
 
