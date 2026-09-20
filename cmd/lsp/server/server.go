@@ -19,8 +19,6 @@ import (
 )
 
 // Server defines the LSP server.
-//
-// TODO (jamesl33): Add support for finding references (e.g. all the notes that link to a note).
 type Server struct {
 	protocol.Handler
 	ctx context.Context
