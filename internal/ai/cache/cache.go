@@ -9,8 +9,6 @@ import (
 )
 
 // Cache defines a generic cache which is backed by a sqlite3 database.
-//
-// TODO (jamesl33): Add expiration.
 type Cache[T any] struct {
 	db    *sql.DB
 	table string

@@ -250,3 +250,4 @@ I've used multiple tools for this process in the past, and struggled to find any
 - [ ] Make it easier to define/share shell functions/aliases
 - [ ] Write a NeoVim plugin to make it easier to define/share that setup
 - [ ] Add support for finding references in the LSP server (e.g. all the notes that link to a note)
+- [ ] Add expiration to the AI prompt/embedding cache
