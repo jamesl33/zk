@@ -56,8 +56,8 @@ func (p *Pick) Run(ctx context.Context) error {
 		return p.item(buffer)
 	}
 
-	// TODO (jamesl33): There's no entries; not a fan of the exit status though.
-	// TODO (jamesl33): User has exited.
+	// Exit code 1 means no match, 130 means the user interrupted fzf (e.g. Ctrl-C); both are
+	// documented fzf behavior, not failures.
 	if cmd.ProcessState != nil && (cmd.ProcessState.ExitCode() == 1 || cmd.ProcessState.ExitCode() == 130) {
 		return nil
 	}
