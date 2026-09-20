@@ -69,10 +69,13 @@ Without changing the meaning, produce a single sentence summary of the above not
 
 	prompt = fmt.Sprintf(prompt, body)
 
-	// TODO (jamesl33): Handle the case where the model fails to summarize.
 	content, err := client.Generate(ctx, prompt)
 	if err != nil {
-		return fmt.Errorf("failed to generate tags: %w", err)
+		return fmt.Errorf("failed to generate summary: %w", err)
+	}
+
+	if content == "" {
+		return fmt.Errorf("model returned an empty summary")
 	}
 
 	fmt.Println(s.wrap(content))
