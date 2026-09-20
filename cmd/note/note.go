@@ -12,6 +12,7 @@ func NewNote() *cobra.Command {
 	cmd.AddCommand(
 		NewCreate(),
 		NewUpdate(),
+		NewDelete(),
 		NewLinks(),
 		NewFind(),
 		NewSummarize(),
