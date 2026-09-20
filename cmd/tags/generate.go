@@ -42,7 +42,7 @@ func NewGenerate() *cobra.Command {
 
 // Run tag generation.
 func (g *Generate) Run(ctx context.Context, args []string) error {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return err
 	}
 

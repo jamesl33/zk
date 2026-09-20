@@ -36,7 +36,7 @@ func NewRewrite() *cobra.Command {
 
 // Run the command to find linked notes.
 func (r *Rewrite) Run(ctx context.Context, args []string) error {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return err
 	}
 

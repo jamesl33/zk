@@ -54,7 +54,7 @@ func NewLinks() *cobra.Command {
 
 // Run the command to find linked notes.
 func (l *Links) Run(ctx context.Context, path string) error {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return err
 	}
 

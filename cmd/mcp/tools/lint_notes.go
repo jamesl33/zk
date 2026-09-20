@@ -40,7 +40,7 @@ func LintNotes(
 	_ *mcp.CallToolRequest,
 	input *LintNotesInput,
 ) (*mcp.CallToolResult, *LintNotesOutput, error) {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return nil, nil, err
 	}
 

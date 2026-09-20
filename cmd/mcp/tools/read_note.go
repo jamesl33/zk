@@ -30,7 +30,7 @@ func ReadNote(
 	_ *mcp.CallToolRequest,
 	input *ReadNoteInput,
 ) (*mcp.CallToolResult, *ReadNoteOutput, error) {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return nil, nil, err
 	}
 

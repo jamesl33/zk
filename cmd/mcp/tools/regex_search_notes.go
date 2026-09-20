@@ -32,7 +32,7 @@ func RegexSearchNotes(
 	_ *mcp.CallToolRequest,
 	input *RegexSearchNotesInput,
 ) (*mcp.CallToolResult, *RegexSearchNotesOutput, error) {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return nil, nil, err
 	}
 

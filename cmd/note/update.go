@@ -37,7 +37,7 @@ func NewUpdate() *cobra.Command {
 
 // Run opens a new editor for the given note.
 func (u *Update) Run(ctx context.Context, args []string) error {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return err
 	}
 

@@ -56,7 +56,7 @@ func NewListTagged() *cobra.Command {
 
 // Run lists tagged notes.
 func (l *ListTagged) Run(ctx context.Context, args []string) error {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return err
 	}
 

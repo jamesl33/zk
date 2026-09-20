@@ -30,7 +30,7 @@ func NewCreate() *cobra.Command {
 // create writes a new note of the given type/title at the given path and
 // prints the resulting path.
 func create(noteType, title, path string) error {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return err
 	}
 

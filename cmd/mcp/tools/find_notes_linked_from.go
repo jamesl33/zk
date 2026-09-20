@@ -28,7 +28,7 @@ func FindNotesLinkedFrom(
 	_ *mcp.CallToolRequest,
 	input *FindNotesLinkedFromInput,
 ) (*mcp.CallToolResult, *FindNotesLinkedFromOutput, error) {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return nil, nil, err
 	}
 

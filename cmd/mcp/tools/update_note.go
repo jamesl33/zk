@@ -41,7 +41,7 @@ func UpdateNote(
 	_ *mcp.CallToolRequest,
 	input *UpdateNoteInput,
 ) (*mcp.CallToolResult, *UpdateNoteOutput, error) {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return nil, nil, err
 	}
 

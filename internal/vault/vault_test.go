@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRootFindsZkMarker(t *testing.T) {
+func TestRootAbsFindsZkMarker(t *testing.T) {
 	root := t.TempDir()
 
 	require.NoError(t, os.Mkdir(filepath.Join(root, ".zk"), 0o755))
@@ -17,12 +17,12 @@ func TestRootFindsZkMarker(t *testing.T) {
 	sub := filepath.Join(root, "a", "b")
 	require.NoError(t, os.MkdirAll(sub, 0o755))
 
-	found, err := Root(sub)
+	found, err := RootAbs(sub)
 	require.NoError(t, err)
 	assert.Equal(t, root, found)
 }
 
-func TestRootNotFound(t *testing.T) {
-	_, err := Root(t.TempDir())
+func TestRootAbsNotFound(t *testing.T) {
+	_, err := RootAbs(t.TempDir())
 	assert.ErrorIs(t, err, ErrNotFound)
 }

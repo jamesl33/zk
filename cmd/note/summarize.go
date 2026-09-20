@@ -38,7 +38,7 @@ func NewSummarize() *cobra.Command {
 }
 
 func (s *Summarize) Run(ctx context.Context, path string) error {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return err
 	}
 

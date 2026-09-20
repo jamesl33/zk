@@ -65,7 +65,7 @@ func NewSearch() *cobra.Command {
 
 // Run searches notes (e.g. titles, bodies).
 func (s *Search) Run(ctx context.Context, args []string) error {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return err
 	}
 

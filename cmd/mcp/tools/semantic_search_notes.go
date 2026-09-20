@@ -28,7 +28,7 @@ func SemanticSearchNotes(
 	_ *mcp.CallToolRequest,
 	input *SemanticSearchNotesInput,
 ) (*mcp.CallToolResult, *SemanticSearchNotesOutput, error) {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return nil, nil, err
 	}
 

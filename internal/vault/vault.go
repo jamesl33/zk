@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 )
 
-// ErrNotFound is returned by Root when the given path isn't inside a vault.
+// ErrNotFound is returned by RootAbs when the given path isn't inside a vault.
 var ErrNotFound = errors.New("not in a zk vault (no '.zk' directory found)")
 
-// Root walks up from the given path looking for a '.zk' directory, returning the first directory
-// found containing one. This allows commands to resolve the vault root even when invoked from a
-// subdirectory (e.g. an editor's LSP client using its own working directory).
-func Root(path string) (string, error) {
+// RootAbs walks up from the given path looking for a '.zk' directory, returning the first
+// directory found containing one. This allows commands to resolve the vault root even when
+// invoked from a subdirectory (e.g. an editor's LSP client using its own working directory).
+func RootAbs(path string) (string, error) {
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return "", err
@@ -36,7 +36,7 @@ func Root(path string) (string, error) {
 // intended for callers which pass the root to a lister, so that resulting note paths are relative
 // rather than absolute, while still allowing the vault to be searched from a subdirectory.
 func RootRel(path string) (string, error) {
-	root, err := Root(path)
+	root, err := RootAbs(path)
 	if err != nil {
 		return "", err
 	}

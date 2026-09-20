@@ -30,7 +30,7 @@ func ListNotes(
 	_ *mcp.CallToolRequest,
 	input *ListNotesInput,
 ) (*mcp.CallToolResult, *ListNotesOutput, error) {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return nil, nil, err
 	}
 

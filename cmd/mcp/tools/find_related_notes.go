@@ -29,7 +29,7 @@ func FindRelatedNotes(
 	_ *mcp.CallToolRequest,
 	input *FindRelatedNotesInput,
 ) (*mcp.CallToolResult, *FindRelatedNotesOutput, error) {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return nil, nil, err
 	}
 

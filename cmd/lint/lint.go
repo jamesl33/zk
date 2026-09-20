@@ -39,7 +39,7 @@ func NewLint() *cobra.Command {
 
 // Run lints the notes, printing warnings/errors.
 func (l *Lint) Run(ctx context.Context, args []string) error {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return err
 	}
 

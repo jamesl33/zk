@@ -71,7 +71,7 @@ func NewList() *cobra.Command {
 
 // Run lists notes with matching titles.
 func (l *List) Run(ctx context.Context, args []string) error {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return err
 	}
 

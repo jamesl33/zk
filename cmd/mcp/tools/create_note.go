@@ -44,7 +44,7 @@ func CreateNote(
 	_ *mcp.CallToolRequest,
 	input *CreateNoteInput,
 ) (*mcp.CallToolResult, *CreateNoteOutput, error) {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return nil, nil, err
 	}
 

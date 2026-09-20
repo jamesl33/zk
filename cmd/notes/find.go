@@ -35,7 +35,7 @@ func NewFind() *cobra.Command {
 
 // Run finds some related notes.
 func (f *Find) Run(ctx context.Context, query string) error {
-	if _, err := vault.Root("."); err != nil {
+	if _, err := vault.RootAbs("."); err != nil {
 		return err
 	}
 
