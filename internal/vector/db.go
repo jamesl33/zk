@@ -146,7 +146,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	FROM
 	  notes
 	WHERE
-	  name != ? AND distance <= 0.35
+	  name != ? AND distance <= 0.6
 	ORDER BY
 	  distance
 	`
