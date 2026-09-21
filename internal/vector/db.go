@@ -35,7 +35,7 @@ type DB struct {
 
 // New returns an initialized db.
 func New(ctx context.Context, path string) (*DB, error) {
-	client, err := ai.New(ctx, path)
+	client, err := ai.NewOllama(ctx, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %w", err)
 	}

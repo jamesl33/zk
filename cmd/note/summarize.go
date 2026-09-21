@@ -61,7 +61,7 @@ func (s *Summarize) Run(ctx context.Context, path string) error {
 		return nil
 	}
 
-	client, err := ai.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
+	client, err := ai.NewGemini(ctx, filepath.Join(".zk", "zk.sqlite3"))
 	if err != nil {
 		return fmt.Errorf("failed to create client: %w", err)
 	}

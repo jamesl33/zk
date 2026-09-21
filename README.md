@@ -282,9 +282,9 @@ vim.keymap.set(
 
 # AI
 
-`zk` has some AI-assisted features, backed by the Gemini API (requires a `GEMINI_API_KEY`):
+`zk` has some AI-assisted features, backed by the Gemini API for generation (requires a `GEMINI_API_KEY`) and a local [Ollama](https://ollama.com) instance for embedding (embedding is called far more often, via vector search, so it's kept local for cost/speed):
 
-- `zk note summarize <path>` and `zk tags generate [directory | path]` use Gemini to summarize a note or generate its tags. Both cache prompts/responses/embeddings in `.zk/zk.sqlite3`, keyed on a checksum of the input; if you need a different model, set `ZK_GEMINI_MODEL` and/or `ZK_GEMINI_EMBED_MODEL` before switching, since the cache doesn't key on model and won't notice a change on its own.
+- `zk note summarize <path>` and `zk tags generate [directory | path]` use Gemini to summarize a note or generate its tags. Vector search (`semantic_search_notes`, `find_related_notes`) embeds notes/queries via Ollama; run `ollama serve` and `ollama pull embeddinggemma` first, or point `OLLAMA_HOST` at a remote instance. Both cache prompts/responses/embeddings in `.zk/zk.sqlite3`, keyed on a checksum of the input; if you need a different model, set `ZK_GEMINI_MODEL` and/or `ZK_OLLAMA_EMBED_MODEL` before switching, since the cache doesn't key on model and won't notice a change on its own.
 - `zk mcp` runs `zk` as a standard [MCP](https://modelcontextprotocol.io) server over stdio, so any MCP-speaking client (not just Gemini CLI) can search, read and write your vault. It exposes: `list_notes`, `lint_notes`, `regex_search_notes`, `semantic_search_notes`, `find_related_notes`, `find_notes_linked_to`, `find_notes_linked_from`, `read_note`, `create_note`, `update_note`.
 - `zk initialize` bootstraps [Gemini CLI](https://github.com/google-gemini/gemini-cli) for a vault: it writes `GEMINI.md` (the Zettelkasten/PARA conventions the assistant should follow), `.gemini/settings.json` (registers `zk mcp` as an MCP server), `.gemini/policies/` and `.gemini/skills/` (workflows like archiving a project or converting fleeting notes into permanent ones, built on the MCP tools above).
 

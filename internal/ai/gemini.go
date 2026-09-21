@@ -39,8 +39,8 @@ func WithEmbedModel(model string) Option {
 	return func(g *Gemini) { g.embedding = model }
 }
 
-// New creates a new client for interacting with the Gemini API.
-func New(ctx context.Context, path string, opts ...Option) (*Gemini, error) {
+// NewGemini creates a new client for interacting with the Gemini API.
+func NewGemini(ctx context.Context, path string, opts ...Option) (*Gemini, error) {
 	ai, err := genai.NewClient(ctx, &genai.ClientConfig{
 		Backend: genai.BackendGeminiAPI,
 	})
