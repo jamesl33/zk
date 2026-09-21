@@ -31,7 +31,6 @@ func TestGeminiRun(t *testing.T) {
 	err := g.Run(t.Context())
 	require.NoError(t, err)
 
-	assert.FileExists(t, filepath.Join(tmp, ".geminiignore"))
 	assert.FileExists(t, filepath.Join(tmp, "GEMINI.md"))
 	assert.FileExists(t, filepath.Join(tmp, ".gemini", "settings.json"))
 	assert.FileExists(t, filepath.Join(tmp, ".gemini", "policies", "zk.toml"))

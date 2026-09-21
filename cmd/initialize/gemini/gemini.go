@@ -11,9 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//go:embed .geminiignore
-var ignore []byte
-
 //go:embed settings.json
 var settings []byte
 
@@ -46,11 +43,6 @@ func (g *Gemini) Run(_ context.Context) error {
 	err := os.RemoveAll(".gemini")
 	if err != nil {
 		return fmt.Errorf("failed to remove existing '.gemini' directory: %w", err)
-	}
-
-	err = os.WriteFile(".geminiignore", ignore, 0o644)
-	if err != nil {
-		return fmt.Errorf("failed to write '.geminiignore': %w", err)
 	}
 
 	err = os.WriteFile("GEMINI.md", assets.Instructions, 0o644)

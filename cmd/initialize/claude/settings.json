@@ -13,20 +13,7 @@
       "mcp__zk__update_note"
     ],
     "deny": [
-      "WebSearch",
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Read(./.envrc)",
-      "Read(./**/*.pem)",
-      "Read(./**/*.key)",
-      "Read(./**/*.crt)",
-      "Read(./**/*.pfx)",
-      "Read(./**/*credentials*.json)",
-      "Read(./**/*serviceaccount*.json)",
-      "Read(./.aws/**)",
-      "Read(./.gcloud/**)",
-      "Read(./.ssh/**)",
-      "Read(./secrets/**)"
+      "WebSearch"
     ]
   }
 }
