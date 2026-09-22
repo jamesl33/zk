@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	sqlite_vec "github.com/asg017/sqlite-vec-go-bindings/cgo"
 
@@ -60,12 +61,15 @@ func New(ctx context.Context, path string) (*DB, error) {
 
 // init the database by creating the required table.
 func (d *DB) init(ctx context.Context) error {
-	// create the table if it doesn't already exist.
+	// create the table if it doesn't already exist. Notes may be split into multiple chunks (see
+	// chunk.go), so a note can have more than one row, keyed by (name, chunk).
 	const create = `
 	CREATE table IF NOT EXISTS notes (
-	  name text unique,
+	  name text,
+	  chunk integer,
 	  checksum blob,
-	  embedding blob NOT NULL
+	  embedding blob NOT NULL,
+	  PRIMARY KEY (name, chunk)
 	);
 	`
 
@@ -94,14 +98,27 @@ func (d *DB) Upsert(ctx context.Context, n *note.Note) error {
 		return nil
 	}
 
-	embedding, err := d.embed(ctx, n)
+	embeddings, err := d.embed(ctx, n)
 	if err != nil {
 		return fmt.Errorf("failed to generate embedding: %w", err)
 	}
 
-	// No embedding returned, don't add to the index
-	if embedding == nil {
-		return nil
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback() //nolint:errcheck
+
+	// Remove any existing rows for this note; the number of chunks may have changed since the
+	// last time it was indexed.
+	_, err = tx.ExecContext(ctx, `DELETE FROM notes WHERE name = ?;`, n.Name())
+	if err != nil {
+		return fmt.Errorf("failed to delete stale rows: %w", err)
+	}
+
+	// No embeddings returned, don't add to the index
+	if len(embeddings) == 0 {
+		return tx.Commit()
 	}
 
 	// insert the embedding into the index
@@ -109,44 +126,50 @@ func (d *DB) Upsert(ctx context.Context, n *note.Note) error {
 	INSERT OR REPLACE INTO
 	  notes
 	VALUES
-	  (?, ?, ?);
+	  (?, ?, ?, ?);
 	`
 
-	_, err = d.db.ExecContext(
-		ctx,
-		insert,
-		n.Name(),
-		checksum,
-		embedding,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to insert row: %w", err)
+	for i, embedding := range embeddings {
+		_, err = tx.ExecContext(ctx, insert, n.Name(), i, checksum, embedding)
+		if err != nil {
+			return fmt.Errorf("failed to insert row for chunk %d: %w", i, err)
+		}
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 // Find some similar notes to the one provided.
 func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
-	embedding, err := d.embed(ctx, n)
+	embeddings, err := d.embed(ctx, n)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate embedding: %w", err)
 	}
 
 	// No embedding, we can't find any similar notes
-	if embedding == nil {
+	if len(embeddings) == 0 {
 		return make([]*note.Note, 0), nil
 	}
 
-	// query to find some similar notes
+	// If the note itself needed to be split into multiple chunks (rare -- notes are expected to
+	// stay small/atomic), use the leading chunk as a single representative query vector rather
+	// than searching once per chunk and merging results.
+	embedding := embeddings[0]
+
+	// query to find some similar notes; a note may have multiple chunk rows, so collapse to one
+	// distance per note using its closest-matching chunk.
 	const query = `
 	SELECT
 	  name,
-      vec_distance_cosine (embedding, ?) as distance
+      MIN(vec_distance_cosine (embedding, ?)) as distance
 	FROM
 	  notes
 	WHERE
-	  name != ? AND distance <= 0.6
+	  name != ?
+	GROUP BY
+	  name
+	HAVING
+	  distance <= 0.6
 	ORDER BY
 	  distance
 	LIMIT 15
@@ -217,7 +240,8 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 
 // skip returns a boolean indicating whether we need to update the index entry.
 func (d *DB) skip(ctx context.Context, name string, current []byte) (bool, error) {
-	// query to acquire the existing checksum
+	// query to acquire the existing checksum; every chunk row for a name shares the same
+	// checksum, so any one row will do.
 	const query = `
 	SELECT
 	  checksum
@@ -225,6 +249,7 @@ func (d *DB) skip(ctx context.Context, name string, current []byte) (bool, error
 	  notes
 	WHERE
 	  name = ?
+	LIMIT 1
 	`
 
 	var indexed []byte
@@ -243,8 +268,10 @@ func (d *DB) skip(ctx context.Context, name string, current []byte) (bool, error
 	return bytes.Equal(current, indexed), nil
 }
 
-// embed returns a vector embedding for the given note.
-func (d *DB) embed(ctx context.Context, n *note.Note) ([]byte, error) {
+// embed returns one vector embedding per chunk for the given note. Notes that exceed the
+// embedding model's context window are split into multiple chunks (see chunk.go); most notes
+// produce exactly one.
+func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 	body, err := n.GetBody()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get body: %w", err)
@@ -262,22 +289,39 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([]byte, error) {
 		return nil, fmt.Errorf("failed to write note to buffer: %w", err)
 	}
 
-	vec, err := d.client.Embed(ctx, input.String())
-	if err != nil {
-		return nil, fmt.Errorf("failed to embed buffer: %w", err)
+	// WriteTo always writes "---\n<yaml>---\n" then exactly one blank line then the body, so
+	// splitting on the first blank line cleanly separates them without re-serializing Frontmatter.
+	parts := strings.SplitN(input.String(), "\n\n", 2)
+	frontmatter := parts[0]
+
+	var bodyText string
+	if len(parts) > 1 {
+		bodyText = parts[1]
 	}
 
-	// We didn't receive an embedding
-	if len(vec) == 0 {
-		return nil, nil
+	chunks := chunk(frontmatter, bodyText)
+	embeddings := make([][]byte, 0, len(chunks))
+
+	for i, c := range chunks {
+		vec, err := d.client.Embed(ctx, c)
+		if err != nil {
+			return nil, fmt.Errorf("failed to embed chunk %d/%d: %w", i+1, len(chunks), err)
+		}
+
+		// This particular chunk didn't receive an embedding, skip just it.
+		if len(vec) == 0 {
+			continue
+		}
+
+		serial, err := sqlite_vec.SerializeFloat32(vec)
+		if err != nil {
+			return nil, fmt.Errorf("failed to serialize embedding for chunk %d/%d: %w", i+1, len(chunks), err)
+		}
+
+		embeddings = append(embeddings, serial)
 	}
 
-	serial, err := sqlite_vec.SerializeFloat32(vec)
-	if err != nil {
-		return nil, fmt.Errorf("failed to serialize embedding: %w", err)
-	}
-
-	return serial, nil
+	return embeddings, nil
 }
 
 // Close frees resources used by the database.
