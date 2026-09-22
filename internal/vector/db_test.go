@@ -1,6 +1,7 @@
 package vector
 
 import (
+	"context"
 	"database/sql"
 	"os"
 	"path/filepath"
@@ -8,6 +9,7 @@ import (
 	"testing"
 
 	sqlite_vec "github.com/asg017/sqlite-vec-go-bindings/cgo"
+	"github.com/jamesl33/zk/internal/ai"
 	mock_ai "github.com/jamesl33/zk/internal/ai/mocks"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/stretchr/testify/assert"
@@ -220,6 +222,78 @@ func TestDBUpsertMultiChunk(t *testing.T) {
 
 	require.NoError(t, rows.Err())
 	assert.Equal(t, []int{0, 1}, chunks)
+}
+
+func TestDBUpsertRechunksOnContextLength(t *testing.T) {
+	var (
+		tmp     = t.TempDir()
+		ctrl    = gomock.NewController(t)
+		mclient = mock_ai.NewMockClient(ctrl)
+	)
+
+	db, err := sql.Open("sqlite3", ":memory:")
+	require.NoError(t, err)
+	defer db.Close()
+
+	vdb := &DB{
+		client: mclient,
+		db:     db,
+	}
+
+	require.NoError(t, vdb.init(t.Context()))
+
+	// Fits in a single chunk at the initial (and first halved) budget, but the model rejects
+	// anything over 1500 characters -- forces the note to be re-chunked twice, into two chunks.
+	para := strings.Repeat("filler ", 150)
+	n := newNote(t, tmp, "note1", "---\ntitle: Note 1\n---\n"+para+"\n\n"+para)
+
+	mclient.
+		EXPECT().
+		Embed(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, content string) ([]float32, error) {
+			if len(content) > 1500 {
+				return nil, ai.ErrExceededContextLength
+			}
+
+			return []float32{1.0, 2.0}, nil
+		}).
+		Times(4)
+
+	require.NoError(t, vdb.Upsert(t.Context(), n))
+
+	var count int
+	require.NoError(t, db.QueryRow("SELECT COUNT(*) FROM notes WHERE name = ?", n.Name()).Scan(&count))
+	assert.Equal(t, 2, count)
+}
+
+func TestDBUpsertContextLengthGivesUp(t *testing.T) {
+	var (
+		tmp     = t.TempDir()
+		ctrl    = gomock.NewController(t)
+		mclient = mock_ai.NewMockClient(ctrl)
+	)
+
+	db, err := sql.Open("sqlite3", ":memory:")
+	require.NoError(t, err)
+	defer db.Close()
+
+	vdb := &DB{
+		client: mclient,
+		db:     db,
+	}
+
+	require.NoError(t, vdb.init(t.Context()))
+
+	n := newNote(t, tmp, "note1", "---\ntitle: Note 1\n---\nBody 1")
+
+	mclient.
+		EXPECT().
+		Embed(gomock.Any(), gomock.Any()).
+		Return(nil, ai.ErrExceededContextLength).
+		MinTimes(1)
+
+	err = vdb.Upsert(t.Context(), n)
+	assert.ErrorIs(t, err, ai.ErrExceededContextLength)
 }
 
 func TestDBUpsertShrinkRemovesOrphanChunks(t *testing.T) {

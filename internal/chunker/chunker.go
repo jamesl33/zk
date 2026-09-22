@@ -3,6 +3,7 @@ package chunker
 
 import (
 	"strings"
+	"unicode/utf8"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -25,10 +26,12 @@ func New(frontmatter string, limit int) *Chunker {
 		budget = limit
 	}
 
-	return &Chunker{
+	chunker := Chunker{
 		frontmatter: frontmatter,
 		budget:      budget,
 	}
+
+	return &chunker
 }
 
 // Add appends the given block to the current chunk, starting a new chunk if it wouldn't fit.
@@ -117,8 +120,11 @@ func blockSource(src []byte, n ast.Node) string {
 	return strings.TrimRight(string(src[start:stop]), "\n")
 }
 
-// hardSplit splits a single oversized block into pieces at most budget runes long, as a fallback
-// for the rare case a block alone exceeds budget (e.g. a very large code fence).
+// hardSplit splits a single oversized block into pieces at most budget runes long, as a fallback for the rare case a
+// block alone exceeds budget (e.g. a very large code fence).
+//
+// Pieces are cut at the last line break within budget, where possible, to avoid splitting a word or identifier across
+// two pieces.
 func hardSplit(s string, budget int) []string {
 	if budget <= 0 {
 		budget = 1
@@ -129,10 +135,23 @@ func hardSplit(s string, budget int) []string {
 		chunks = make([]string, 0, len(runes)/budget+1)
 	)
 
-	for len(runes) > 0 {
-		n := min(len(runes), budget)
+	for len(runes) > budget {
+		var (
+			n, skip = budget, 0
+			prefix  = string(runes[:budget+1])
+		)
+
+		if i := strings.LastIndexByte(prefix, '\n'); i > 0 {
+			n, skip = utf8.RuneCountInString(prefix[:i]), 1
+		}
+
 		chunks = append(chunks, string(runes[:n]))
-		runes = runes[n:]
+
+		runes = runes[n+skip:]
+	}
+
+	if len(runes) > 0 {
+		chunks = append(chunks, string(runes))
 	}
 
 	return chunks

@@ -62,8 +62,8 @@ func New(ctx context.Context, path string) (*DB, error) {
 
 // init the database by creating the required table.
 func (d *DB) init(ctx context.Context) error {
-	// create the table if it doesn't already exist. Notes may be split into multiple chunks (see
-	// chunker), so a note can have more than one row, keyed by (name, chunk).
+	// create the table if it doesn't already exist. Notes may be split into multiple chunks (see chunker), so a note
+	// can have more than one row, keyed by (name, chunk).
 	const create = `
 	CREATE table IF NOT EXISTS notes (
 	  name text,
@@ -110,8 +110,7 @@ func (d *DB) Upsert(ctx context.Context, n *note.Note) error {
 	}
 	defer tx.Rollback() //nolint:errcheck
 
-	// Remove any existing rows for this note; the number of chunks may have changed since the
-	// last time it was indexed.
+	// Remove any existing rows for this note; the number of chunks may have changed since the last time it was indexed.
 	_, err = tx.ExecContext(ctx, `DELETE FROM notes WHERE name = ?;`, n.Name())
 	if err != nil {
 		return fmt.Errorf("failed to delete stale rows: %w", err)
@@ -161,13 +160,13 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 		return make([]*note.Note, 0), nil
 	}
 
-	// If the note itself needed to be split into multiple chunks (rare -- notes are expected to
-	// stay small/atomic), use the leading chunk as a single representative query vector rather
-	// than searching once per chunk and merging results.
+	// If the note itself needed to be split into multiple chunks (rare -- notes are expected to stay small/atomic), use
+	// the leading chunk as a single representative query vector rather than searching once per chunk and merging
+	// results.
 	embedding := embeddings[0]
 
-	// query to find some similar notes; a note may have multiple chunk rows, so collapse to one
-	// distance per note using its closest-matching chunk.
+	// query to find some similar notes; a note may have multiple chunk rows, so collapse to one distance per note using
+	// its closest-matching chunk.
 	const query = `
 	SELECT
 	  name,
@@ -278,9 +277,8 @@ func (d *DB) skip(ctx context.Context, name string, current []byte) (bool, error
 	return bytes.Equal(current, indexed), nil
 }
 
-// embed returns one vector embedding per chunk for the given note. Notes that exceed the
-// embedding model's context window are split into multiple chunks (see chunker); most notes
-// produce exactly one.
+// embed returns one vector embedding per chunk for the given note. Notes that exceed the embedding model's context
+// window are split into multiple chunks (see chunker); most notes produce exactly one.
 func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 	body, err := n.GetBody()
 	if err != nil {
@@ -299,10 +297,12 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 		return nil, fmt.Errorf("failed to write note to buffer: %w", err)
 	}
 
-	// WriteTo always writes "---\n<yaml>---\n" then exactly one blank line then the body, so
-	// splitting on the first blank line cleanly separates them without re-serializing Frontmatter.
-	parts := strings.SplitN(input.String(), "\n\n", 2)
-	frontmatter := parts[0]
+	// WriteTo always writes "---\n<yaml>---\n" then exactly one blank line then the body, so splitting on the first
+	// blank line cleanly separates them without re-serializing Frontmatter.
+	var (
+		parts       = strings.SplitN(input.String(), "\n\n", 2)
+		frontmatter = parts[0]
+	)
 
 	var bodyText string
 	if len(parts) > 1 {
@@ -315,14 +315,38 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 
 		// limit is the character budget for a single chunk; assumes ~3 chars/token for markdown, minus a 20% margin.
 		limit = context * 3 * 4 / 5
+
+		// mn is the smallest character budget attempted before giving up.
+		mn = 256
 	)
 
+	// The character budget is only an estimate of the token count; dense content (e.g. identifiers, hashes or encoded
+	// URLs) can exceed the context length regardless. Re-chunk the whole note with a halved budget until every chunk
+	// fits.
+	for limit := limit; ; limit /= 2 {
+		embeddings, err := d.embedChunks(ctx, frontmatter, bodyText, limit)
+		if err == nil {
+			return embeddings, nil
+		}
+
+		if !errors.Is(err, ai.ErrExceededContextLength) {
+			return nil, err
+		}
+
+		if limit/2 < mn {
+			return nil, err
+		}
+	}
+}
+
+// embedChunks splits the note into chunks of at most limit characters, returning an embedding for each chunk.
+func (d *DB) embedChunks(ctx context.Context, frontmatter, body string, limit int) ([][]byte, error) {
 	c := chunker.New(
 		frontmatter,
 		limit,
 	)
 
-	for _, b := range chunker.Blocks(bodyText) {
+	for _, b := range chunker.Blocks(body) {
 		c.Add(b)
 	}
 
@@ -348,8 +372,7 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 	return embeddings, nil
 }
 
-// embedChunk generates a serialized embedding for a single chunk, returning nil if the model
-// produced no embedding.
+// embedChunk generates a serialized embedding for a single chunk, returning nil if the model produced no embedding.
 func (d *DB) embedChunk(ctx context.Context, c string) ([]byte, error) {
 	vec, err := d.client.Embed(ctx, c)
 	if err != nil {

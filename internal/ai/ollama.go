@@ -3,8 +3,10 @@ package ai
 import (
 	"context"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/jamesl33/zk/internal/ai/cache"
 	"github.com/jamesl33/zk/internal/ptr"
@@ -82,7 +84,7 @@ func (o *Ollama) Embed(ctx context.Context, content string) ([]float32, error) {
 		Truncate: ptr.To(false),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to embed content: %w", err)
+		return nil, fmt.Errorf("failed to embed content: %w", morph(err))
 	}
 
 	if len(resp.Embeddings) != 1 {
@@ -102,6 +104,17 @@ func (o *Ollama) Embed(ctx context.Context, content string) ([]float32, error) {
 	}
 
 	return result, nil
+}
+
+// morph errors where required.
+func morph(err error) error {
+	var status api.StatusError
+
+	if errors.As(err, &status) && strings.Contains(status.ErrorMessage, "exceeds the context length") {
+		return ErrExceededContextLength
+	}
+
+	return err
 }
 
 // sf32toblob converts a slice of float32 to a blob.

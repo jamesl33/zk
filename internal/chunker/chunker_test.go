@@ -61,3 +61,20 @@ func TestChunkHardSplitsOversizedBlock(t *testing.T) {
 		assert.LessOrEqual(t, len(c), limit)
 	}
 }
+
+func TestChunkHardSplitsOnLineBoundaries(t *testing.T) {
+	line := strings.Repeat("x", 99)
+	body := "```\n" + strings.Repeat(line+"\n", limit/50) + "```"
+
+	chunks := chunk("---\ntitle: X\n---", body)
+	require.Greater(t, len(chunks), 1)
+
+	for _, c := range chunks {
+		assert.LessOrEqual(t, len(c), limit)
+
+		_, piece, _ := strings.Cut(c, "\n\n")
+		for l := range strings.SplitSeq(piece, "\n") {
+			assert.Contains(t, []string{"```", line}, l, "lines must not be split across chunks")
+		}
+	}
+}
