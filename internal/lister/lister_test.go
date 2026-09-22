@@ -191,6 +191,33 @@ func TestListerManyWithRecursion(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestListerManyWithParentRoot(t *testing.T) {
+	tmp := t.TempDir()
+
+	err := os.Mkdir(filepath.Join(tmp, "subdir"), 0o755)
+	require.NoError(t, err)
+
+	err = os.WriteFile(filepath.Join(tmp, "note1.md"), []byte("---\ntitle: Note 1\n---\nBody 1"), 0o644)
+	require.NoError(t, err)
+
+	t.Chdir(filepath.Join(tmp, "subdir"))
+
+	l, err := NewLister(WithPath(".."))
+	require.NoError(t, err)
+
+	actual, err := slices.Collect2[[]*note.Note](l.Many(t.Context()))
+	require.NoError(t, err)
+
+	expected := []*note.Note{
+		{
+			Path:        filepath.Join("..", "note1.md"),
+			Frontmatter: note.Frontmatter{Title: "Note 1"},
+		},
+	}
+
+	assert.Equal(t, expected, actual)
+}
+
 func TestListerManyWithContextCancellation(t *testing.T) {
 	tmp := t.TempDir()
 

@@ -89,8 +89,9 @@ func (l *Lister) walk(
 		ignore = ignore(name)
 	)
 
-	// Ignore the directory; it's hidden
-	if entry.IsDir() && hidden {
+	// Ignore the directory; it's hidden. The root is exempt as it was explicitly requested, and may be a
+	// relative path such as '..' (e.g. from vault.RootRel when invoked from a subdirectory).
+	if entry.IsDir() && hidden && path != l.options.path {
 		return filepath.SkipDir
 	}
 
