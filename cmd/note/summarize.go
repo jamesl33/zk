@@ -38,7 +38,8 @@ func NewSummarize() *cobra.Command {
 }
 
 func (s *Summarize) Run(ctx context.Context, path string) error {
-	if _, err := vault.RootAbs("."); err != nil {
+	root, err := vault.RootAbs(".")
+	if err != nil {
 		return err
 	}
 
@@ -61,7 +62,7 @@ func (s *Summarize) Run(ctx context.Context, path string) error {
 		return nil
 	}
 
-	client, err := ai.NewGemini(ctx, filepath.Join(".zk", "zk.sqlite3"))
+	client, err := ai.NewGemini(ctx, filepath.Join(root, ".zk", "zk.sqlite3"))
 	if err != nil {
 		return fmt.Errorf("failed to create client: %w", err)
 	}

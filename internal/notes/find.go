@@ -15,7 +15,12 @@ import (
 // Find finds notes which are semantically similar to the given note. It handles creating the database,
 // populating it, and finding related notes.
 func Find(ctx context.Context, n *note.Note, fn func(n *note.Note) error) error {
-	db, err := vector.New(ctx, filepath.Join(".zk", "zk.sqlite3"))
+	root, err := vault.RootAbs(".")
+	if err != nil {
+		return fmt.Errorf("failed to find vault root: %w", err)
+	}
+
+	db, err := vector.New(ctx, filepath.Join(root, ".zk", "zk.sqlite3"))
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
