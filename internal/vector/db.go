@@ -149,6 +149,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	  name != ? AND distance <= 0.6
 	ORDER BY
 	  distance
+	LIMIT 15
 	`
 
 	rows, err := d.db.QueryContext(ctx, query, embedding, n.Name())
