@@ -1,4 +1,4 @@
-package vector
+package chunker
 
 import (
 	"strings"
@@ -7,6 +7,18 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+const limit = 4096
+
+func chunk(frontmatter, body string) []string {
+	c := New(frontmatter, limit)
+
+	for _, b := range Blocks(body) {
+		c.Add(b)
+	}
+
+	return c.Chunks()
+}
 
 func TestChunkSingleChunkForSmallNote(t *testing.T) {
 	chunks := chunk("---\ntitle: X\n---", "Just a short body.")
@@ -40,12 +52,12 @@ func TestChunkPreservesFencedCodeBlocks(t *testing.T) {
 }
 
 func TestChunkHardSplitsOversizedBlock(t *testing.T) {
-	body := strings.Repeat("x", maxChunkChars*2)
+	body := strings.Repeat("x", limit*2)
 
 	chunks := chunk("---\ntitle: X\n---", body)
 	require.Greater(t, len(chunks), 1)
 
 	for _, c := range chunks {
-		assert.LessOrEqual(t, len(c), maxChunkChars)
+		assert.LessOrEqual(t, len(c), limit)
 	}
 }

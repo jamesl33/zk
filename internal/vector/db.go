@@ -14,6 +14,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/jamesl33/zk/internal/ai"
+	"github.com/jamesl33/zk/internal/chunker"
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/lister"
@@ -62,7 +63,7 @@ func New(ctx context.Context, path string) (*DB, error) {
 // init the database by creating the required table.
 func (d *DB) init(ctx context.Context) error {
 	// create the table if it doesn't already exist. Notes may be split into multiple chunks (see
-	// chunk.go), so a note can have more than one row, keyed by (name, chunk).
+	// chunker), so a note can have more than one row, keyed by (name, chunk).
 	const create = `
 	CREATE table IF NOT EXISTS notes (
 	  name text,
@@ -121,7 +122,16 @@ func (d *DB) Upsert(ctx context.Context, n *note.Note) error {
 		return tx.Commit()
 	}
 
-	// insert the embedding into the index
+	err = d.upsert(ctx, tx, n.Name(), checksum, embeddings)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// upsert the embeddings.
+func (d *DB) upsert(ctx context.Context, tx *sql.Tx, name string, checksum []byte, embeddings [][]byte) error {
 	const insert = `
 	INSERT OR REPLACE INTO
 	  notes
@@ -130,13 +140,13 @@ func (d *DB) Upsert(ctx context.Context, n *note.Note) error {
 	`
 
 	for i, embedding := range embeddings {
-		_, err = tx.ExecContext(ctx, insert, n.Name(), i, checksum, embedding)
+		_, err := tx.ExecContext(ctx, insert, name, i, checksum, embedding)
 		if err != nil {
 			return fmt.Errorf("failed to insert row for chunk %d: %w", i, err)
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 // Find some similar notes to the one provided.
@@ -269,7 +279,7 @@ func (d *DB) skip(ctx context.Context, name string, current []byte) (bool, error
 }
 
 // embed returns one vector embedding per chunk for the given note. Notes that exceed the
-// embedding model's context window are split into multiple chunks (see chunk.go); most notes
+// embedding model's context window are split into multiple chunks (see chunker); most notes
 // produce exactly one.
 func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 	body, err := n.GetBody()
@@ -299,29 +309,63 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 		bodyText = parts[1]
 	}
 
-	chunks := chunk(frontmatter, bodyText)
-	embeddings := make([][]byte, 0, len(chunks))
+	const (
+		// context is the context window of the embedding model. Input beyond this errors, rather than being truncated.
+		context = 2048
 
-	for i, c := range chunks {
-		vec, err := d.client.Embed(ctx, c)
+		// limit is the character budget for a single chunk; assumes ~3 chars/token for markdown, minus a 20% margin.
+		limit = context * 3 * 4 / 5
+	)
+
+	c := chunker.New(
+		frontmatter,
+		limit,
+	)
+
+	for _, b := range chunker.Blocks(bodyText) {
+		c.Add(b)
+	}
+
+	var (
+		chunks     = c.Chunks()
+		embeddings = make([][]byte, 0, len(chunks))
+	)
+
+	for i, chunk := range chunks {
+		serial, err := d.embedChunk(ctx, chunk)
 		if err != nil {
 			return nil, fmt.Errorf("failed to embed chunk %d/%d: %w", i+1, len(chunks), err)
 		}
 
 		// This particular chunk didn't receive an embedding, skip just it.
-		if len(vec) == 0 {
+		if serial == nil {
 			continue
-		}
-
-		serial, err := sqlite_vec.SerializeFloat32(vec)
-		if err != nil {
-			return nil, fmt.Errorf("failed to serialize embedding for chunk %d/%d: %w", i+1, len(chunks), err)
 		}
 
 		embeddings = append(embeddings, serial)
 	}
 
 	return embeddings, nil
+}
+
+// embedChunk generates a serialized embedding for a single chunk, returning nil if the model
+// produced no embedding.
+func (d *DB) embedChunk(ctx context.Context, c string) ([]byte, error) {
+	vec, err := d.client.Embed(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(vec) == 0 {
+		return nil, nil
+	}
+
+	serial, err := sqlite_vec.SerializeFloat32(vec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize embedding: %w", err)
+	}
+
+	return serial, nil
 }
 
 // Close frees resources used by the database.
