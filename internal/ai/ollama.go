@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"os"
 
@@ -101,4 +102,28 @@ func (o *Ollama) Embed(ctx context.Context, content string) ([]float32, error) {
 	}
 
 	return result, nil
+}
+
+// sf32toblob converts a slice of float32 to a blob.
+func sf32toblob(embedding []float32) ([]byte, error) {
+	blob := make([]byte, 4*len(embedding))
+
+	_, err := binary.Encode(blob, binary.LittleEndian, embedding)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode embedding: %w", err)
+	}
+
+	return blob, nil
+}
+
+// blobtosf32 converts a blob to a slice of float32.
+func blobtosf32(blob []byte) ([]float32, error) {
+	embedding := make([]float32, len(blob)/4)
+
+	_, err := binary.Decode(blob, binary.LittleEndian, embedding)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode embedding: %w", err)
+	}
+
+	return embedding, nil
 }
