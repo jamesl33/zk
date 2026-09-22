@@ -11,7 +11,7 @@ func ignore(n string) bool {
 	}
 
 	switch n {
-	case "GEMINI.md":
+	case "GEMINI.md", "CLAUDE.md":
 		return true
 	}
 
