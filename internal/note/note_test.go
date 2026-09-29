@@ -304,6 +304,31 @@ func TestNoteEditWithArgs(t *testing.T) {
 	assert.Equal(t, "New Title", n.Frontmatter.Title)
 }
 
+func TestNoteEditPathsWithSpaces(t *testing.T) {
+	var (
+		tmp     = filepath.Join(t.TempDir(), "with space")
+		path    = filepath.Join(tmp, "my note.md")
+		content = "---\ntype: permanent\ntitle: Old Title\n---\nOld body"
+	)
+
+	require.NoError(t, os.MkdirAll(tmp, 0o755))
+	require.NoError(t, os.WriteFile(path, []byte(content), 0o644))
+
+	n, err := New(path)
+	require.NoError(t, err)
+
+	editor := filepath.Join(tmp, "editor.sh")
+
+	require.NoError(t, os.WriteFile(editor, []byte("#!/bin/sh\nsed -i 's/Old Title/New Title/' \"$1\""), 0o755))
+
+	// Both the editor and the note path contain spaces.
+	t.Setenv("EDITOR", "'"+editor+"'")
+
+	require.NoError(t, n.Edit(context.Background()))
+
+	assert.Equal(t, "New Title", n.Frontmatter.Title)
+}
+
 func TestNoteEditNoEditor(t *testing.T) {
 	// Ensure EDITOR is not set
 	os.Setenv("EDITOR", "")

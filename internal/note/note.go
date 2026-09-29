@@ -157,18 +157,15 @@ func (n *Note) Checksum() ([]byte, error) {
 
 // Edit opens the note in the users default editor.
 func (n *Note) Edit(ctx context.Context) error {
-	// EDITOR may include arguments (e.g. 'code -w')
-	ed := strings.Fields(os.Getenv("EDITOR"))
+	editor := os.Getenv("EDITOR")
 
-	if len(ed) == 0 {
+	if strings.TrimSpace(editor) == "" {
 		return fmt.Errorf("no editor set in the %q environment variable", "EDITOR")
 	}
 
-	cmd := exec.CommandContext(
-		ctx,
-		ed[0],
-		append(ed[1:], strings.TrimSuffix(n.Path, "\n"))...,
-	)
+	// EDITOR is run by the shell (as git does) so it may include arguments and quoting (e.g. 'code -w', or a quoted
+	// path containing spaces). The note path is passed as an argument, so it never needs quoting.
+	cmd := exec.CommandContext(ctx, "sh", "-c", editor+` "$@"`, "sh", strings.TrimSuffix(n.Path, "\n"))
 
 	// We must pass all these through
 	cmd.Stdin = os.Stdin
