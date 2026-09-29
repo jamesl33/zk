@@ -235,14 +235,14 @@ func (n *Note) Write() error {
 		return fmt.Errorf("failed to create temporary file for %q: %w", n.Path, err)
 	}
 	defer os.Remove(file.Name()) //nolint:errcheck
+	defer file.Close()           //nolint:errcheck
 
 	_, err = n.WriteTo(file)
 	if err != nil {
-		file.Close()
-
 		return fmt.Errorf("failed to write note to file: %w", err)
 	}
 
+	// Closed explicitly to surface the error; the deferred close is then a no-op.
 	err = file.Close()
 	if err != nil {
 		return fmt.Errorf("failed to close file: %w", err)
