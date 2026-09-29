@@ -140,14 +140,11 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 		char = len("title: ")
 	)
 
-	rng := protocol.Range{
-		Start: protocol.Position{Line: protocol.UInteger(line), Character: protocol.UInteger(char)},
-		End:   protocol.Position{Line: 0, Character: 0},
-	}
+	pos := protocol.Position{Line: protocol.UInteger(line), Character: protocol.UInteger(char)}
 
 	loc := protocol.Location{
-		URI:   "file://" + abs,
-		Range: rng,
+		URI:   (&url.URL{Scheme: "file", Path: abs}).String(),
+		Range: protocol.Range{Start: pos, End: pos},
 	}
 
 	return loc, nil

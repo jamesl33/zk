@@ -277,6 +277,31 @@ func TestTextDocumentDefinitionSelectsLinkUnderCursor(t *testing.T) {
 	loc, ok := result.(protocol.Location)
 	require.True(t, ok)
 	assert.Contains(t, loc.URI, "20060102150406.md")
+	assert.Equal(t, loc.Range.Start, loc.Range.End)
+}
+
+func TestTextDocumentDefinitionEscapesURI(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	require.NoError(t, os.Mkdir(".zk", 0o755))
+	require.NoError(t, os.Mkdir("1 Projects", 0o755))
+
+	target := note.Note{Path: "1 Projects/20060102150406.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Target"}}
+	require.NoError(t, target.Write())
+
+	src := "See [[20060102150406]]"
+	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	result, err := s.TextDocumentDefinition(nil, definitionParams(t, "source.md", 0, strings.Index(src, "2006")))
+	require.NoError(t, err)
+
+	loc, ok := result.(protocol.Location)
+	require.True(t, ok)
+	assert.Contains(t, loc.URI, "1%20Projects/20060102150406.md")
 }
 
 func TestTextDocumentDefinitionNoLinkAtCursor(t *testing.T) {
