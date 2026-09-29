@@ -100,6 +100,11 @@ func (l *Lister) walk(
 		return nil
 	}
 
+	// Directories can't be notes; only descend into them.
+	if entry.IsDir() {
+		return nil
+	}
+
 	n, err := note.New(path)
 
 	// Ignore markdown files which aren't valid notes
