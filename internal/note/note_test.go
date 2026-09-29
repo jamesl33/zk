@@ -310,3 +310,29 @@ func BenchmarkNoteString(b *testing.B) {
 		_ = n.String()
 	}
 }
+
+func TestWritePreservesUnloadedBody(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "20060102150405.md")
+
+	require.NoError(t, os.WriteFile(path, []byte("---\ntitle: Title\ntype: fleeting\n---\n\nBody\n"), 0o644))
+
+	n, err := New(path)
+	require.NoError(t, err)
+
+	n.Frontmatter.Title = "Updated"
+
+	require.NoError(t, n.Write())
+
+	updated, err := New(path)
+	require.NoError(t, err)
+
+	body, err := updated.GetBody()
+	require.NoError(t, err)
+
+	assert.Equal(t, "Updated", updated.Frontmatter.Title)
+	assert.Contains(t, body, "Body")
+
+	entries, err := os.ReadDir(filepath.Dir(path))
+	require.NoError(t, err)
+	assert.Len(t, entries, 1)
+}

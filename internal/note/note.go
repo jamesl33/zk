@@ -225,16 +225,46 @@ func (n *Note) Create() error {
 }
 
 // Write the note out to disk.
+//
+// The note is written to a temporary file which is then renamed into place, so a failure part way
+// through never leaves a truncated note behind.
 func (n *Note) Write() error {
-	file, err := os.OpenFile(n.Path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
-	if err != nil {
-		return fmt.Errorf("failed to open file at %q: %w", n.Path, err)
+	// Load the body before anything is replaced, as it is read lazily from the existing file. A note
+	// which doesn't exist yet has no body.
+	_, err := n.GetBody()
+	if errors.Is(err, os.ErrNotExist) {
+		n.SetBody("")
+	} else if err != nil {
+		return fmt.Errorf("failed to get body: %w", err)
 	}
-	defer file.Close()
+
+	file, err := os.CreateTemp(filepath.Dir(n.Path), ".zk-write-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temporary file for %q: %w", n.Path, err)
+	}
+	defer os.Remove(file.Name()) //nolint:errcheck
 
 	_, err = n.WriteTo(file)
 	if err != nil {
+		file.Close()
+
 		return fmt.Errorf("failed to write note to file: %w", err)
+	}
+
+	err = file.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close file: %w", err)
+	}
+
+	// CreateTemp uses 0600; match the permissions of a newly created note.
+	err = os.Chmod(file.Name(), 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to set permissions: %w", err)
+	}
+
+	err = os.Rename(file.Name(), n.Path)
+	if err != nil {
+		return fmt.Errorf("failed to replace note at %q: %w", n.Path, err)
 	}
 
 	return nil
