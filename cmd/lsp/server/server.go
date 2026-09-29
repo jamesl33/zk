@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
@@ -26,12 +27,19 @@ import (
 type Server struct {
 	protocol.Handler
 	ctx context.Context
+
+	// mu guards docs.
+	mu sync.RWMutex
+
+	// docs holds the contents of open documents by URI, which may be ahead of what's on disk.
+	docs map[string]string
 }
 
 // NewServer creates a new LSP server.
 func NewServer(ctx context.Context) (*Server, error) {
 	server := Server{
-		ctx: ctx,
+		ctx:  ctx,
+		docs: make(map[string]string),
 	}
 
 	server.Handler = protocol.Handler{
@@ -43,6 +51,8 @@ func NewServer(ctx context.Context) (*Server, error) {
 		TextDocumentCompletion: server.TextDocumentCompletion,
 		TextDocumentHover:      server.TextDocumentHover,
 		TextDocumentDidOpen:    server.TextDocumentDidOpen,
+		TextDocumentDidChange:  server.TextDocumentDidChange,
+		TextDocumentDidClose:   server.TextDocumentDidClose,
 		TextDocumentDidSave:    server.TextDocumentDidSave,
 	}
 
@@ -56,6 +66,11 @@ func (s *Server) Initialize(_ *glsp.Context, _ *protocol.InitializeParams) (any,
 	capabilities.DefinitionProvider = true
 	capabilities.CompletionProvider = &protocol.CompletionOptions{TriggerCharacters: []string{"["}}
 	capabilities.HoverProvider = true
+
+	// Whole documents are synced, the default is incremental.
+	if opts, ok := capabilities.TextDocumentSync.(*protocol.TextDocumentSyncOptions); ok {
+		opts.Change = ptr.To(protocol.TextDocumentSyncKindFull)
+	}
 
 	si := protocol.InitializeResultServerInfo{
 		Name:    "zk",
@@ -89,17 +104,12 @@ func (s *Server) SetTrace(_ *glsp.Context, params *protocol.SetTraceParams) erro
 
 // TextDocumentDefinition provides the definition for a symbol at a given position.
 func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.DefinitionParams) (any, error) {
-	u, err := url.Parse(params.TextDocument.URI)
+	src, err := s.source(params.TextDocument.URI)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse document URI: %w", err)
+		return nil, err
 	}
 
-	src, err := os.ReadFile(u.Path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read source file: %w", err)
-	}
-
-	name := linkAtCursor(strings.Split(string(src), "\n"), params.Position)
+	name := linkAtCursor(strings.Split(src, "\n"), params.Position)
 
 	// The cursor isn't positioned on a link.
 	if name == "" {
@@ -152,17 +162,12 @@ func (s *Server) TextDocumentDefinition(_ *glsp.Context, params *protocol.Defini
 
 // TextDocumentCompletion provides note name completions inside an open WikiLink.
 func (s *Server) TextDocumentCompletion(_ *glsp.Context, params *protocol.CompletionParams) (any, error) {
-	u, err := url.Parse(params.TextDocument.URI)
+	src, err := s.source(params.TextDocument.URI)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse document URI: %w", err)
+		return nil, err
 	}
 
-	src, err := os.ReadFile(u.Path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read source file: %w", err)
-	}
-
-	lines := strings.Split(string(src), "\n")
+	lines := strings.Split(src, "\n")
 
 	if params.Position.Line >= uint32(len(lines)) {
 		return nil, nil
@@ -211,17 +216,12 @@ func (s *Server) TextDocumentCompletion(_ *glsp.Context, params *protocol.Comple
 
 // TextDocumentHover previews the note linked from the WikiLink under the cursor.
 func (s *Server) TextDocumentHover(_ *glsp.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
-	u, err := url.Parse(params.TextDocument.URI)
+	src, err := s.source(params.TextDocument.URI)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse document URI: %w", err)
+		return nil, err
 	}
 
-	src, err := os.ReadFile(u.Path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read source file: %w", err)
-	}
-
-	name := linkAtCursor(strings.Split(string(src), "\n"), params.Position)
+	name := linkAtCursor(strings.Split(src, "\n"), params.Position)
 
 	// The cursor isn't positioned on a link.
 	if name == "" {
@@ -259,11 +259,72 @@ func (s *Server) TextDocumentHover(_ *glsp.Context, params *protocol.HoverParams
 	return &hover, nil
 }
 
-// TextDocumentDidOpen publishes diagnostics for the note that was opened.
+// TextDocumentDidOpen tracks the note that was opened and publishes diagnostics for it.
 func (s *Server) TextDocumentDidOpen(ctx *glsp.Context, params *protocol.DidOpenTextDocumentParams) error {
+	s.setDoc(params.TextDocument.URI, params.TextDocument.Text)
 	s.publishDiagnostics(ctx, params.TextDocument.URI)
 
 	return nil
+}
+
+// TextDocumentDidChange tracks the latest contents of the note and publishes diagnostics for it.
+func (s *Server) TextDocumentDidChange(ctx *glsp.Context, params *protocol.DidChangeTextDocumentParams) error {
+	// The server advertises full sync, so the last change holds the whole document.
+	for _, change := range slices.Backward(params.ContentChanges) {
+		whole, ok := change.(protocol.TextDocumentContentChangeEventWhole)
+		if !ok {
+			continue
+		}
+
+		s.setDoc(params.TextDocument.URI, whole.Text)
+		s.publishDiagnostics(ctx, params.TextDocument.URI)
+
+		break
+	}
+
+	return nil
+}
+
+// TextDocumentDidClose stops tracking the note that was closed; the disk is the source of truth again.
+func (s *Server) TextDocumentDidClose(_ *glsp.Context, params *protocol.DidCloseTextDocumentParams) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	delete(s.docs, params.TextDocument.URI)
+
+	return nil
+}
+
+// setDoc records the contents of an open document.
+func (s *Server) setDoc(uri, text string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.docs[uri] = text
+}
+
+// source returns the contents of the document at the given URI; the open copy if there is one, otherwise the file on
+// disk.
+func (s *Server) source(uri string) (string, error) {
+	s.mu.RLock()
+	text, ok := s.docs[uri]
+	s.mu.RUnlock()
+
+	if ok {
+		return text, nil
+	}
+
+	u, err := url.Parse(uri)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse document URI: %w", err)
+	}
+
+	src, err := os.ReadFile(u.Path)
+	if err != nil {
+		return "", fmt.Errorf("failed to read source file: %w", err)
+	}
+
+	return string(src), nil
 }
 
 // TextDocumentDidSave publishes diagnostics for the note that was saved.
@@ -288,14 +349,9 @@ func (s *Server) publishDiagnostics(ctx *glsp.Context, uri protocol.DocumentUri)
 
 // diagnostics scans the note at the given URI for links which point at notes that don't exist.
 func (s *Server) diagnostics(uri protocol.DocumentUri) ([]protocol.Diagnostic, error) {
-	u, err := url.Parse(string(uri))
+	src, err := s.source(uri)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse document URI: %w", err)
-	}
-
-	src, err := os.ReadFile(u.Path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read source file: %w", err)
+		return nil, err
 	}
 
 	root, err := vault.RootRel(".")
@@ -305,7 +361,7 @@ func (s *Server) diagnostics(uri protocol.DocumentUri) ([]protocol.Diagnostic, e
 
 	diags := []protocol.Diagnostic{}
 
-	links := findLinks(string(src))
+	links := findLinks(src)
 	if len(links) == 0 {
 		return diags, nil
 	}

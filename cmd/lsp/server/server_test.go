@@ -337,3 +337,76 @@ func TestTextDocumentDefinitionBrokenLink(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, result)
 }
+
+func TestTextDocumentDidChangeCompletesUnsavedLink(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	require.NoError(t, os.Mkdir(".zk", 0o755))
+
+	target := note.Note{Path: "20060102150405.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Target"}}
+	require.NoError(t, target.Create())
+
+	// The file on disk has no open link, the editor buffer does.
+	require.NoError(t, os.WriteFile("source.md", []byte("See"), 0o644))
+
+	abs, err := filepath.Abs("source.md")
+	require.NoError(t, err)
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	ctx := &glsp.Context{Notify: func(string, any) {}}
+
+	err = s.TextDocumentDidChange(ctx, &protocol.DidChangeTextDocumentParams{
+		TextDocument: protocol.VersionedTextDocumentIdentifier{
+			TextDocumentIdentifier: protocol.TextDocumentIdentifier{URI: "file://" + abs},
+		},
+		ContentChanges: []any{protocol.TextDocumentContentChangeEventWhole{Text: "See [["}},
+	})
+	require.NoError(t, err)
+
+	result, err := s.TextDocumentCompletion(nil, completionParams(t, "source.md", 0, len("See [[")))
+	require.NoError(t, err)
+	assert.Len(t, result, 1)
+
+	// Once closed, the disk is read again.
+	err = s.TextDocumentDidClose(nil, &protocol.DidCloseTextDocumentParams{
+		TextDocument: protocol.TextDocumentIdentifier{URI: "file://" + abs},
+	})
+	require.NoError(t, err)
+
+	result, err = s.TextDocumentCompletion(nil, completionParams(t, "source.md", 0, len("See [[")))
+	require.NoError(t, err)
+	assert.Nil(t, result)
+}
+
+func TestTextDocumentDidChangePublishesDiagnostics(t *testing.T) {
+	tmp := t.TempDir()
+	chdir(t, tmp)
+
+	require.NoError(t, os.Mkdir(".zk", 0o755))
+	require.NoError(t, os.WriteFile("source.md", []byte("nothing"), 0o644))
+
+	abs, err := filepath.Abs("source.md")
+	require.NoError(t, err)
+
+	s, err := NewServer(t.Context())
+	require.NoError(t, err)
+
+	var published protocol.PublishDiagnosticsParams
+
+	ctx := &glsp.Context{
+		Notify: func(_ string, params any) { published = params.(protocol.PublishDiagnosticsParams) },
+	}
+
+	err = s.TextDocumentDidChange(ctx, &protocol.DidChangeTextDocumentParams{
+		TextDocument: protocol.VersionedTextDocumentIdentifier{
+			TextDocumentIdentifier: protocol.TextDocumentIdentifier{URI: "file://" + abs},
+		},
+		ContentChanges: []any{protocol.TextDocumentContentChangeEventWhole{Text: "See [[20060102150405]]"}},
+	})
+	require.NoError(t, err)
+
+	assert.Len(t, published.Diagnostics, 1)
+}
