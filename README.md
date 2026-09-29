@@ -308,3 +308,5 @@ I've used multiple tools for this process in the past, and struggled to find any
 - [ ] Make it easier to define/share shell functions/aliases
 - [ ] Write a NeoVim plugin to make it easier to define/share that setup
 - [ ] Add expiration to the AI prompt/embedding cache
+- [ ] Cache the note name index in the LSP server, as each diagnostics/completion request walks the whole vault (~35µs per note, so ~180ms at 5,000 notes)
+- [ ] Ignore links in frontmatter and code (blocks/spans) when linting and publishing diagnostics
