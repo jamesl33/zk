@@ -305,13 +305,18 @@ func (s *Server) diagnostics(uri protocol.DocumentUri) ([]protocol.Diagnostic, e
 
 	diags := []protocol.Diagnostic{}
 
-	for _, m := range findLinks(string(src)) {
-		exists, err := noteExists(s.ctx, root, m.Name)
-		if err != nil {
-			return nil, err
-		}
+	links := findLinks(string(src))
+	if len(links) == 0 {
+		return diags, nil
+	}
 
-		if exists {
+	names, err := noteNames(s.ctx, root)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, m := range links {
+		if _, ok := names[m.Name]; ok {
 			continue
 		}
 
@@ -329,27 +334,26 @@ func (s *Server) diagnostics(uri protocol.DocumentUri) ([]protocol.Diagnostic, e
 	return diags, nil
 }
 
-// noteExists reports whether a note with the given name exists in the vault rooted at root.
-func noteExists(ctx context.Context, root, name string) (bool, error) {
+// noteNames returns the names of every note in the vault rooted at root.
+func noteNames(ctx context.Context, root string) (map[string]struct{}, error) {
 	l, err := lister.NewLister(
 		lister.WithPath(root),
-		lister.WithMatcher(matcher.Name(name)),
+		lister.WithMatcher(matcher.Any()),
 	)
 	if err != nil {
-		return false, fmt.Errorf("failed to create lister: %w", err)
+		return nil, fmt.Errorf("failed to create lister: %w", err)
 	}
 
-	_, err = l.One(ctx)
+	names := make(map[string]struct{})
 
-	if errors.Is(err, lister.ErrNotFound) {
-		return false, nil
-	}
-
+	err = iterator.ForEach2(l.Many(ctx), hs.Infallible(func(n *note.Note) {
+		names[n.Name()] = struct{}{}
+	}))
 	if err != nil {
-		return false, fmt.Errorf("failed to get note: %w", err)
+		return nil, fmt.Errorf("failed to list notes: %w", err)
 	}
 
-	return true, nil
+	return names, nil
 }
 
 // linkAtCursor returns the name of the note linked from the WikiLink under the given cursor
