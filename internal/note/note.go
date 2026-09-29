@@ -157,16 +157,17 @@ func (n *Note) Checksum() ([]byte, error) {
 
 // Edit opens the note in the users default editor.
 func (n *Note) Edit(ctx context.Context) error {
-	ed := os.Getenv("EDITOR")
+	// EDITOR may include arguments (e.g. 'code -w')
+	ed := strings.Fields(os.Getenv("EDITOR"))
 
-	if ed == "" {
+	if len(ed) == 0 {
 		return fmt.Errorf("no editor set in the %q environment variable", "EDITOR")
 	}
 
 	cmd := exec.CommandContext(
 		ctx,
-		ed,
-		strings.TrimSuffix(n.Path, "\n"),
+		ed[0],
+		append(ed[1:], strings.TrimSuffix(n.Path, "\n"))...,
 	)
 
 	// We must pass all these through

@@ -279,6 +279,31 @@ func TestNoteEdit(t *testing.T) {
 	assert.Equal(t, "New Title", n.Frontmatter.Title)
 }
 
+func TestNoteEditWithArgs(t *testing.T) {
+	var (
+		tmp     = t.TempDir()
+		path    = filepath.Join(tmp, "note.md")
+		content = "---\ntype: permanent\ntitle: Old Title\n---\nOld body"
+	)
+
+	require.NoError(t, os.WriteFile(path, []byte(content), 0o644))
+
+	n, err := New(path)
+	require.NoError(t, err)
+
+	// The note path is passed after the arguments in EDITOR
+	editor := filepath.Join(tmp, "editor.sh")
+
+	err = os.WriteFile(editor, []byte("#!/bin/sh\n[ \"$1\" = --flag ] && sed -i 's/Old Title/New Title/' \"$2\""), 0o755)
+	require.NoError(t, err)
+
+	t.Setenv("EDITOR", editor+" --flag")
+
+	require.NoError(t, n.Edit(context.Background()))
+
+	assert.Equal(t, "New Title", n.Frontmatter.Title)
+}
+
 func TestNoteEditNoEditor(t *testing.T) {
 	// Ensure EDITOR is not set
 	os.Setenv("EDITOR", "")
