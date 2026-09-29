@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -30,7 +29,7 @@ func ReadNote(
 	_ *mcp.CallToolRequest,
 	input *ReadNoteInput,
 ) (*mcp.CallToolResult, *ReadNoteOutput, error) {
-	if _, err := vault.RootAbs("."); err != nil {
+	if err := checkPath(input.Path); err != nil {
 		return nil, nil, err
 	}
 

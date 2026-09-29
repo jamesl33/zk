@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -25,7 +24,7 @@ func DeleteNote(
 	_ *mcp.CallToolRequest,
 	input *DeleteNoteInput,
 ) (*mcp.CallToolResult, *DeleteNoteOutput, error) {
-	if _, err := vault.RootAbs("."); err != nil {
+	if err := checkPath(input.Path); err != nil {
 		return nil, nil, err
 	}
 

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -44,7 +43,7 @@ func CreateNote(
 	_ *mcp.CallToolRequest,
 	input *CreateNoteInput,
 ) (*mcp.CallToolResult, *CreateNoteOutput, error) {
-	if _, err := vault.RootAbs("."); err != nil {
+	if err := checkPath(input.Path); err != nil {
 		return nil, nil, err
 	}
 

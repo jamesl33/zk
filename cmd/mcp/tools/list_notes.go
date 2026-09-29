@@ -8,7 +8,6 @@ import (
 	"github.com/jamesl33/zk/internal/iterator"
 	"github.com/jamesl33/zk/internal/lister"
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -30,7 +29,7 @@ func ListNotes(
 	_ *mcp.CallToolRequest,
 	input *ListNotesInput,
 ) (*mcp.CallToolResult, *ListNotesOutput, error) {
-	if _, err := vault.RootAbs("."); err != nil {
+	if err := checkPath(input.Path); err != nil {
 		return nil, nil, err
 	}
 

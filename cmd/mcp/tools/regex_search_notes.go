@@ -7,7 +7,6 @@ import (
 	"github.com/jamesl33/zk/internal/matcher"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes"
-	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -32,7 +31,7 @@ func RegexSearchNotes(
 	_ *mcp.CallToolRequest,
 	input *RegexSearchNotesInput,
 ) (*mcp.CallToolResult, *RegexSearchNotesOutput, error) {
-	if _, err := vault.RootAbs("."); err != nil {
+	if err := checkPath(input.Path); err != nil {
 		return nil, nil, err
 	}
 

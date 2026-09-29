@@ -7,7 +7,6 @@ import (
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes"
-	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -29,7 +28,7 @@ func FindRelatedNotes(
 	_ *mcp.CallToolRequest,
 	input *FindRelatedNotesInput,
 ) (*mcp.CallToolResult, *FindRelatedNotesOutput, error) {
-	if _, err := vault.RootAbs("."); err != nil {
+	if err := checkPath(input.Path); err != nil {
 		return nil, nil, err
 	}
 

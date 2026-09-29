@@ -6,7 +6,6 @@ import (
 	"slices"
 
 	"github.com/jamesl33/zk/internal/note"
-	"github.com/jamesl33/zk/internal/vault"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -41,7 +40,7 @@ func UpdateNote(
 	_ *mcp.CallToolRequest,
 	input *UpdateNoteInput,
 ) (*mcp.CallToolResult, *UpdateNoteOutput, error) {
-	if _, err := vault.RootAbs("."); err != nil {
+	if err := checkPath(input.Path); err != nil {
 		return nil, nil, err
 	}
 
