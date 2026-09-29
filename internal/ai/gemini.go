@@ -84,6 +84,10 @@ func (g *Gemini) Generate(ctx context.Context, prompt string) (string, error) {
 		return "", fmt.Errorf("failed to generate content: %w", err)
 	}
 
+	if len(resp.Candidates) == 1 && resp.Candidates[0].Content == nil {
+		return "", fmt.Errorf("no content returned (finish reason %q)", resp.Candidates[0].FinishReason)
+	}
+
 	if len(resp.Candidates) != 1 || len(resp.Candidates[0].Content.Parts) != 1 {
 		return "", nil
 	}
