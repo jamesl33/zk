@@ -16,7 +16,7 @@ type Gemini struct {
 	model  string
 }
 
-var _ Client = (*Gemini)(nil)
+var _ Generator = (*Gemini)(nil)
 
 // Option configures a Gemini client.
 type Option func(*Gemini)
@@ -100,9 +100,4 @@ func (g *Gemini) Generate(ctx context.Context, prompt string) (string, error) {
 	}
 
 	return result, nil
-}
-
-// Embed is unimplemented; Gemini is only ever used for Generate.
-func (g *Gemini) Embed(_ context.Context, _ string) ([]float32, error) {
-	panic("unimplemented")
 }

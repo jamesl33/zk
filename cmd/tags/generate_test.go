@@ -17,7 +17,7 @@ func TestGenerateGenerate(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockGenerator(ctrl)
 	)
 
 	path := filepath.Join(tmp, "note.md")
@@ -44,7 +44,7 @@ func TestGenerateGenerateEmptyBody(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockGenerator(ctrl)
 	)
 
 	path := filepath.Join(tmp, "note.md")

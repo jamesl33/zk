@@ -22,7 +22,7 @@ type Ollama struct {
 	embedding string
 }
 
-var _ Client = (*Ollama)(nil)
+var _ Embedder = (*Ollama)(nil)
 
 // OllamaOption configures an Ollama client.
 type OllamaOption func(*Ollama)
@@ -62,11 +62,6 @@ func NewOllama(ctx context.Context, path string, opts ...OllamaOption) (*Ollama,
 	ollama.ecache = eca
 
 	return &ollama, nil
-}
-
-// Generate is unimplemented; Ollama is only ever used for Embed.
-func (o *Ollama) Generate(_ context.Context, _ string) (string, error) {
-	panic("unimplemented")
 }
 
 // Embed a string of text.

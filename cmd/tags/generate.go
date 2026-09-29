@@ -76,7 +76,7 @@ func (g *Generate) Run(ctx context.Context, args []string) error {
 }
 
 // generate tags for the given note.
-func (g *Generate) generate(ctx context.Context, client ai.Client, n *note.Note) error {
+func (g *Generate) generate(ctx context.Context, client ai.Generator, n *note.Note) error {
 	// Read the body before creating a copy of the note
 	body, err := n.GetBody()
 	if err != nil {

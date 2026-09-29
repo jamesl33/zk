@@ -102,7 +102,7 @@ func TestDBUpsertSuccess(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
 	)
 
 	db, err := sql.Open("sqlite3", ":memory:")
@@ -146,7 +146,7 @@ func TestDBUpsertSkip(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
 	)
 
 	db, err := sql.Open("sqlite3", ":memory:")
@@ -180,7 +180,7 @@ func TestDBUpsertMultiChunk(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
 	)
 
 	db, err := sql.Open("sqlite3", ":memory:")
@@ -228,7 +228,7 @@ func TestDBUpsertRechunksOnContextLength(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
 	)
 
 	db, err := sql.Open("sqlite3", ":memory:")
@@ -270,7 +270,7 @@ func TestDBUpsertContextLengthGivesUp(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
 	)
 
 	db, err := sql.Open("sqlite3", ":memory:")
@@ -300,7 +300,7 @@ func TestDBUpsertShrinkRemovesOrphanChunks(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
 	)
 
 	db, err := sql.Open("sqlite3", ":memory:")
@@ -355,7 +355,7 @@ func TestDBUpsertFailure(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
 	)
 
 	db, err := sql.Open("sqlite3", ":memory:")
@@ -385,7 +385,7 @@ func TestDBFindSuccess(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
 	)
 
 	// Find lists within the vault root, so we must be within that directory
@@ -439,7 +439,7 @@ func TestDBFindCollapsesToClosestChunk(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
 	)
 
 	// Find lists within the vault root, so we must be within that directory
@@ -497,7 +497,7 @@ func TestDBFindFailure(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
 		ctrl    = gomock.NewController(t)
-		mclient = mock_ai.NewMockClient(ctrl)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
 	)
 
 	db, err := sql.Open("sqlite3", ":memory:")

@@ -31,7 +31,7 @@ func init() {
 
 // DB exposes an API to index/find notes using SQLite vector search.
 type DB struct {
-	client ai.Client
+	client ai.Embedder
 	db     *sql.DB
 }
 
