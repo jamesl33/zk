@@ -410,3 +410,31 @@ func TestTextDocumentDidChangePublishesDiagnostics(t *testing.T) {
 
 	assert.Len(t, published.Diagnostics, 1)
 }
+
+func TestUTF16Offsets(t *testing.T) {
+	// '😀' is 4 bytes but 2 UTF-16 units, 'é' is 2 bytes but 1 unit.
+	line := "é😀[[x]]"
+
+	assert.Equal(t, 2, byteOffset(line, 1))
+	assert.Equal(t, 6, byteOffset(line, 3))
+	assert.Equal(t, len(line), byteOffset(line, 100))
+
+	assert.Equal(t, 1, utf16Offset(line, 2))
+	assert.Equal(t, 3, utf16Offset(line, 6))
+}
+
+func TestFindLinksReportsUTF16Columns(t *testing.T) {
+	links := findLinks("😀 [[20060102150405]]")
+	require.Len(t, links, 1)
+
+	assert.Equal(t, 3, links[0].StartChar)
+	assert.Equal(t, 3+len("[[20060102150405]]"), links[0].EndChar)
+}
+
+func TestLinkAtCursorUTF16(t *testing.T) {
+	lines := []string{"😀 [[20060102150405]]"}
+
+	// Column 3 is the first bracket in UTF-16 units, but byte offset 5.
+	assert.Equal(t, "20060102150405", linkAtCursor(lines, protocol.Position{Line: 0, Character: 3}))
+	assert.Empty(t, linkAtCursor(lines, protocol.Position{Line: 0, Character: 1}))
+}

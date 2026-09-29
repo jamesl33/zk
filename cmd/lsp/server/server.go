@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"unicode/utf16"
 
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/iterator"
@@ -175,7 +176,7 @@ func (s *Server) TextDocumentCompletion(_ *glsp.Context, params *protocol.Comple
 
 	var (
 		cur  = lines[params.Position.Line]
-		char = min(int(params.Position.Character), len(cur))
+		char = byteOffset(cur, int(params.Position.Character))
 		open = strings.LastIndex(cur[:char], "[[")
 	)
 
@@ -378,8 +379,8 @@ func (s *Server) diagnostics(uri protocol.DocumentUri) ([]protocol.Diagnostic, e
 
 		diags = append(diags, protocol.Diagnostic{
 			Range: protocol.Range{
-				Start: protocol.Position{Line: protocol.UInteger(m.Line), Character: protocol.UInteger(m.Start)},
-				End:   protocol.Position{Line: protocol.UInteger(m.Line), Character: protocol.UInteger(m.End)},
+				Start: protocol.Position{Line: protocol.UInteger(m.Line), Character: protocol.UInteger(m.StartChar)},
+				End:   protocol.Position{Line: protocol.UInteger(m.Line), Character: protocol.UInteger(m.EndChar)},
 			},
 			Severity: ptr.To(protocol.DiagnosticSeverityWarning),
 			Source:   ptr.To("zk"),
@@ -424,8 +425,10 @@ func linkAtCursor(lines []string, pos protocol.Position) string {
 		linkIdx = regex.Link.SubexpIndex("link")
 	)
 
+	char := byteOffset(cur, int(pos.Character))
+
 	for _, match := range regex.Link.FindAllStringSubmatchIndex(cur, -1) {
-		if int(pos.Character) < match[0] || int(pos.Character) >= match[1] {
+		if char < match[0] || char >= match[1] {
 			continue
 		}
 
@@ -460,9 +463,23 @@ func resolveNote(ctx context.Context, root, name string) (*note.Note, error) {
 
 // linkMatch is a single WikiLink occurrence within a note body.
 type linkMatch struct {
-	Line       int
-	Start, End int
-	Name       string
+	// Line is the 0-based line number the link is on.
+	Line int
+
+	// Start is the byte offset of the link start within the line.
+	Start int
+
+	// End is the byte offset of the link end within the line.
+	End int
+
+	// StartChar is Start in UTF-16 code units, which is how LSP positions are measured.
+	StartChar int
+
+	// EndChar is End in UTF-16 code units, which is how LSP positions are measured.
+	EndChar int
+
+	// Name is the name of the note being linked to.
+	Name string
 }
 
 // findLinks returns every WikiLink occurrence within the given body.
@@ -475,13 +492,39 @@ func findLinks(body string) []linkMatch {
 	for i, line := range strings.Split(body, "\n") {
 		for _, m := range regex.Link.FindAllStringSubmatchIndex(line, -1) {
 			matches = append(matches, linkMatch{
-				Line:  i,
-				Start: m[0],
-				End:   m[1],
-				Name:  line[m[2*linkIdx]:m[2*linkIdx+1]],
+				Line:      i,
+				Start:     m[0],
+				End:       m[1],
+				StartChar: utf16Offset(line, m[0]),
+				EndChar:   utf16Offset(line, m[1]),
+				Name:      line[m[2*linkIdx]:m[2*linkIdx+1]],
 			})
 		}
 	}
 
 	return matches
+}
+
+// byteOffset converts an offset in UTF-16 code units within line to a byte offset, clamped to the end of the line.
+func byteOffset(line string, units int) int {
+	for i, r := range line {
+		if units <= 0 {
+			return i
+		}
+
+		units -= utf16.RuneLen(r)
+	}
+
+	return len(line)
+}
+
+// utf16Offset converts a byte offset within line to an offset in UTF-16 code units.
+func utf16Offset(line string, offset int) int {
+	var units int
+
+	for _, r := range line[:offset] {
+		units += utf16.RuneLen(r)
+	}
+
+	return units
 }
