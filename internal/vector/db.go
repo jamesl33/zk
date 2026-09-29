@@ -188,6 +188,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", err)
 	}
+	defer rows.Close()
 
 	var (
 		name     string
