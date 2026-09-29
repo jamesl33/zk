@@ -63,14 +63,14 @@ func (l *Linter) Lint(ctx context.Context, path string, opts ...func(*LintOption
 		opt(&o)
 	}
 
-	ids, paths, errors, err := lintOrphans(ctx, path)
+	paths, errors, err := lintOrphans(ctx, path)
 	if err != nil {
 		return nil, err
 	}
 
 	errors = append(errors, lintDuplicateIDs(paths)...)
 
-	linkErrors, err := lintBrokenLinks(ctx, path, ids)
+	linkErrors, err := lintBrokenLinks(ctx, path, paths)
 	if err != nil {
 		return nil, err
 	}
@@ -96,11 +96,10 @@ func inArchive(path string) bool {
 }
 
 // lintOrphans lists every note under path, flagging permanent notes that link to nothing
-// (orphan-note). It also returns every note ID and the paths using each ID, so callers don't
-// need a second pass over the vault to check for duplicate IDs.
-func lintOrphans(ctx context.Context, path string) ([]string, map[string][]string, []*LintError, error) {
+// (orphan-note). It also returns the paths using each note ID, so callers don't need a second
+// pass over the vault to check for duplicate IDs.
+func lintOrphans(ctx context.Context, path string) (map[string][]string, []*LintError, error) {
 	var (
-		ids    = make([]string, 0)
 		paths  = make(map[string][]string)
 		errors = make([]*LintError, 0)
 	)
@@ -109,11 +108,10 @@ func lintOrphans(ctx context.Context, path string) ([]string, map[string][]strin
 		lister.WithPath(path),
 	)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to create lister: %w", err)
+		return nil, nil, fmt.Errorf("failed to create lister: %w", err)
 	}
 
 	err = iterator.ForEach2(lstr.Many(ctx), func(n *note.Note) error {
-		ids = append(ids, n.Name())
 		paths[n.Name()] = append(paths[n.Name()], n.Path)
 
 		// A permanent note that links to nothing is a dead end: it can't be reached from, or
@@ -137,10 +135,10 @@ func lintOrphans(ctx context.Context, path string) ([]string, map[string][]strin
 		return nil
 	})
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to list notes: %w", err)
+		return nil, nil, fmt.Errorf("failed to list notes: %w", err)
 	}
 
-	return ids, paths, errors, nil
+	return paths, errors, nil
 }
 
 // lintDuplicateIDs flags every path sharing an ID with another note (duplicate-id).
@@ -175,9 +173,9 @@ func lintDuplicateIDs(paths map[string][]string) []*LintError {
 	return errors
 }
 
-// lintBrokenLinks lists every note under path, flagging links to IDs not present in ids
+// lintBrokenLinks lists every note under path, flagging links to IDs not present in paths
 // (linkcheck).
-func lintBrokenLinks(ctx context.Context, path string, ids []string) ([]*LintError, error) {
+func lintBrokenLinks(ctx context.Context, path string, paths map[string][]string) ([]*LintError, error) {
 	errors := make([]*LintError, 0)
 
 	entire, err := matcher.Entire("", "", regex.Link.String())
@@ -206,7 +204,7 @@ func lintBrokenLinks(ctx context.Context, path string, ids []string) ([]*LintErr
 		for _, match := range regex.Link.FindAllStringSubmatchIndex(body, -1) {
 			name := body[match[2*idx]:match[2*idx+1]]
 
-			if slices.Contains(ids, name) {
+			if _, ok := paths[name]; ok {
 				continue
 			}
 
