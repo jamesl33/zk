@@ -311,17 +311,12 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 		return nil, fmt.Errorf("failed to write note to buffer: %w", err)
 	}
 
-	// WriteTo always writes "---\n<yaml>---\n" then exactly one blank line then the body, so splitting on the first
-	// blank line cleanly separates them without re-serializing Frontmatter.
+	// WriteTo always writes "---\n<yaml>---\n" then exactly one blank line then the trimmed body, so removing the body
+	// leaves the frontmatter. Splitting on the first blank line would cut a frontmatter value containing one.
 	var (
-		parts       = strings.SplitN(input.String(), "\n\n", 2)
-		frontmatter = parts[0]
+		bodyText    = strings.Trim(body, "\n")
+		frontmatter = strings.TrimSuffix(strings.TrimSuffix(input.String(), "\n"+bodyText+"\n"), "\n")
 	)
-
-	var bodyText string
-	if len(parts) > 1 {
-		bodyText = parts[1]
-	}
 
 	const (
 		// contextLength is the context window of the embedding model. Input beyond this errors, rather than being

@@ -523,3 +523,42 @@ func TestDBFindFailure(t *testing.T) {
 	assert.ErrorIs(t, err, assert.AnError)
 	assert.Nil(t, results)
 }
+
+func TestDBUpsertFrontmatterWithBlankLine(t *testing.T) {
+	var (
+		tmp     = t.TempDir()
+		ctrl    = gomock.NewController(t)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
+	)
+
+	db, err := sql.Open("sqlite3", ":memory:")
+	require.NoError(t, err)
+	defer db.Close()
+
+	vdb := &DB{client: mclient, db: db}
+
+	require.NoError(t, vdb.init(t.Context()))
+
+	// A blank line inside a frontmatter value must not be mistaken for the end of the frontmatter. Two chunks, so the
+	// frontmatter is repeated in each.
+	para := strings.Repeat("filler ", 500)
+	n := newNote(t, tmp, "note1", "---\ntitle: \"before\\n\\nafter\"\n---\n"+para+"\n\n"+para)
+
+	var inputs []string
+
+	mclient.
+		EXPECT().
+		Embed(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, input string) ([]float32, error) {
+			inputs = append(inputs, input)
+
+			return []float32{1.0, 2.0}, nil
+		}).
+		Times(2)
+
+	require.NoError(t, vdb.Upsert(t.Context(), n))
+
+	for _, input := range inputs {
+		assert.Contains(t, input, "after")
+	}
+}
