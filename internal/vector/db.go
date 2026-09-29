@@ -311,11 +311,13 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 	}
 
 	const (
-		// context is the context window of the embedding model. Input beyond this errors, rather than being truncated.
-		context = 2048
+		// contextLength is the context window of the embedding model. Input beyond this errors, rather than being
+		// truncated.
+		contextLength = 2048
 
-		// limit is the character budget for a single chunk; assumes ~3 chars/token for markdown, minus a 20% margin.
-		limit = context * 3 * 4 / 5
+		// initialLimit is the character budget for a single chunk; assumes ~3 chars/token for markdown, minus a 20%
+		// margin.
+		initialLimit = contextLength * 3 * 4 / 5
 
 		// mn is the smallest character budget attempted before giving up.
 		mn = 256
@@ -324,7 +326,7 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 	// The character budget is only an estimate of the token count; dense content (e.g. identifiers, hashes or encoded
 	// URLs) can exceed the context length regardless. Re-chunk the whole note with a halved budget until every chunk
 	// fits.
-	for limit := limit; ; limit /= 2 {
+	for limit := initialLimit; ; limit /= 2 {
 		embeddings, err := d.embedChunks(ctx, frontmatter, bodyText, limit)
 		if err == nil {
 			return embeddings, nil
