@@ -230,15 +230,6 @@ func (n *Note) Create() error {
 // The note is written to a temporary file which is then renamed into place, so a failure part way
 // through never leaves a truncated note behind.
 func (n *Note) Write() error {
-	// Load the body before anything is replaced, as it is read lazily from the existing file. A note
-	// which doesn't exist yet has no body.
-	_, err := n.GetBody()
-	if errors.Is(err, os.ErrNotExist) {
-		n.SetBody("")
-	} else if err != nil {
-		return fmt.Errorf("failed to get body: %w", err)
-	}
-
 	file, err := os.CreateTemp(filepath.Dir(n.Path), ".zk-write-*")
 	if err != nil {
 		return fmt.Errorf("failed to create temporary file for %q: %w", n.Path, err)

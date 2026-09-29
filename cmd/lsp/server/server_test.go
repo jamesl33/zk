@@ -60,7 +60,7 @@ func TestTextDocumentCompletionInsideOpenLink(t *testing.T) {
 	require.NoError(t, os.Mkdir(".zk", 0o755))
 
 	target := note.Note{Path: "20060102150405.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Target"}}
-	require.NoError(t, target.Write())
+	require.NoError(t, target.Create())
 
 	src := "See [["
 	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
@@ -149,7 +149,7 @@ func TestTextDocumentDidOpenNoDiagnosticsForValidLink(t *testing.T) {
 	require.NoError(t, os.Mkdir(".zk", 0o755))
 
 	target := note.Note{Path: "20060102150405.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Target"}}
-	require.NoError(t, target.Write())
+	require.NoError(t, target.Create())
 
 	src := "See [[20060102150405|Target]]"
 	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
@@ -197,7 +197,7 @@ func TestTextDocumentHoverShowsLinkedNoteTitle(t *testing.T) {
 	require.NoError(t, os.Mkdir(".zk", 0o755))
 
 	target := note.Note{Path: "20060102150405.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Target"}}
-	require.NoError(t, target.Write())
+	require.NoError(t, target.Create())
 
 	src := "See [[20060102150405|Target]]"
 	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
@@ -257,10 +257,10 @@ func TestTextDocumentDefinitionSelectsLinkUnderCursor(t *testing.T) {
 	require.NoError(t, os.Mkdir(".zk", 0o755))
 
 	target := note.Note{Path: "20060102150406.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Target"}}
-	require.NoError(t, target.Write())
+	require.NoError(t, target.Create())
 
 	other := note.Note{Path: "20060102150405.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Other"}}
-	require.NoError(t, other.Write())
+	require.NoError(t, other.Create())
 
 	src := "See [[20060102150405|Other]] and [[20060102150406|Target]]"
 	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
@@ -288,7 +288,7 @@ func TestTextDocumentDefinitionEscapesURI(t *testing.T) {
 	require.NoError(t, os.Mkdir("1 Projects", 0o755))
 
 	target := note.Note{Path: "1 Projects/20060102150406.md", Frontmatter: note.Frontmatter{Type: "permanent", Title: "Target"}}
-	require.NoError(t, target.Write())
+	require.NoError(t, target.Create())
 
 	src := "See [[20060102150406]]"
 	require.NoError(t, os.WriteFile("source.md", []byte(src), 0o644))
