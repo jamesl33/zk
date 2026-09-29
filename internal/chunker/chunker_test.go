@@ -3,6 +3,7 @@ package chunker
 import (
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -77,4 +78,13 @@ func TestChunkHardSplitsOnLineBoundaries(t *testing.T) {
 			assert.Contains(t, []string{"```", line}, l, "lines must not be split across chunks")
 		}
 	}
+}
+
+func TestChunkLimitCountsCharactersNotBytes(t *testing.T) {
+	// 3 bytes per character, so both blocks fit in a chunk of 4096 characters, but not of 4096 bytes.
+	para := strings.Repeat("日", 1000)
+
+	chunks := chunk("---\ntitle: X\n---", para+"\n\n"+para)
+	require.Len(t, chunks, 1)
+	assert.LessOrEqual(t, utf8.RuneCountInString(chunks[0]), limit)
 }

@@ -17,11 +17,14 @@ type Chunker struct {
 	budget      int
 	chunks      []string
 	current     strings.Builder
+
+	// currentLen is the length of current in characters.
+	currentLen int
 }
 
 // New returns a chunker which produces chunks of at most limit characters.
 func New(frontmatter string, limit int) *Chunker {
-	budget := limit - len(frontmatter) - len("\n\n")
+	budget := limit - utf8.RuneCountInString(frontmatter) - len("\n\n")
 	if budget <= 0 {
 		budget = limit
 	}
@@ -36,7 +39,9 @@ func New(frontmatter string, limit int) *Chunker {
 
 // Add appends the given block to the current chunk, starting a new chunk if it wouldn't fit.
 func (c *Chunker) Add(b string) {
-	if len(b) > c.budget {
+	length := utf8.RuneCountInString(b)
+
+	if length > c.budget {
 		c.flush()
 
 		for _, piece := range hardSplit(b, c.budget) {
@@ -46,15 +51,19 @@ func (c *Chunker) Add(b string) {
 		return
 	}
 
-	if c.current.Len() > 0 && c.current.Len()+len("\n\n")+len(b) > c.budget {
+	if c.currentLen > 0 && c.currentLen+len("\n\n")+length > c.budget {
 		c.flush()
 	}
 
-	if c.current.Len() > 0 {
+	if c.currentLen > 0 {
 		c.current.WriteString("\n\n")
+
+		c.currentLen += len("\n\n")
 	}
 
 	c.current.WriteString(b)
+
+	c.currentLen += length
 }
 
 // Chunks completes the current chunk and returns all the chunks.
@@ -78,6 +87,8 @@ func (c *Chunker) flush() {
 
 	c.chunks = append(c.chunks, c.frontmatter+"\n\n"+c.current.String())
 	c.current.Reset()
+
+	c.currentLen = 0
 }
 
 // Blocks returns the raw source of each top-level markdown block in body.
