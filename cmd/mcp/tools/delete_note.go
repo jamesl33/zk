@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -26,6 +27,11 @@ func DeleteNote(
 ) (*mcp.CallToolResult, *DeleteNoteOutput, error) {
 	if err := checkPath(input.Path); err != nil {
 		return nil, nil, err
+	}
+
+	// Only notes can be deleted, not other files which happen to be in the vault.
+	if filepath.Ext(input.Path) != ".md" {
+		return nil, nil, fmt.Errorf("path %q is not a markdown note", input.Path)
 	}
 
 	n, err := note.New(input.Path)

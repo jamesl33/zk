@@ -38,3 +38,18 @@ func TestDeleteNoteNotFound(t *testing.T) {
 	_, _, err := DeleteNote(t.Context(), nil, &DeleteNoteInput{Path: "does-not-exist.md"})
 	assert.Error(t, err)
 }
+
+func TestDeleteNoteNotMarkdown(t *testing.T) {
+	tmp := withVault(t)
+
+	path := filepath.Join(tmp, "note.txt")
+
+	err := os.WriteFile(path, []byte("---\ntitle: Note 1\ntype: fleeting\n---\nBody"), 0o644)
+	require.NoError(t, err)
+
+	_, _, err = DeleteNote(t.Context(), nil, &DeleteNoteInput{Path: path})
+	assert.Error(t, err)
+
+	_, err = os.Stat(path)
+	assert.NoError(t, err)
+}
