@@ -24,10 +24,26 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewError(t *testing.T) {
-	// sqlite doesn't like table names starting with numbers without quoting.
-	c, err := New[string](t.Context(), ":memory:", "1invalid")
+	// The parent directory doesn't exist, so the database can't be created.
+	path := filepath.Join(t.TempDir(), "missing", "cache.db")
+
+	c, err := New[string](t.Context(), path, "test_table")
 	assert.Error(t, err)
 	assert.Nil(t, c)
+}
+
+func TestTableNameQuoted(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "cache.db")
+
+	c, err := New[string](t.Context(), path, `cache_embed_nomic-embed-text:latest"`)
+	require.NoError(t, err)
+
+	require.NoError(t, c.Set(t.Context(), "key", "value"))
+
+	got, err := c.Get(t.Context(), "key")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, "value", *got)
 }
 
 func TestGet(t *testing.T) {

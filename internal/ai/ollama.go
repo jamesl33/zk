@@ -40,14 +40,8 @@ func NewOllama(ctx context.Context, path string, opts ...OllamaOption) (*Ollama,
 		return nil, fmt.Errorf("failed to create client: %w", err)
 	}
 
-	eca, err := cache.New[[]byte](ctx, path, "cache_embed")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create cache: %w", err)
-	}
-
 	ollama := Ollama{
 		client:    client,
-		ecache:    eca,
 		embedding: "embeddinggemma",
 	}
 
@@ -58,6 +52,14 @@ func NewOllama(ctx context.Context, path string, opts ...OllamaOption) (*Ollama,
 	for _, opt := range opts {
 		opt(&ollama)
 	}
+
+	// Vectors differ between models, so each model gets its own cache table.
+	eca, err := cache.New[[]byte](ctx, path, "cache_embed_"+ollama.embedding)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cache: %w", err)
+	}
+
+	ollama.ecache = eca
 
 	return &ollama, nil
 }

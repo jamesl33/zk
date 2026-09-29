@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jamesl33/zk/internal/sqlite"
 )
@@ -35,7 +36,7 @@ func New[T any](
 	);
 	`
 
-	_, err = db.ExecContext(ctx, fmt.Sprintf(create, table))
+	_, err = db.ExecContext(ctx, fmt.Sprintf(create, quote(table)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create table: %w", err)
 	}
@@ -64,7 +65,7 @@ func (c *Cache[T]) Get(ctx context.Context, prompt string) (*T, error) {
 
 	var result T
 
-	err := c.db.QueryRowContext(ctx, fmt.Sprintf(query, c.table), key).Scan(&result)
+	err := c.db.QueryRowContext(ctx, fmt.Sprintf(query, quote(c.table)), key).Scan(&result)
 
 	// Not found, we need to update
 	if errors.Is(err, sql.ErrNoRows) {
@@ -92,7 +93,7 @@ func (c *Cache[T]) Set(ctx context.Context, prompt string, result T) error {
 
 	_, err := c.db.ExecContext(
 		ctx,
-		fmt.Sprintf(insert, c.table),
+		fmt.Sprintf(insert, quote(c.table)),
 		key,
 		result,
 	)
@@ -111,4 +112,10 @@ func (c *Cache[T]) Set(ctx context.Context, prompt string, result T) error {
 func checksum(prompt string) []byte {
 	sum := sha256.Sum256([]byte(prompt))
 	return sum[:]
+}
+
+// quote returns the given SQL identifier quoted, so arbitrary names (e.g. model names containing
+// ':' or '-') are safe to interpolate.
+func quote(identifier string) string {
+	return `"` + strings.ReplaceAll(identifier, `"`, `""`) + `"`
 }
