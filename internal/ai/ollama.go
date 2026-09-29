@@ -64,6 +64,11 @@ func NewOllama(ctx context.Context, path string, opts ...OllamaOption) (*Ollama,
 	return &ollama, nil
 }
 
+// Close frees resources used by the client.
+func (o *Ollama) Close() error {
+	return o.ecache.Close()
+}
+
 // Embed a string of text.
 func (o *Ollama) Embed(ctx context.Context, content string) ([]float32, error) {
 	cached, err := o.ecache.Get(ctx, content)

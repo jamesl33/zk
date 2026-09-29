@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
 	"slices"
 	"strings"
 
@@ -37,27 +38,39 @@ type DB struct {
 
 // New returns an initialized db.
 func New(ctx context.Context, path string) (*DB, error) {
+	var vector DB
+
+	err := vector.setup(ctx, path)
+	if err == nil {
+		return &vector, nil
+	}
+
+	vector.Close() //nolint:errcheck
+
+	return nil, err
+}
+
+// setup opens everything the db needs. On error the db may be partially set up, the caller must Close it.
+func (d *DB) setup(ctx context.Context, path string) error {
+	// Assigned via a local, as a nil *Ollama stored in the interface field would not be nil.
 	client, err := ai.NewOllama(ctx, path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create client: %w", err)
+		return fmt.Errorf("failed to create client: %w", err)
 	}
 
-	db, err := sqlite.Open(path)
+	d.client = client
+
+	d.db, err = sqlite.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open database: %w", err)
 	}
 
-	vector := DB{
-		client: client,
-		db:     db,
-	}
-
-	err = vector.init(ctx)
+	err = d.init(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize database: %w", err)
+		return fmt.Errorf("failed to initialize database: %w", err)
 	}
 
-	return &vector, nil
+	return nil
 }
 
 // init the database by creating the required table.
@@ -396,5 +409,16 @@ func (d *DB) embedChunk(ctx context.Context, c string) ([]byte, error) {
 
 // Close frees resources used by the database.
 func (d *DB) Close() error {
-	return d.db.Close()
+	var err error
+
+	if d.db != nil {
+		err = d.db.Close()
+	}
+
+	// The embedder may hold its own resources (e.g. a cache database).
+	if c, ok := d.client.(io.Closer); ok {
+		err = errors.Join(err, c.Close())
+	}
+
+	return err
 }

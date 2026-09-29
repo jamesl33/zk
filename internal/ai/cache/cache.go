@@ -23,9 +23,26 @@ func New[T any](
 	path string,
 	table string,
 ) (*Cache[T], error) {
-	db, err := sqlite.Open(path)
+	cache := Cache[T]{table: table}
+
+	err := cache.setup(ctx, path)
+	if err == nil {
+		return &cache, nil
+	}
+
+	cache.Close() //nolint:errcheck
+
+	return nil, err
+}
+
+// setup opens the database and creates the table. On error the cache may be partially set up, the caller must Close
+// it.
+func (c *Cache[T]) setup(ctx context.Context, path string) error {
+	var err error
+
+	c.db, err = sqlite.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open database: %w", err)
 	}
 
 	// create the table if it doesn't already exist.
@@ -36,17 +53,21 @@ func New[T any](
 	);
 	`
 
-	_, err = db.ExecContext(ctx, fmt.Sprintf(create, quote(table)))
+	_, err = c.db.ExecContext(ctx, fmt.Sprintf(create, quote(c.table)))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create table: %w", err)
+		return fmt.Errorf("failed to create table: %w", err)
 	}
 
-	cache := Cache[T]{
-		db:    db,
-		table: table,
+	return nil
+}
+
+// Close frees resources used by the cache.
+func (c *Cache[T]) Close() error {
+	if c.db == nil {
+		return nil
 	}
 
-	return &cache, nil
+	return c.db.Close()
 }
 
 // Get a value from the cache.
