@@ -15,7 +15,7 @@ To search your Zettelkasten effectively, use the available tools based on what y
 
 Use `regex_search_notes`. This is best when you know a specific keyword, phrase, tag, or title.
 
-- **To find a tag:** `regex_search_notes(expression='thru_hiking')`
+- **To find a tag:** `regex_search_notes(expression='$TAG')`
 - **To find a title:** `regex_search_notes(expression='(?i)progressive summarization')`
 - **To find content:** `regex_search_notes(expression='a specific phrase in a note')`
 
@@ -41,4 +41,4 @@ Once you have a specific note, you can explore its connections:
 
 If you know the general area your note is in (e.g., a specific project), use `list_notes` to see all the notes in that directory.
 
-- **To list notes in a project:** `list_notes(path='1 Projects/Bike (2026)/')`
+- **To list notes in a project:** `list_notes(path='1 Projects/$PROJECT/')`

@@ -40,4 +40,4 @@ Formatting details:
 
 1. Never put your own analysis inside a blockquote — only verbatim quotes belong there.
 2. One literature note per source, unless the source is long enough that splitting by section aids navigation.
-3. Links to sources always go in the footer after `---`, never in the opening lines. Before creating a note, read an existing literature note (e.g. `3 Resources/AI/20260801120100.md`) to match its layout.
+3. Links to sources always go in the footer after `---`, never in the opening lines. Before creating a note, read an existing literature note from the same directory (found with `list_notes`) to match its layout.

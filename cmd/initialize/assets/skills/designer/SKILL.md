@@ -48,10 +48,10 @@ Once you have identified the core notes, use the `assets/template.md` to structu
 
 ```bash
 # Semantic search for the design topic
-semantic_search_notes query="Trigram indexing for Zettelkasten search"
+semantic_search_notes query="$DESIGN_TOPIC"
 
 # Find notes linked TO a key technical note
-find_notes_linked_to path="2 Areas/Linux/20260206094342.md"
+find_notes_linked_to path="$NOTE_PATH"
 ```
 
 ### Reading and Validating
