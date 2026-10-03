@@ -28,14 +28,12 @@ This skill outlines the process for converting `fleeting` notes into `permanent`
 
 6.  **Lint and Fix**: Run `lint_notes` to check for any issues, such as broken links, and fix any errors that are found.
 
-7.  **Review Projects, Areas, and Resources**: Check `1 Projects`, `2 Areas`, and `3 Resources` for
-    directories that no longer belong there:
+7.  **Review Projects, Areas, and Resources**: Check `1 Projects`, `2 Areas`, and `3 Resources` for directories that no longer belong there:
     *   A project whose goal is met or abandoned.
     *   An area of responsibility you no longer maintain.
     *   A resource you're no longer interested in.
 
-    Confirm with the user before handing any of these off to the `archiver` skill — don't archive
-    on your own judgment alone.
+    Confirm with the user before handing any of these off to the `archiver` skill — don't archive on your own judgment alone.
 
 ## Rules
 
