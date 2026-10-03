@@ -10,7 +10,7 @@ This skill captures external material into the Zettelkasten, keeping what the so
 ## Workflow
 
 1.  **Record the Source**: Use `create_note` (type `bibliographic`, path `5 Bibliography`) with the source's title and a body containing the citation (author, URL/ISBN, date accessed), laid out as in "Note Layouts" below.
-2.  **Write the Literature Note**: Use `create_note` (type `literature`, same directory as the bibliographic note it's linked to) with a title describing the note's focus, and a body containing verbatim quotes in blockquotes and your own summaries as plain text alongside them. End the body with a `---` rule, a blank line, then the source link as a bullet: `- [[$NOTE_ID|$TITLE]]` back to the bibliographic note. Never put the link at the top.
+2.  **Write the Literature Note**: Use `create_note` (type `literature`, in the `1 Projects`, `2 Areas` or `3 Resources` subdirectory that fits the subject, never `5 Bibliography`; use `list_notes` to find the best-fitting existing directory) with a title describing the note's focus, and a body containing verbatim quotes in blockquotes and your own summaries as plain text alongside them. End the body with a `---` rule, a blank line, then the source link as a bullet: `- [[$NOTE_ID|$TITLE]]` back to the bibliographic note. Never put the link at the top.
 3.  **Keep it Raw**: A literature note only records the source plus light commentary. If something sparks an original idea worth developing, don't expand it here — that becomes a new `permanent` note, processed later.
 4.  **Hand Off**: Leave the literature note for later processing. The `maintainer` skill treats `literature` notes the same as `fleeting` notes: raw material waiting to be distilled into atomic `permanent` notes.
 
