@@ -15,10 +15,11 @@ This skill outlines the process for converting `fleeting` notes into `permanent`
     *   **Rewrite**: Rephrase the note in your own words. This is crucial for ensuring you've understood the concept. The new note should be self-contained and understandable without any external context.
     *   **Atomize**: Ensure the note is "atomic"—meaning it focuses on a single idea. If a fleeting note contains multiple distinct ideas, break it down into several new `permanent` notes.
 
-3.  **Connect to the Network**: Think about how this new, atomic idea fits within your existing knowledge. A `permanent` note with no links is rejected by `lint_notes` (`orphan-note`), so this step is mandatory, not optional.
-    *   Search your vault for related notes using `regex_search_notes` or `semantic_search_notes`.
-    *   If the topic already has an `index` note, link to it — that's its purpose. If the topic is new and substantial enough to gather multiple notes over time, consider creating one (`create_note`, type `index`).
-    *   Add links from your new note to existing ones (or to the topic's `index` note, if nothing more specific fits yet). Links don't need to be bidirectional — a link from the new note is enough.
+3.  **Connect to the Network**: Think about how this new, atomic idea fits within your existing knowledge. A `permanent` note with no links is rejected by `lint_notes` (`orphan-note`), so this step is mandatory, not optional — but the links must be genuine.
+    *   Search your vault for candidates using `regex_search_notes` or `semantic_search_notes`. Search hits are candidates, not links: similarity score, shared tags, dates or a broad theme don't justify a link.
+    *   Read each candidate and link only if it passes this test: the notes share a specific claim, entity, mechanism or argument, and a reader of one would gain something from jumping to the other. If you can't state the connection in one concrete sentence, don't link.
+    *   If the topic already has an `index` note, link to it — that's its purpose. If the topic is new and substantial enough to gather multiple notes over time, consider creating one (`create_note`, type `index`). Satisfy the orphan rule this way rather than with a weak link to an unrelated note.
+    *   Add the surviving links from your new note. Links don't need to be bidirectional — a link from the new note is enough.
 
 4.  **File and Format**:
     *   Use `create_note` (type `permanent`, with a `title`, `tags`, and the rewritten, atomic body including its links) to write the new note into the appropriate location within `1 Projects`, `2 Areas`, or `3 Resources` — it generates the timestamp ID automatically.

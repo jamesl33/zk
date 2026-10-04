@@ -37,6 +37,8 @@ Once you have a specific note, you can explore its connections:
 - `find_notes_linked_to`: See which other notes reference the current note.
 - `find_related_notes`: Find other notes that are conceptually similar to the current one.
 
+Similarity is not a reason to link. Treat search results as candidates to read, and add a link only when the notes share a specific claim, entity or argument.
+
 ### To browse a directory:
 
 If you know the general area your note is in (e.g., a specific project), use `list_notes` to see all the notes in that directory.
