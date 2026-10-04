@@ -1,5 +1,5 @@
-// Package initialize provides the 'zk initialize' command, which wires an AI coding agent up to work
-// with a Zettelkasten via 'zk mcp'.
+// Package initialize provides the 'zk initialize' command, which wires Claude Code up to work
+// with a Zettelkasten.
 package initialize
 
 import (
@@ -7,10 +7,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewInitialize creates a new command for initializing an AI coding agent for use with 'zk'.
+// NewInitialize creates a new command for initializing Claude Code for use with 'zk'.
 func NewInitialize() *cobra.Command {
 	cmd := cobra.Command{
-		Short: "Sets up an AI coding agent with instructions/settings on how to interact with the Zettelkasten",
+		Short: "Sets up Claude Code to work with the Zettelkasten",
 		Use:   "initialize",
 	}
 

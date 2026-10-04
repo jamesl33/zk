@@ -1,0 +1,8 @@
+{
+  "name": "zk",
+  "description": "Skills and MCP server for managing a Zettelkasten with zk",
+  "version": "0.1.0",
+  "author": {
+    "name": "James Lee"
+  }
+}

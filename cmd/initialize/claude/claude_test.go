@@ -1,10 +1,12 @@
 package claude
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/jamesl33/zk/cmd/initialize/assets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,30 +28,64 @@ func withTempDir(t *testing.T) string {
 func TestClaudeRun(t *testing.T) {
 	tmp := withTempDir(t)
 
-	var c Claude
+	var (
+		c   Claude
+		out bytes.Buffer
+	)
 
-	err := c.Run(t.Context())
+	require.NoError(t, c.Run(&out))
+
+	data, err := os.ReadFile(filepath.Join(tmp, "ZK.md"))
 	require.NoError(t, err)
+	assert.Equal(t, assets.Instructions, data)
 
-	assert.FileExists(t, filepath.Join(tmp, "CLAUDE.md"))
-	assert.FileExists(t, filepath.Join(tmp, ".mcp.json"))
-	assert.FileExists(t, filepath.Join(tmp, ".claude", "settings.json"))
-
-	entries, err := os.ReadDir(filepath.Join(tmp, ".claude", "skills"))
+	data, err = os.ReadFile(filepath.Join(tmp, "CLAUDE.md"))
 	require.NoError(t, err)
-	assert.NotEmpty(t, entries)
+	assert.Equal(t, "@ZK.md\n", string(data))
+
+	assert.NoDirExists(t, filepath.Join(tmp, ".claude"))
+	assert.Contains(t, out.String(), "/plugin marketplace add jamesl33/zk")
 }
 
-func TestClaudeRunRemovesExisting(t *testing.T) {
+func TestClaudeRunPrependsImport(t *testing.T) {
 	tmp := withTempDir(t)
 
-	require.NoError(t, os.MkdirAll(filepath.Join(tmp, ".claude", "stale"), 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(tmp, ".claude", "stale", "file.txt"), []byte("x"), 0o644))
+	require.NoError(t, os.WriteFile("CLAUDE.md", []byte("# Mine\n"), 0o644))
 
 	var c Claude
 
-	err := c.Run(t.Context())
-	require.NoError(t, err)
+	require.NoError(t, c.Run(&bytes.Buffer{}))
 
-	assert.NoFileExists(t, filepath.Join(tmp, ".claude", "stale", "file.txt"))
+	data, err := os.ReadFile(filepath.Join(tmp, "CLAUDE.md"))
+	require.NoError(t, err)
+	assert.Equal(t, "@ZK.md\n\n# Mine\n", string(data))
+}
+
+func TestClaudeRunIdempotent(t *testing.T) {
+	tmp := withTempDir(t)
+
+	require.NoError(t, os.WriteFile("CLAUDE.md", []byte("# Mine\n\n@ZK.md\n"), 0o644))
+
+	var c Claude
+
+	require.NoError(t, c.Run(&bytes.Buffer{}))
+	require.NoError(t, c.Run(&bytes.Buffer{}))
+
+	data, err := os.ReadFile(filepath.Join(tmp, "CLAUDE.md"))
+	require.NoError(t, err)
+	assert.Equal(t, "# Mine\n\n@ZK.md\n", string(data))
+}
+
+func TestClaudeRunKeepsClaudeDirectory(t *testing.T) {
+	tmp := withTempDir(t)
+
+	skill := filepath.Join(tmp, ".claude", "skills", "mine", "SKILL.md")
+	require.NoError(t, os.MkdirAll(filepath.Dir(skill), 0o755))
+	require.NoError(t, os.WriteFile(skill, []byte("x"), 0o644))
+
+	var c Claude
+
+	require.NoError(t, c.Run(&bytes.Buffer{}))
+
+	assert.FileExists(t, skill)
 }

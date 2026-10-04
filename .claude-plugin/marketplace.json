@@ -1,0 +1,13 @@
+{
+  "name": "zk",
+  "owner": {
+    "name": "James Lee"
+  },
+  "plugins": [
+    {
+      "name": "zk",
+      "source": "./plugins/zk",
+      "description": "Skills and MCP server for managing a Zettelkasten with zk"
+    }
+  ]
+}
