@@ -4,7 +4,6 @@ package initialize
 
 import (
 	"github.com/jamesl33/zk/cmd/initialize/claude"
-	"github.com/jamesl33/zk/cmd/initialize/gemini"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +16,6 @@ func NewInitialize() *cobra.Command {
 
 	cmd.AddCommand(
 		claude.NewClaude(),
-		gemini.NewGemini(),
 	)
 
 	return &cmd
