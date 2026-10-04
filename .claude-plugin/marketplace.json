@@ -3,6 +3,9 @@
   "owner": {
     "name": "James Lee"
   },
+  "metadata": {
+    "description": "Skills and MCP server for managing a Zettelkasten with zk"
+  },
   "plugins": [
     {
       "name": "zk",
