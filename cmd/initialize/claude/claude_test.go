@@ -64,7 +64,7 @@ func TestClaudeRunPrependsImport(t *testing.T) {
 func TestClaudeRunIdempotent(t *testing.T) {
 	tmp := withTempDir(t)
 
-	require.NoError(t, os.WriteFile("CLAUDE.md", []byte("# Mine\n\n@ZK.md\n"), 0o644))
+	require.NoError(t, os.WriteFile("CLAUDE.md", []byte("@ZK.md\n\n# Mine\n"), 0o644))
 
 	var c Claude
 
@@ -73,7 +73,21 @@ func TestClaudeRunIdempotent(t *testing.T) {
 
 	data, err := os.ReadFile(filepath.Join(tmp, "CLAUDE.md"))
 	require.NoError(t, err)
-	assert.Equal(t, "# Mine\n\n@ZK.md\n", string(data))
+	assert.Equal(t, "@ZK.md\n\n# Mine\n", string(data))
+}
+
+func TestClaudeRunMovesImportToTop(t *testing.T) {
+	tmp := withTempDir(t)
+
+	require.NoError(t, os.WriteFile("CLAUDE.md", []byte("# Mine\n\n@ZK.md\n\nMore\n"), 0o644))
+
+	var c Claude
+
+	require.NoError(t, c.Run(&bytes.Buffer{}))
+
+	data, err := os.ReadFile(filepath.Join(tmp, "CLAUDE.md"))
+	require.NoError(t, err)
+	assert.Equal(t, "@ZK.md\n\n# Mine\n\nMore\n", string(data))
 }
 
 func TestClaudeRunKeepsClaudeDirectory(t *testing.T) {

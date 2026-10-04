@@ -60,22 +60,39 @@ func (c *Claude) Run(out io.Writer) error {
 	return nil
 }
 
-// ensureImport prepends 'line' to the file at 'path', creating it if required, unless it is already present.
+// ensureImport makes 'line' the first line of the file at 'path', creating it if required.
 func ensureImport(path, line string) error {
 	data, err := os.ReadFile(path)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}
 
+	var rest strings.Builder
+
+	var removed bool
+
 	for existing := range strings.Lines(string(data)) {
-		if strings.TrimSpace(existing) == line {
-			return nil
+		trimmed := strings.TrimSpace(existing)
+
+		// Drop the blank line that separated a removed import from its neighbours.
+		if trimmed == line || (removed && trimmed == "") {
+			removed = trimmed == line
+
+			continue
 		}
+
+		removed = false
+
+		rest.WriteString(existing)
 	}
 
 	content := line + "\n"
-	if len(data) > 0 {
-		content += "\n" + string(data)
+	if body := strings.TrimLeft(rest.String(), "\r\n"); body != "" {
+		content += "\n" + body
+	}
+
+	if content == string(data) {
+		return nil
 	}
 
 	return os.WriteFile(path, []byte(content), 0o644)
