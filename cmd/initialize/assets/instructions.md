@@ -139,3 +139,8 @@ Attachments (such as PDF documents, images, or other non-Markdown files) are man
     -   **Format**: `[[$FILENAME.$EXT|$TITLE, p.$PAGE]]`
     -   **Example**: `[[Document (2026).pdf|Document (2026), p.16]]`
 -   **Usage**: Internal attachments can be linked directly from `permanent` or `literature` notes without requiring a separate `bibliographic` note in `5 Bibliography`.
+
+### 4.5. Linking Defined Terms
+
+-   **Link defined terms**: When a note uses a term that has its own definition note (e.g. `entropy`, `idempotence`), link it in the body with `[[$NOTE_ID|term]]`, at least on first use. A glossary section alone is not enough.
+-   **Check before writing**: Search the vault for definition notes before creating or editing a note, and link to what exists.
