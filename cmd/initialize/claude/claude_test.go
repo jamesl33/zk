@@ -90,6 +90,33 @@ func TestClaudeRunMovesImportToTop(t *testing.T) {
 	assert.Equal(t, "@ZK.md\n\n# Mine\n\nMore\n", string(data))
 }
 
+func TestClaudeRunNewlineAfterImport(t *testing.T) {
+	tests := map[string]struct {
+		existing string
+		expected string
+	}{
+		"import only, no trailing newline": {existing: "@ZK.md", expected: "@ZK.md\n"},
+		"import directly followed by text": {existing: "@ZK.md\n# Mine\n", expected: "@ZK.md\n\n# Mine\n"},
+		"text without trailing newline":    {existing: "# Mine", expected: "@ZK.md\n\n# Mine"},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			tmp := withTempDir(t)
+
+			require.NoError(t, os.WriteFile("CLAUDE.md", []byte(test.existing), 0o644))
+
+			var c Claude
+
+			require.NoError(t, c.Run(&bytes.Buffer{}))
+
+			data, err := os.ReadFile(filepath.Join(tmp, "CLAUDE.md"))
+			require.NoError(t, err)
+			assert.Equal(t, test.expected, string(data))
+		})
+	}
+}
+
 func TestClaudeRunKeepsClaudeDirectory(t *testing.T) {
 	tmp := withTempDir(t)
 
