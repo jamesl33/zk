@@ -648,6 +648,65 @@ func TestDBFindPlainQueryEmbedsAsQuery(t *testing.T) {
 	assert.Equal(t, n2.Name(), results[0].Name())
 }
 
+func TestDBFindSearchesWithEveryQueryChunk(t *testing.T) {
+	var (
+		tmp     = t.TempDir()
+		ctrl    = gomock.NewController(t)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
+	)
+
+	cwd, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(tmp))
+	defer os.Chdir(cwd)
+
+	require.NoError(t, os.Mkdir(filepath.Join(tmp, ".zk"), 0o755))
+
+	db, err := sql.Open("sqlite3", ":memory:")
+	require.NoError(t, err)
+	defer db.Close()
+
+	vdb := &DB{client: mclient, db: db}
+
+	require.NoError(t, vdb.init(t.Context()))
+
+	// Two indexed notes, pointing in different directions
+	for name, embedding := range map[string][]float32{"north": {1.0, 0.0}, "east": {0.0, 1.0}} {
+		n := newNote(t, tmp, name, "---\ntitle: "+name+"\n---\nBody "+name)
+
+		mclient.
+			EXPECT().
+			Embed(gomock.Any(), gomock.Any()).
+			Return(embedding, nil)
+
+		require.NoError(t, vdb.Upsert(t.Context(), n))
+	}
+
+	// A query of two chunks, each close to a different note; only searching with the first would miss "east"
+	para := strings.Repeat("filler ", 500)
+	query := &note.Note{}
+	query.SetBody(para + "\n\n" + para)
+
+	embeddings := [][]float32{{1.0, 0.1}, {0.1, 1.0}}
+
+	mclient.
+		EXPECT().
+		Embed(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(context.Context, string) ([]float32, error) {
+			e := embeddings[0]
+			embeddings = embeddings[1:]
+
+			return e, nil
+		}).
+		Times(2)
+
+	results, err := vdb.Find(t.Context(), query)
+	require.NoError(t, err)
+	require.Len(t, results, 2)
+	assert.ElementsMatch(t, []string{"north", "east"}, []string{results[0].Name(), results[1].Name()})
+}
+
 func TestDBFindHasNoDistanceCutoff(t *testing.T) {
 	var (
 		tmp     = t.TempDir()

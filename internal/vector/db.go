@@ -2,11 +2,13 @@ package vector
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"slices"
 	"strings"
 
@@ -168,57 +170,29 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 		return nil, fmt.Errorf("failed to generate embedding: %w", err)
 	}
 
-	// No embedding, we can't find any similar notes
+	// No embeddings, we can't find any similar notes
 	if len(embeddings) == 0 {
 		return make([]*note.Note, 0), nil
 	}
 
-	// If the query needed to be split into multiple chunks (rare -- notes are expected to stay small/atomic), use the
-	// leading chunk as a single representative query vector rather than searching once per chunk and merging results.
-	embedding := embeddings[0]
+	// A query may be split into multiple chunks (rare -- notes are expected to stay small/atomic); search with each of
+	// them, keeping the distance of the closest-matching chunk for each note.
+	distances := make(map[string]float32)
 
-	// query to find some similar notes; a note may have multiple chunk rows, so collapse to one distance per note using
-	// its closest-matching chunk.
-	const query = `
-	SELECT
-	  name,
-      MIN(vec_distance_cosine (embedding, ?)) as distance
-	FROM
-	  notes
-	WHERE
-	  name != ?
-	GROUP BY
-	  name
-	ORDER BY
-	  distance
-	LIMIT 15
-	`
-
-	rows, err := d.db.QueryContext(ctx, query, embedding, n.Name())
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute query: %w", err)
-	}
-	defer rows.Close()
-
-	var (
-		name     string
-		distance float32
-		names    = make([]string, 0)
-	)
-
-	for rows.Next() {
-		err := rows.Scan(&name, &distance)
+	for i, embedding := range embeddings {
+		err := d.search(ctx, embedding, n.Name(), distances)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan row: %w", err)
+			return nil, fmt.Errorf("failed to search with chunk %d/%d: %w", i+1, len(embeddings), err)
 		}
-
-		names = append(names, name)
 	}
 
-	err = rows.Err()
-	if err != nil {
-		return nil, fmt.Errorf("unexpected error during iteration: %w", err)
-	}
+	names := slices.Collect(maps.Keys(distances))
+
+	slices.SortFunc(names, func(a, b string) int {
+		return cmp.Or(cmp.Compare(distances[a], distances[b]), cmp.Compare(a, b))
+	})
+
+	names = names[:min(15, len(names))]
 
 	// No notes, return an empty iterator.
 	if len(names) == 0 {
@@ -256,6 +230,62 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	notes = slices.Clip(notes)
 
 	return notes, nil
+}
+
+// search finds the notes closest to the embedding, lowering the distance of each in distances if it is closer than the
+// one already there.
+func (d *DB) search(ctx context.Context, embedding []byte, exclude string, distances map[string]float32) error {
+	// query to find some similar notes; a note may have multiple chunk rows, so collapse to one distance per note using
+	// its closest-matching chunk.
+	const query = `
+	SELECT
+	  name,
+	  MIN(vec_distance_cosine (embedding, ?)) as distance
+	FROM
+	  notes
+	WHERE
+	  name != ?
+	GROUP BY
+	  name
+	ORDER BY
+	  distance
+	LIMIT 15
+	`
+
+	rows, err := d.db.QueryContext(ctx, query, embedding, exclude)
+	if err != nil {
+		return fmt.Errorf("failed to execute query: %w", err)
+	}
+	defer rows.Close()
+
+	return closest(rows, distances)
+}
+
+// closest scans name/distance rows, lowering the distance of each name in distances if it is closer than the one
+// already there.
+func closest(rows *sql.Rows, distances map[string]float32) error {
+	var (
+		name     string
+		distance float32
+	)
+
+	for rows.Next() {
+		err := rows.Scan(&name, &distance)
+		if err != nil {
+			return fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		if current, ok := distances[name]; !ok || distance < current {
+			distances[name] = distance
+		}
+	}
+
+	err := rows.Err()
+	if err != nil {
+		return fmt.Errorf("unexpected error during iteration: %w", err)
+	}
+
+	return nil
 }
 
 // skip returns a boolean indicating whether we need to update the index entry.
