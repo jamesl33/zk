@@ -163,7 +163,7 @@ func (d *DB) upsert(ctx context.Context, tx *sql.Tx, name string, checksum []byt
 
 // Find some similar notes to the one provided.
 func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
-	embeddings, err := d.embed(ctx, n)
+	embeddings, err := d.query(ctx, n)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate embedding: %w", err)
 	}
@@ -173,9 +173,8 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 		return make([]*note.Note, 0), nil
 	}
 
-	// If the note itself needed to be split into multiple chunks (rare -- notes are expected to stay small/atomic), use
-	// the leading chunk as a single representative query vector rather than searching once per chunk and merging
-	// results.
+	// If the query needed to be split into multiple chunks (rare -- notes are expected to stay small/atomic), use the
+	// leading chunk as a single representative query vector rather than searching once per chunk and merging results.
 	embedding := embeddings[0]
 
 	// query to find some similar notes; a note may have multiple chunk rows, so collapse to one distance per note using
@@ -190,8 +189,6 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	  name != ?
 	GROUP BY
 	  name
-	HAVING
-	  distance <= 0.6
 	ORDER BY
 	  distance
 	LIMIT 15
@@ -295,6 +292,9 @@ func (d *DB) skip(ctx context.Context, name string, current []byte) (bool, error
 const (
 	// documentPrefix is prepended to each chunk of a note; there is no title as the frontmatter is part of the text.
 	documentPrefix = "title: none | text: "
+
+	// queryPrefix is prepended to each chunk of a search query.
+	queryPrefix = "task: search result | query: "
 )
 
 // embed returns one vector embedding per chunk for the given note, frontmatter included. Notes that exceed the
@@ -338,6 +338,26 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 	}
 
 	return [][]byte{serial}, nil
+}
+
+// query returns one vector embedding per chunk to search with for the given note.
+//
+// A note with no frontmatter is a plain text query, which is embedded as a query. Embedding it as a note would wrap it
+// in empty frontmatter, which dominates a short query and pulls the results towards unrelated notes.
+func (d *DB) query(ctx context.Context, n *note.Note) ([][]byte, error) {
+	fm := n.Frontmatter
+
+	// Only a plain text query has a body but no frontmatter
+	if fm.Title != "" || len(fm.Tags) != 0 || fm.Type != "" || fm.Date != "" {
+		return d.embed(ctx, n)
+	}
+
+	body, err := n.GetBody()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get body: %w", err)
+	}
+
+	return d.embedBlocks(ctx, queryPrefix, chunker.Blocks(body))
 }
 
 // embedBlocks returns one vector embedding per chunk of the given markdown blocks, each prefixed with the prefix.

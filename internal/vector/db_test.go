@@ -600,3 +600,95 @@ func TestDBUpsertFrontmatterOnly(t *testing.T) {
 	require.NoError(t, db.QueryRow("SELECT COUNT(*) FROM notes WHERE name = ?", n.Name()).Scan(&count))
 	assert.Equal(t, 1, count)
 }
+
+func TestDBFindPlainQueryEmbedsAsQuery(t *testing.T) {
+	var (
+		tmp     = t.TempDir()
+		ctrl    = gomock.NewController(t)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
+	)
+
+	cwd, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(tmp))
+	defer os.Chdir(cwd)
+
+	require.NoError(t, os.Mkdir(filepath.Join(tmp, ".zk"), 0o755))
+
+	db, err := sql.Open("sqlite3", ":memory:")
+	require.NoError(t, err)
+	defer db.Close()
+
+	vdb := &DB{client: mclient, db: db}
+
+	require.NoError(t, vdb.init(t.Context()))
+
+	n2 := newNote(t, tmp, "note2", "---\ntitle: Note 2\n---\nBody 2")
+
+	mclient.
+		EXPECT().
+		Embed(gomock.Any(), gomock.Any()).
+		Return([]float32{1.0, 1.0}, nil)
+
+	require.NoError(t, vdb.Upsert(t.Context(), n2))
+
+	// The query is embedded as a query, without any frontmatter around it
+	mclient.
+		EXPECT().
+		Embed(gomock.Any(), "task: search result | query: some query").
+		Return([]float32{1.0, 1.1}, nil)
+
+	query := &note.Note{}
+	query.SetBody("some query\n")
+
+	results, err := vdb.Find(t.Context(), query)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	assert.Equal(t, n2.Name(), results[0].Name())
+}
+
+func TestDBFindHasNoDistanceCutoff(t *testing.T) {
+	var (
+		tmp     = t.TempDir()
+		ctrl    = gomock.NewController(t)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
+	)
+
+	cwd, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(tmp))
+	defer os.Chdir(cwd)
+
+	require.NoError(t, os.Mkdir(filepath.Join(tmp, ".zk"), 0o755))
+
+	db, err := sql.Open("sqlite3", ":memory:")
+	require.NoError(t, err)
+	defer db.Close()
+
+	vdb := &DB{client: mclient, db: db}
+
+	require.NoError(t, vdb.init(t.Context()))
+
+	// Orthogonal to the search, a cosine distance of 1
+	n2 := newNote(t, tmp, "note2", "---\ntitle: Note 2\n---\nBody 2")
+
+	mclient.
+		EXPECT().
+		Embed(gomock.Any(), gomock.Any()).
+		Return([]float32{0.0, 1.0}, nil)
+
+	require.NoError(t, vdb.Upsert(t.Context(), n2))
+
+	n1 := newNote(t, tmp, "note1", "---\ntitle: Note 1\n---\nBody 1")
+
+	mclient.
+		EXPECT().
+		Embed(gomock.Any(), gomock.Any()).
+		Return([]float32{1.0, 0.0}, nil)
+
+	results, err := vdb.Find(t.Context(), n1)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+}
