@@ -558,7 +558,45 @@ func TestDBUpsertFrontmatterWithBlankLine(t *testing.T) {
 
 	require.NoError(t, vdb.Upsert(t.Context(), n))
 
+	require.Len(t, inputs, 2)
+
 	for _, input := range inputs {
+		assert.True(t, strings.HasPrefix(input, "title: none | text: ---\ntype: "))
 		assert.Contains(t, input, "after")
 	}
+}
+
+func TestDBUpsertFrontmatterOnly(t *testing.T) {
+	var (
+		tmp     = t.TempDir()
+		ctrl    = gomock.NewController(t)
+		mclient = mock_ai.NewMockEmbedder(ctrl)
+	)
+
+	db, err := sql.Open("sqlite3", ":memory:")
+	require.NoError(t, err)
+	defer db.Close()
+
+	vdb := &DB{client: mclient, db: db}
+
+	require.NoError(t, vdb.init(t.Context()))
+
+	// Tags but no body, the frontmatter is embedded alone
+	n := newNote(t, tmp, "note1", "---\ntitle: Note 1\ntags:\n  - a\n---\n")
+
+	mclient.
+		EXPECT().
+		Embed(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, input string) ([]float32, error) {
+			assert.True(t, strings.HasPrefix(input, "title: none | text: ---\n"))
+			assert.True(t, strings.HasSuffix(input, "---"))
+
+			return []float32{1.0, 2.0}, nil
+		})
+
+	require.NoError(t, vdb.Upsert(t.Context(), n))
+
+	var count int
+	require.NoError(t, db.QueryRow("SELECT COUNT(*) FROM notes WHERE name = ?", n.Name()).Scan(&count))
+	assert.Equal(t, 1, count)
 }

@@ -11,27 +11,27 @@ import (
 )
 
 // Chunker accumulates markdown blocks into chunks that each fit under a character limit. The
-// frontmatter is prepended to every chunk.
+// prefix is prepended to every chunk.
 type Chunker struct {
-	frontmatter string
-	budget      int
-	chunks      []string
-	current     strings.Builder
+	prefix  string
+	budget  int
+	chunks  []string
+	current strings.Builder
 
 	// currentLen is the length of current in characters.
 	currentLen int
 }
 
 // New returns a chunker which produces chunks of at most limit characters.
-func New(frontmatter string, limit int) *Chunker {
-	budget := limit - utf8.RuneCountInString(frontmatter) - len("\n\n")
+func New(prefix string, limit int) *Chunker {
+	budget := limit - utf8.RuneCountInString(prefix)
 	if budget <= 0 {
 		budget = limit
 	}
 
 	chunker := Chunker{
-		frontmatter: frontmatter,
-		budget:      budget,
+		prefix: prefix,
+		budget: budget,
 	}
 
 	return &chunker
@@ -45,7 +45,7 @@ func (c *Chunker) Add(b string) {
 		c.flush()
 
 		for _, piece := range hardSplit(b, c.budget) {
-			c.chunks = append(c.chunks, c.frontmatter+"\n\n"+piece)
+			c.chunks = append(c.chunks, c.prefix+piece)
 		}
 
 		return
@@ -70,12 +70,6 @@ func (c *Chunker) Add(b string) {
 func (c *Chunker) Chunks() []string {
 	c.flush()
 
-	// No body content (e.g. a frontmatter-only note with tags but an empty body) -- embed the
-	// frontmatter alone.
-	if len(c.chunks) == 0 {
-		return []string{c.frontmatter}
-	}
-
 	return c.chunks
 }
 
@@ -85,7 +79,7 @@ func (c *Chunker) flush() {
 		return
 	}
 
-	c.chunks = append(c.chunks, c.frontmatter+"\n\n"+c.current.String())
+	c.chunks = append(c.chunks, c.prefix+c.current.String())
 	c.current.Reset()
 
 	c.currentLen = 0

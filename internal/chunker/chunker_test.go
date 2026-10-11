@@ -11,8 +11,10 @@ import (
 
 const limit = 4096
 
-func chunk(frontmatter, body string) []string {
-	c := New(frontmatter, limit)
+const prefix = "title: X | text: "
+
+func chunk(body string) []string {
+	c := New(prefix, limit)
 
 	for _, b := range Blocks(body) {
 		c.Add(b)
@@ -22,15 +24,14 @@ func chunk(frontmatter, body string) []string {
 }
 
 func TestChunkSingleChunkForSmallNote(t *testing.T) {
-	chunks := chunk("---\ntitle: X\n---", "Just a short body.")
+	chunks := chunk("Just a short body.")
 	require.Len(t, chunks, 1)
 	assert.Contains(t, chunks[0], "Just a short body.")
 	assert.Contains(t, chunks[0], "title: X")
 }
 
-func TestChunkFrontmatterOnlyNote(t *testing.T) {
-	chunks := chunk("---\ntags: [a]\n---", "")
-	assert.Equal(t, []string{"---\ntags: [a]\n---"}, chunks)
+func TestChunkNoBlocks(t *testing.T) {
+	assert.Empty(t, chunk(""))
 }
 
 func TestChunkPreservesFencedCodeBlocks(t *testing.T) {
@@ -38,7 +39,7 @@ func TestChunkPreservesFencedCodeBlocks(t *testing.T) {
 	para := "Paragraph filler text that is reasonably long to consume budget. "
 	body := strings.Repeat(para, 60) + "\n\n" + strings.Repeat(para, 30) + "\n\n" + fence + "\n\nMore text after fence."
 
-	chunks := chunk("---\ntitle: X\n---", body)
+	chunks := chunk(body)
 	require.Greater(t, len(chunks), 1)
 
 	found := false
@@ -55,7 +56,7 @@ func TestChunkPreservesFencedCodeBlocks(t *testing.T) {
 func TestChunkHardSplitsOversizedBlock(t *testing.T) {
 	body := strings.Repeat("x", limit*2)
 
-	chunks := chunk("---\ntitle: X\n---", body)
+	chunks := chunk(body)
 	require.Greater(t, len(chunks), 1)
 
 	for _, c := range chunks {
@@ -67,14 +68,13 @@ func TestChunkHardSplitsOnLineBoundaries(t *testing.T) {
 	line := strings.Repeat("x", 99)
 	body := "```\n" + strings.Repeat(line+"\n", limit/50) + "```"
 
-	chunks := chunk("---\ntitle: X\n---", body)
+	chunks := chunk(body)
 	require.Greater(t, len(chunks), 1)
 
 	for _, c := range chunks {
 		assert.LessOrEqual(t, len(c), limit)
 
-		_, piece, _ := strings.Cut(c, "\n\n")
-		for l := range strings.SplitSeq(piece, "\n") {
+		for l := range strings.SplitSeq(strings.TrimPrefix(c, prefix), "\n") {
 			assert.Contains(t, []string{"```", line}, l, "lines must not be split across chunks")
 		}
 	}
@@ -84,7 +84,7 @@ func TestChunkLimitCountsCharactersNotBytes(t *testing.T) {
 	// 3 bytes per character, so both blocks fit in a chunk of 4096 characters, but not of 4096 bytes.
 	para := strings.Repeat("日", 1000)
 
-	chunks := chunk("---\ntitle: X\n---", para+"\n\n"+para)
+	chunks := chunk(para + "\n\n" + para)
 	require.Len(t, chunks, 1)
 	assert.LessOrEqual(t, utf8.RuneCountInString(chunks[0]), limit)
 }

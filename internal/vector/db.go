@@ -291,8 +291,14 @@ func (d *DB) skip(ctx context.Context, name string, current []byte) (bool, error
 	return bytes.Equal(current, indexed), nil
 }
 
-// embed returns one vector embedding per chunk for the given note. Notes that exceed the embedding model's context
-// window are split into multiple chunks (see chunker); most notes produce exactly one.
+// TODO (jamesl33): These are the prompts EmbeddingGemma expects, they may not work for other models.
+const (
+	// documentPrefix is prepended to each chunk of a note; there is no title as the frontmatter is part of the text.
+	documentPrefix = "title: none | text: "
+)
+
+// embed returns one vector embedding per chunk for the given note, frontmatter included. Notes that exceed the
+// embedding model's context window are split into multiple chunks (see chunker); most notes produce exactly one.
 func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 	body, err := n.GetBody()
 	if err != nil {
@@ -318,6 +324,24 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 		frontmatter = strings.TrimSuffix(strings.TrimSuffix(input.String(), "\n"+bodyText+"\n"), "\n")
 	)
 
+	blocks := chunker.Blocks(bodyText)
+
+	// The frontmatter is repeated at the start of every chunk
+	if len(blocks) > 0 {
+		return d.embedBlocks(ctx, documentPrefix+frontmatter+"\n\n", blocks)
+	}
+
+	// A note with tags but no body, embed the frontmatter alone
+	serial, err := d.embedChunk(ctx, documentPrefix+frontmatter)
+	if err != nil || serial == nil {
+		return nil, err
+	}
+
+	return [][]byte{serial}, nil
+}
+
+// embedBlocks returns one vector embedding per chunk of the given markdown blocks, each prefixed with the prefix.
+func (d *DB) embedBlocks(ctx context.Context, prefix string, blocks []string) ([][]byte, error) {
 	const (
 		// contextLength is the context window of the embedding model. Input beyond this errors, rather than being
 		// truncated.
@@ -332,10 +356,9 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 	)
 
 	// The character budget is only an estimate of the token count; dense content (e.g. identifiers, hashes or encoded
-	// URLs) can exceed the context length regardless. Re-chunk the whole note with a halved budget until every chunk
-	// fits.
+	// URLs) can exceed the context length regardless. Re-chunk everything with a halved budget until every chunk fits.
 	for limit := initialLimit; ; limit /= 2 {
-		embeddings, err := d.embedChunks(ctx, frontmatter, bodyText, limit)
+		embeddings, err := d.embedChunks(ctx, prefix, blocks, limit)
 		if err == nil {
 			return embeddings, nil
 		}
@@ -350,14 +373,11 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 	}
 }
 
-// embedChunks splits the note into chunks of at most limit characters, returning an embedding for each chunk.
-func (d *DB) embedChunks(ctx context.Context, frontmatter, body string, limit int) ([][]byte, error) {
-	c := chunker.New(
-		frontmatter,
-		limit,
-	)
+// embedChunks splits the blocks into chunks of at most limit characters, returning an embedding for each chunk.
+func (d *DB) embedChunks(ctx context.Context, prefix string, blocks []string, limit int) ([][]byte, error) {
+	c := chunker.New(prefix, limit)
 
-	for _, b := range chunker.Blocks(body) {
+	for _, b := range blocks {
 		c.Add(b)
 	}
 
