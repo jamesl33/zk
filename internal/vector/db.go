@@ -320,11 +320,11 @@ func (d *DB) skip(ctx context.Context, name string, current []byte) (bool, error
 
 // TODO (jamesl33): These are the prompts EmbeddingGemma expects, they may not work for other models.
 const (
-	// documentPrefix is prepended to each chunk of a note; there is no title as the frontmatter is part of the text.
-	documentPrefix = "title: none | text: "
+	// documentFormat wraps each chunk of a note, given its title and the chunk.
+	documentFormat = "title: %s | text: %s"
 
-	// queryPrefix is prepended to each chunk of a search query.
-	queryPrefix = "task: search result | query: "
+	// queryFormat wraps each chunk of a search query.
+	queryFormat = "task: search result | query: %s"
 )
 
 // embed returns one vector embedding per chunk for the given note, frontmatter included. Notes that exceed the
@@ -340,6 +340,8 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 		return nil, nil
 	}
 
+	title := strings.Join(strings.Fields(n.Frontmatter.Title), " ")
+
 	var input bytes.Buffer
 
 	_, err = n.WriteTo(&input)
@@ -351,18 +353,20 @@ func (d *DB) embed(ctx context.Context, n *note.Note) ([][]byte, error) {
 	// leaves the frontmatter. Splitting on the first blank line would cut a frontmatter value containing one.
 	var (
 		bodyText    = strings.Trim(body, "\n")
-		frontmatter = strings.TrimSuffix(strings.TrimSuffix(input.String(), "\n"+bodyText+"\n"), "\n")
+		frontmatter = strings.TrimSuffix(strings.TrimSuffix(input.String(), fmt.Sprintf("\n%s\n", bodyText)), "\n")
 	)
 
 	blocks := chunker.Blocks(bodyText)
 
 	// The frontmatter is repeated at the start of every chunk
 	if len(blocks) > 0 {
-		return d.embedBlocks(ctx, documentPrefix+frontmatter+"\n\n", blocks)
+		wrap := func(chunk string) string { return fmt.Sprintf(documentFormat, title, frontmatter+"\n\n"+chunk) }
+
+		return d.embedBlocks(ctx, wrap, blocks)
 	}
 
 	// A note with tags but no body, embed the frontmatter alone
-	serial, err := d.embedChunk(ctx, documentPrefix+frontmatter)
+	serial, err := d.embedChunk(ctx, fmt.Sprintf(documentFormat, title, frontmatter))
 	if err != nil || serial == nil {
 		return nil, err
 	}
@@ -387,11 +391,13 @@ func (d *DB) query(ctx context.Context, n *note.Note) ([][]byte, error) {
 		return nil, fmt.Errorf("failed to get body: %w", err)
 	}
 
-	return d.embedBlocks(ctx, queryPrefix, chunker.Blocks(body))
+	wrap := func(chunk string) string { return fmt.Sprintf(queryFormat, chunk) }
+
+	return d.embedBlocks(ctx, wrap, chunker.Blocks(body))
 }
 
-// embedBlocks returns one vector embedding per chunk of the given markdown blocks, each prefixed with the prefix.
-func (d *DB) embedBlocks(ctx context.Context, prefix string, blocks []string) ([][]byte, error) {
+// embedBlocks returns one vector embedding per chunk of the given markdown blocks, each passed through wrap.
+func (d *DB) embedBlocks(ctx context.Context, wrap func(string) string, blocks []string) ([][]byte, error) {
 	const (
 		// contextLength is the context window of the embedding model. Input beyond this errors, rather than being
 		// truncated.
@@ -408,7 +414,7 @@ func (d *DB) embedBlocks(ctx context.Context, prefix string, blocks []string) ([
 	// The character budget is only an estimate of the token count; dense content (e.g. identifiers, hashes or encoded
 	// URLs) can exceed the context length regardless. Re-chunk everything with a halved budget until every chunk fits.
 	for limit := initialLimit; ; limit /= 2 {
-		embeddings, err := d.embedChunks(ctx, prefix, blocks, limit)
+		embeddings, err := d.embedChunks(ctx, wrap, blocks, limit)
 		if err == nil {
 			return embeddings, nil
 		}
@@ -424,8 +430,8 @@ func (d *DB) embedBlocks(ctx context.Context, prefix string, blocks []string) ([
 }
 
 // embedChunks splits the blocks into chunks of at most limit characters, returning an embedding for each chunk.
-func (d *DB) embedChunks(ctx context.Context, prefix string, blocks []string, limit int) ([][]byte, error) {
-	c := chunker.New(prefix, limit)
+func (d *DB) embedChunks(ctx context.Context, wrap func(string) string, blocks []string, limit int) ([][]byte, error) {
+	c := chunker.New(wrap, limit)
 
 	for _, b := range blocks {
 		c.Add(b)

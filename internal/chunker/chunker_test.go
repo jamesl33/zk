@@ -14,7 +14,7 @@ const limit = 4096
 const prefix = "title: X | text: "
 
 func chunk(body string) []string {
-	c := New(prefix, limit)
+	c := New(func(s string) string { return prefix + s }, limit)
 
 	for _, b := range Blocks(body) {
 		c.Add(b)

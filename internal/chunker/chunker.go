@@ -10,10 +10,10 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
-// Chunker accumulates markdown blocks into chunks that each fit under a character limit. The
-// prefix is prepended to every chunk.
+// Chunker accumulates markdown blocks into chunks that each fit under a character limit. Each
+// chunk is passed through wrap, which adds any surrounding text.
 type Chunker struct {
-	prefix  string
+	wrap    func(string) string
 	budget  int
 	chunks  []string
 	current strings.Builder
@@ -23,14 +23,14 @@ type Chunker struct {
 }
 
 // New returns a chunker which produces chunks of at most limit characters.
-func New(prefix string, limit int) *Chunker {
-	budget := limit - utf8.RuneCountInString(prefix)
+func New(wrap func(string) string, limit int) *Chunker {
+	budget := limit - utf8.RuneCountInString(wrap(""))
 	if budget <= 0 {
 		budget = limit
 	}
 
 	chunker := Chunker{
-		prefix: prefix,
+		wrap:   wrap,
 		budget: budget,
 	}
 
@@ -45,7 +45,7 @@ func (c *Chunker) Add(b string) {
 		c.flush()
 
 		for _, piece := range hardSplit(b, c.budget) {
-			c.chunks = append(c.chunks, c.prefix+piece)
+			c.chunks = append(c.chunks, c.wrap(piece))
 		}
 
 		return
@@ -79,7 +79,7 @@ func (c *Chunker) flush() {
 		return
 	}
 
-	c.chunks = append(c.chunks, c.prefix+c.current.String())
+	c.chunks = append(c.chunks, c.wrap(c.current.String()))
 	c.current.Reset()
 
 	c.currentLen = 0

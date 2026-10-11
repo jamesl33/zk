@@ -561,7 +561,7 @@ func TestDBUpsertFrontmatterWithBlankLine(t *testing.T) {
 	require.Len(t, inputs, 2)
 
 	for _, input := range inputs {
-		assert.True(t, strings.HasPrefix(input, "title: none | text: ---\ntype: "))
+		assert.True(t, strings.HasPrefix(input, "title: before after | text: ---\ntype: "))
 		assert.Contains(t, input, "after")
 	}
 }
@@ -588,7 +588,7 @@ func TestDBUpsertFrontmatterOnly(t *testing.T) {
 		EXPECT().
 		Embed(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(_ context.Context, input string) ([]float32, error) {
-			assert.True(t, strings.HasPrefix(input, "title: none | text: ---\n"))
+			assert.True(t, strings.HasPrefix(input, "title: Note 1 | text: ---\n"))
 			assert.True(t, strings.HasSuffix(input, "---"))
 
 			return []float32{1.0, 2.0}, nil
