@@ -19,11 +19,19 @@ func Find(ctx context.Context, query string, limit int, maxDistance float32) ([]
 
 	var found []*note.Note
 
-	err := notes.Find(ctx, &n, func(n *note.Note) error {
+	collect := func(n *note.Note) error {
 		found = append(found, n)
 
 		return nil
-	}, vector.WithLimit(limit), vector.WithMaxDistance(maxDistance))
+	}
+
+	err := notes.Find(
+		ctx,
+		&n,
+		collect,
+		vector.WithLimit(limit),
+		vector.WithMaxDistance(maxDistance),
+	)
 
 	return found, err
 }
