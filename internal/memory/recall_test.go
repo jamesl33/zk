@@ -102,3 +102,10 @@ func TestRecallTruncatesOversizedNote(t *testing.T) {
 	require.True(t, utf8.ValidString(got))
 	require.Less(t, len(got), recallMax+500)
 }
+
+func TestTruncateKeepsRunesWhole(t *testing.T) {
+	got := truncate("aé", 2)
+	require.Equal(t, "a", got)
+	require.True(t, utf8.ValidString(got))
+	require.Equal(t, "aé", truncate("aé", 3))
+}
