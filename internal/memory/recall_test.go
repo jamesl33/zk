@@ -109,3 +109,7 @@ func TestTruncateKeepsRunesWhole(t *testing.T) {
 	require.True(t, utf8.ValidString(got))
 	require.Equal(t, "aé", truncate("aé", 3))
 }
+
+func TestTruncateEntryWithBudgetBelowMarker(t *testing.T) {
+	require.Empty(t, truncateEntry(strings.Repeat("a", 500), strings.Repeat("p", 200), 100))
+}

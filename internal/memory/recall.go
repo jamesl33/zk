@@ -68,6 +68,9 @@ func Recall(ctx context.Context, vault, session, prompt string, find Finder, max
 		}
 
 		entry = truncateEntry(entry, n.Path, budget)
+		if entry == "" {
+			break
+		}
 
 		out.WriteString(entry)
 
@@ -97,7 +100,7 @@ func format(n *note.Note) (string, error) {
 }
 
 // truncateEntry shortens an entry to at most max bytes, keeping its start and saying where the full note is, as the model
-// can read it if it needs it.
+// can read it if it needs it. It returns nothing when not even the marker fits.
 func truncateEntry(entry, path string, max int) string {
 	if len(entry) <= max {
 		return entry
@@ -106,6 +109,10 @@ func truncateEntry(entry, path string, max int) string {
 	marker := fmt.Sprintf("\n[truncated (%d → %d bytes); full note: read_note %q]\n\n", len(entry), max, path)
 
 	cut := max - len(marker)
+	if cut <= 0 {
+		return "" // Not even the marker fits
+	}
+
 	for cut > 0 && !utf8.RuneStart(entry[cut]) {
 		cut--
 	}
