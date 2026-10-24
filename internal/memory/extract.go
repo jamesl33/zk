@@ -219,7 +219,7 @@ func commit(vault string) error {
 		return fmt.Errorf("failed to diff: %w: %s", err, out)
 	}
 
-	out, err = git("-c", "commit.gpgsign=false", "-c", "user.name=Claude", "-c", "user.email=claude@localhost", "commit", "-qm", "Save memories")
+	out, err = git("-c", "commit.gpgsign=false", "-c", "user.name=Claude", "-c", "user.email=claude@localhost", "commit", "-qn", "-m", "Save memories")
 	if err != nil {
 		return fmt.Errorf("failed to commit: %w: %s", err, out)
 	}
