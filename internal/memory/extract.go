@@ -120,19 +120,9 @@ func Extract(ctx context.Context, e Extraction) error {
 	}
 
 	for _, c := range chunks {
-		prompt := fmt.Sprintf(
-			"This session transcript (project %q; tool calls and results clipped) is being closed or compacted. Save its durable learnings with the zk skills and tools. Search first; update or delete rather than duplicate; skip what was already saved during the session. Reply \"nothing to save\" if there is nothing.\n\n<transcript>\n%s</transcript>\n",
-			e.Key, c.text,
-		)
-
-		err = e.Run(ctx, e.Vault, prompt)
+		err = saveChunk(ctx, e, c)
 		if err != nil {
-			return fmt.Errorf("failed to save learnings: %w", err) // The offset stays, so the next run retries
-		}
-
-		err = SetOffset(e.Vault, e.Session, c.end)
-		if err != nil {
-			return fmt.Errorf("failed to record offset: %w", err)
+			return err
 		}
 	}
 
@@ -147,6 +137,26 @@ func Extract(ctx context.Context, e Extraction) error {
 	}
 
 	return commit(e.Vault)
+}
+
+// saveChunk has the model save the learnings in a chunk, then records that it has been seen.
+func saveChunk(ctx context.Context, e Extraction, c segment) error {
+	prompt := fmt.Sprintf(
+		"This session transcript (project %q; tool calls and results clipped) is being closed or compacted. Save its durable learnings with the zk skills and tools. Search first; update or delete rather than duplicate; skip what was already saved during the session. Reply \"nothing to save\" if there is nothing.\n\n<transcript>\n%s</transcript>\n",
+		e.Key, c.text,
+	)
+
+	err := e.Run(ctx, e.Vault, prompt)
+	if err != nil {
+		return fmt.Errorf("failed to save learnings: %w", err) // The offset stays, so the next run retries
+	}
+
+	err = SetOffset(e.Vault, e.Session, c.end)
+	if err != nil {
+		return fmt.Errorf("failed to record offset: %w", err)
+	}
+
+	return nil
 }
 
 // fixLint gives the model one pass to fix whatever lint it left.
