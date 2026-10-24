@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/jamesl33/zk/internal/note"
 )
@@ -18,6 +19,9 @@ const (
 	// MaxDistance is the default cosine distance beyond which a note is not relevant, so that trivial prompts inject
 	// nothing. It's overridden by ZK_MEMORY_MAX_DISTANCE.
 	MaxDistance float32 = 0.65
+
+	// minEntry is the least bytes of budget left for a note to be worth injecting, truncated.
+	minEntry = 300
 
 	// minWords is the shortest prompt worth searching for ("yes", "continue" can't match anything).
 	minWords = 3
@@ -58,9 +62,12 @@ func Recall(ctx context.Context, vault, session, prompt string, find Finder, max
 			return "", err
 		}
 
-		if out.Len()+len(entry) > recallMax {
+		budget := recallMax - out.Len()
+		if budget < minEntry {
 			break
 		}
+
+		entry = truncateEntry(entry, n.Path, budget)
 
 		out.WriteString(entry)
 
@@ -87,6 +94,23 @@ func format(n *note.Note) (string, error) {
 	}
 
 	return fmt.Sprintf("### %s (%s, saved %s)\n%s\n\n", n.Frontmatter.Title, n.Path, n.Frontmatter.Date, strings.TrimSpace(body)), nil
+}
+
+// truncateEntry shortens an entry to at most max bytes, keeping its start and saying where the full note is, as the model
+// can read it if it needs it.
+func truncateEntry(entry, path string, max int) string {
+	if len(entry) <= max {
+		return entry
+	}
+
+	marker := fmt.Sprintf("\n[truncated (%d → %d bytes); full note: read_note %q]\n\n", len(entry), max, path)
+
+	cut := max - len(marker)
+	for cut > 0 && !utf8.RuneStart(entry[cut]) {
+		cut--
+	}
+
+	return entry[:cut] + marker
 }
 
 // truncate shortens s to at most n bytes.

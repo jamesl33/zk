@@ -3,7 +3,9 @@ package memory
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/stretchr/testify/require"
@@ -87,4 +89,16 @@ func TestRecallFinderError(t *testing.T) {
 
 	_, err := Recall(context.Background(), vault, "s", prompt, fail, MaxDistance)
 	require.ErrorContains(t, err, "ollama down")
+}
+
+func TestRecallTruncatesOversizedNote(t *testing.T) {
+	vault := withVault(t)
+	big := writeNote(t, "3 Resources/big.md", "Big", nil, strings.Repeat("é", recallMax))
+
+	got, err := Recall(context.Background(), vault, "s", prompt, finderOf(t, 0.1, big), MaxDistance)
+	require.NoError(t, err)
+	require.Contains(t, got, "### Big")
+	require.Contains(t, got, `full note: read_note "3 Resources/big.md"`)
+	require.True(t, utf8.ValidString(got))
+	require.Less(t, len(got), recallMax+500)
 }
