@@ -4,4 +4,5 @@ Save when the user states a preference, corrects you, says "remember", or you hi
 
 - Project-specific facts go in `1 Projects/<project key>`; facts useful in any repo in `3 Resources`; ongoing concerns in `2 Areas`.
 - Tag each note one of `user`, `feedback`, `project`, `reference`.
+- An `index` note links out to every note on its topic. After creating a note, add it to its index with `update_note`; a new index lists its notes from the start.
 - Search first. `update_note` or `delete_note` instead of adding a contradicting note. A recalled note that is wrong: fix or delete it now.
