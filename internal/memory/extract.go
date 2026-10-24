@@ -175,7 +175,7 @@ func saveChunk(ctx context.Context, e Extraction, c segment) error {
 
 // fixLint gives the model one pass to fix whatever lint it left.
 func fixLint(ctx context.Context, e Extraction) error {
-	lintErrors, err := linter.NewLinter().Lint(ctx, ".")
+	lintErrors, err := linter.NewLinter().Lint(ctx, e.Vault)
 	if err != nil {
 		return fmt.Errorf("failed to lint: %w", err)
 	}
