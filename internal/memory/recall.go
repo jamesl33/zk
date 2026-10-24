@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/jamesl33/zk/internal/note"
 )
 
 const (
@@ -51,12 +53,11 @@ func Recall(ctx context.Context, vault, session, prompt string, find Finder, max
 			continue
 		}
 
-		body, err := n.GetBody()
+		entry, err := format(n)
 		if err != nil {
-			return "", fmt.Errorf("failed to read note: %w", err)
+			return "", err
 		}
 
-		entry := fmt.Sprintf("### %s (%s, saved %s)\n%s\n\n", n.Frontmatter.Title, n.Path, n.Frontmatter.Date, strings.TrimSpace(body))
 		if out.Len()+len(entry) > recallMax {
 			break
 		}
@@ -76,6 +77,16 @@ func Recall(ctx context.Context, vault, session, prompt string, find Finder, max
 	}
 
 	return "<memory>\nNotes from Claude's memory vault that may be relevant. Older notes may be stale: verify anything about code or state before relying on it. If a note is wrong or outdated, fix or delete it with the memory tools.\n\n" + out.String() + "</memory>", nil
+}
+
+// format renders a note for injection.
+func format(n *note.Note) (string, error) {
+	body, err := n.GetBody()
+	if err != nil {
+		return "", fmt.Errorf("failed to read note: %w", err)
+	}
+
+	return fmt.Sprintf("### %s (%s, saved %s)\n%s\n\n", n.Frontmatter.Title, n.Path, n.Frontmatter.Date, strings.TrimSpace(body)), nil
 }
 
 // truncate shortens s to at most n bytes.
