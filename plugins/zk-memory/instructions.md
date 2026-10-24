@@ -8,9 +8,11 @@ Relevant notes are injected as `<memory>` before prompts. Treat them as backgrou
 
 ## Save
 
-Save only durable knowledge useful in other projects or sessions: user preferences and corrections, decisions and why, tool quirks, hard-won gotchas. Never save task state, progress, or anything derivable from code or git history.
+Save only cross-project knowledge, useful outside the repo it was learned in: user preferences and corrections, tool quirks, hard-won gotchas. Knowledge specific to one project belongs in the built-in project memory, not here. Never save task state, progress, or anything derivable from code or git history.
 
-- One atomic note per fact; the title states the claim.
+- One atomic note per fact; the title states the claim. Split anything holding two facts. Write for a stranger: self-contained, no reliance on this session.
+- Every note links to at least one other note with `[[ID|Title]]`, found via `find_related_notes` or `semantic_search_notes`. With no related note, link to an `index` note for the topic, creating it if needed.
+- After saving, run `lint_notes` and fix every finding before finishing.
 - Search first. Update the existing note, or delete it when wrong, instead of adding a contradicting one.
-- Directory: `1 Projects` for knowledge specific to one piece of work (e.g. a new feature in a repo), one sub-directory per project; `3 Resources` for cross-project facts; `2 Areas` for ongoing concerns; `0 Inbox` for fleeting notes. Archive a finished project's directory to `4 Archives`.
+- Directory: `3 Resources` for facts; `2 Areas` for ongoing concerns; `0 Inbox` for fleeting notes.
 - When asked to "save what you learned" (end of session or before compaction), save what qualifies, or reply "nothing to save".

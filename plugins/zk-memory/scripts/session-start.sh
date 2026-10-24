@@ -1,6 +1,6 @@
 #!/bin/sh
 # Ensures the vault exists and gives Claude its memory instructions (also after /clear and compaction).
-# The headless save run (precompact.sh) must not trigger hooks.
+# The headless save run (extract.sh) must not trigger hooks.
 [ -z "$ZK_MEMORY_SAVING" ] || exit 0
 
 . "$(dirname "$0")/vault.sh" || exit 0
