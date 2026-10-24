@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"slices"
@@ -23,20 +24,20 @@ func Digest(ctx context.Context, key string) (string, error) {
 		return "", fmt.Errorf("failed to create lister: %w", err)
 	}
 
-	var project, global []string
+	var project, global []listing
 
 	for n, err := range lister.Many(ctx) {
 		if err != nil {
 			return "", fmt.Errorf("failed to list notes: %w", err)
 		}
 
-		line := fmt.Sprintf("- %s (%s)", n.Frontmatter.Title, n.Path)
+		l := listing{date: n.Frontmatter.Date, line: fmt.Sprintf("- %s (%s)", n.Frontmatter.Title, n.Path)}
 
 		switch {
 		case inProject(n.Path, key):
-			project = append(project, line)
+			project = append(project, l)
 		case slices.ContainsFunc(n.Frontmatter.Tags, func(tag string) bool { return slices.Contains(globalTags, tag) }):
-			global = append(global, line)
+			global = append(global, l)
 		}
 	}
 
@@ -52,27 +53,35 @@ func Digest(ctx context.Context, key string) (string, error) {
 	return out.String(), nil
 }
 
-// section lists lines under a heading, stopping before the digest outgrows its budget.
-func section(out *strings.Builder, heading string, lines []string) {
+// listing is a digest line and the date its note was created.
+type listing struct {
+	date string
+	line string
+}
+
+// section lists notes under a heading, newest first, stopping before the digest outgrows its budget.
+func section(out *strings.Builder, heading string, lines []listing) {
 	if len(lines) == 0 {
 		return
 	}
 
-	slices.Sort(lines)
+	slices.SortFunc(lines, func(a, b listing) int {
+		return cmp.Or(strings.Compare(b.date, a.date), strings.Compare(a.line, b.line))
+	})
 
 	fmt.Fprintf(out, "\n%s:\n", heading)
 
 	var size int
 
-	for i, line := range lines {
-		size += len(line) + 1
+	for i, l := range lines {
+		size += len(l.line) + 1
 		if size > digestMax/2 {
 			fmt.Fprintf(out, "- ... %d more, use semantic_search_notes\n", len(lines)-i)
 
 			return
 		}
 
-		out.WriteString(line + "\n")
+		out.WriteString(l.line + "\n")
 	}
 }
 
