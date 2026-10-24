@@ -4,3 +4,5 @@ description: Save, update or forget a memory in Claude's persistent zk vault. Us
 ---
 
 Follow the guidance in the `<memory-digest>` given at session start, and the vault's `ZK.md` for note format.
+
+If there is no `<memory-digest>`, search with `semantic_search_notes` first, then `update_note` or `create_note`.
