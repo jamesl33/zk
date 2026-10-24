@@ -13,8 +13,8 @@ const (
 	// recallLimit is the most notes searched for per prompt.
 	recallLimit = 15
 
-	// recallMax is the most bytes of notes injected per prompt.
-	recallMax = 2000
+	// recallMax is the most bytes of notes injected per prompt: 16k tokens, at about 4 bytes a token.
+	recallMax = 1024 * 16 * 4
 
 	// MaxDistance is the default cosine distance beyond which a note is not relevant, so that trivial prompts inject
 	// nothing. It's overridden by ZK_MEMORY_MAX_DISTANCE.
