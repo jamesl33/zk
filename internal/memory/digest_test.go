@@ -40,7 +40,7 @@ func TestDigestCapsTitles(t *testing.T) {
 	got, err := Digest(context.Background(), "mine")
 	require.NoError(t, err)
 	require.Contains(t, got, "more, use semantic_search_notes")
-	require.Less(t, len(got), len(Guidance)+digestMax+300)
+	require.Less(t, len(got), len(Guidance)+2*digestSectionMax+300)
 }
 
 func TestDigestKeepsNewestWhenCapped(t *testing.T) {

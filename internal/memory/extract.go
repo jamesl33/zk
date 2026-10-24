@@ -32,6 +32,9 @@ const (
 	// clipSize is the most characters kept of a tool call or result.
 	clipSize = 500
 
+	// errorSize is the most bytes kept of a failed run's output.
+	errorSize = 500
+
 	// runTimeout is the longest one headless run may take. Extract holds the vault lock throughout, so a hung run would block
 	// every later save.
 	runTimeout = 5 * time.Minute
@@ -60,7 +63,7 @@ func ClaudeRunner(model string) Runner {
 
 		out, err := cmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("claude failed: %w: %s", err, truncate(string(out), 500))
+			return fmt.Errorf("claude failed: %w: %s", err, truncate(string(out), errorSize))
 		}
 
 		return nil

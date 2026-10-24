@@ -10,8 +10,8 @@ import (
 	"github.com/jamesl33/zk/internal/lister"
 )
 
-// digestMax is the most bytes of note titles in the digest.
-const digestMax = 2000
+// digestSectionMax is the most bytes of note titles in each section of the digest.
+const digestSectionMax = 1000
 
 // globalTags are the tags of notes which are always listed, whichever project they were saved from.
 var globalTags = []string{"user", "feedback"}
@@ -75,7 +75,7 @@ func section(out *strings.Builder, heading string, lines []listing) {
 
 	for i, l := range lines {
 		size += len(l.line) + 1
-		if size > digestMax/2 {
+		if size > digestSectionMax {
 			fmt.Fprintf(out, "- ... %d more, use semantic_search_notes\n", len(lines)-i)
 
 			return
