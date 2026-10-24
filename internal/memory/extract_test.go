@@ -173,3 +173,15 @@ func TestEnsureVaultIsIdempotent(t *testing.T) {
 		require.NoError(t, err, f)
 	}
 }
+
+func TestExtractSkipsWithoutUserText(t *testing.T) {
+	vault := withVault(t)
+
+	transcript := writeTranscript(t, `{"type":"assistant","message":{"content":[{"type":"text","text":"hi"}]}}`)
+
+	var r recorder
+
+	require.NoError(t, Extract(context.Background(), Extraction{Vault: vault, Session: "s", Transcript: transcript, Run: r.run}))
+	require.Empty(t, r.prompts)
+	require.Equal(t, 1, Offset(vault, "s"))
+}

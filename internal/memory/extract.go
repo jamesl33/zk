@@ -121,6 +121,10 @@ func Extract(ctx context.Context, e Extraction) error {
 		return fmt.Errorf("failed to read transcript: %w", err)
 	}
 
+	if !hasUserText(entries) {
+		return SetOffset(e.Vault, e.Session, total) // Nothing the user said, so nothing to learn
+	}
+
 	chunks := chunk(entries)
 	if len(chunks) > maxChunks {
 		Logf(e.Vault, "session %s: dropping %d oldest chunks", e.Session, len(chunks)-maxChunks)
@@ -254,6 +258,17 @@ func readTranscript(path string, skip int) ([]entry, int, error) {
 	}
 
 	return entries, total, scanner.Err()
+}
+
+// hasUserText reports whether any entry is a user message rather than a tool result.
+func hasUserText(entries []entry) bool {
+	for _, e := range entries {
+		if strings.HasPrefix(e.text, "user: ") && !strings.HasPrefix(e.text, "user: [result]") {
+			return true
+		}
+	}
+
+	return false
 }
 
 // chunk groups entries into segments of about chunkSize.
