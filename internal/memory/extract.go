@@ -5,9 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,6 +23,9 @@ const (
 	// maxChunks is the most chunks of a transcript extracted; if there are more, the oldest are dropped, since the end of a
 	// session is where the corrections and conclusions are.
 	maxChunks = 20
+
+	// maxLineSize is the longest transcript line which can be read.
+	maxLineSize = 64 << 20
 
 	// clipSize is the most characters kept of a tool call or result.
 	clipSize = 500
@@ -233,26 +234,18 @@ func readTranscript(path string, skip int) ([]entry, int, error) {
 		total   int
 	)
 
-	reader := bufio.NewReader(file)
+	scanner := bufio.NewScanner(file)
+	scanner.Buffer(nil, maxLineSize)
 
-	for {
-		line, err := reader.ReadBytes('\n')
-		if len(line) > 0 {
-			total++
+	for scanner.Scan() {
+		total++
 
-			if text := render(line); total > skip && text != "" {
-				entries = append(entries, entry{text: text, end: total})
-			}
-		}
-
-		if errors.Is(err, io.EOF) {
-			return entries, total, nil
-		}
-
-		if err != nil {
-			return nil, 0, err
+		if text := render(scanner.Bytes()); total > skip && text != "" {
+			entries = append(entries, entry{text: text, end: total})
 		}
 	}
+
+	return entries, total, scanner.Err()
 }
 
 // chunk groups entries into segments of about chunkSize.
