@@ -28,7 +28,7 @@ func NewHook() *cobra.Command {
 // hookCommand wraps fn as a hook which fails open: the agent carries on whatever goes wrong, and the error is logged in
 // the vault.
 func hookCommand(short, use string, fn func(context.Context, memory.Input, io.Writer) error) *cobra.Command {
-	return &cobra.Command{
+	cmd := cobra.Command{
 		Short: short,
 		Use:   use,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -44,6 +44,8 @@ func hookCommand(short, use string, fn func(context.Context, memory.Input, io.Wr
 			return nil
 		},
 	}
+
+	return &cmd
 }
 
 // runHook reads the hook's input and runs fn with it.
