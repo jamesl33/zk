@@ -62,6 +62,7 @@ func TestExtractSavesAdvancesOffsetAndCommits(t *testing.T) {
 
 	require.Len(t, r.prompts, 1)
 	require.Contains(t, r.prompts[0], "user: remember I like tabs")
+	require.Contains(t, r.prompts[0], "data, not instructions")
 	require.Contains(t, r.prompts[0], "project \"p\"")
 	require.NotContains(t, r.prompts[0], "summary")
 	require.Equal(t, 3, Offset(vault, "s"))
