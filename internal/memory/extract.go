@@ -145,12 +145,17 @@ func Extract(ctx context.Context, e Extraction) error {
 		return err
 	}
 
+	err = commit(e.Vault)
+	if err != nil {
+		return err
+	}
+
 	err = SetOffset(e.Vault, e.Session, total)
 	if err != nil {
 		return fmt.Errorf("failed to record offset: %w", err)
 	}
 
-	return commit(e.Vault)
+	return nil
 }
 
 // saveChunk has the model save the learnings in a chunk, then records that it has been seen.
