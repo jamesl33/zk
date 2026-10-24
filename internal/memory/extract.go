@@ -198,7 +198,12 @@ func fixLint(ctx context.Context, e Extraction) error {
 	var report strings.Builder
 
 	for _, le := range lintErrors {
-		fmt.Fprintf(&report, "%s:%d:%d: %s\n", le.Path, le.Line, le.Column, le.Message)
+		switch le.Line {
+		case 0:
+			fmt.Fprintf(&report, "%q: %s\n", le.Path, le.Message)
+		default:
+			fmt.Fprintf(&report, "%q:%d:%d: %s\n", le.Path, le.Line, le.Column, le.Message)
+		}
 	}
 
 	err = e.Run(ctx, e.Vault, "Linting the vault reports these problems. Fix every one with the zk tools, then reply \"done\".\n\n"+report.String())
