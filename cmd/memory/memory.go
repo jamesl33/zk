@@ -22,7 +22,7 @@ const recallTimeout = 3 * time.Second
 // NewMemory creates the parent of the memory commands.
 func NewMemory() *cobra.Command {
 	cmd := cobra.Command{
-		Short:  "Backs Claude's persistent memory with a vault",
+		Short:  "Backs an agent's persistent memory with a vault",
 		Use:    "memory",
 		Hidden: true,
 	}
