@@ -47,8 +47,8 @@ type Specific struct {
 }
 
 // Context returns output adding the given context for the event.
-func Context(event, context string) Output {
-	specific := Specific{HookEventName: event, AdditionalContext: context}
+func Context(event, additional string) Output {
+	specific := Specific{HookEventName: event, AdditionalContext: additional}
 
 	out := Output{HookSpecificOutput: &specific}
 
