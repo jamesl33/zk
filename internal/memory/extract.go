@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -208,9 +209,14 @@ func commit(vault string) error {
 		return fmt.Errorf("failed to stage: %w: %s", err, out)
 	}
 
-	_, err = git("diff", "--cached", "--quiet")
+	out, err = git("diff", "--cached", "--quiet")
 	if err == nil {
 		return nil // Nothing changed
+	}
+
+	var exitErr *exec.ExitError
+	if !errors.As(err, &exitErr) || exitErr.ExitCode() != 1 {
+		return fmt.Errorf("failed to diff: %w: %s", err, out)
 	}
 
 	out, err = git("-c", "commit.gpgsign=false", "-c", "user.name=Claude", "-c", "user.email=claude@localhost", "commit", "-qm", "Save memories")
