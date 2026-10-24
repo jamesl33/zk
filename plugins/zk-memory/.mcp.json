@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "zk-memory": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/mcp.sh",
+      "args": []
+    }
+  }
+}

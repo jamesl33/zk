@@ -11,6 +11,11 @@
       "name": "zk",
       "source": "./plugins/zk",
       "description": "Skills and MCP server for managing a Zettelkasten with zk"
+    },
+    {
+      "name": "zk-memory",
+      "source": "./plugins/zk-memory",
+      "description": "Persistent cross-project memory for Claude, backed by its own zk vault"
     }
   ]
 }

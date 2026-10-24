@@ -1,0 +1,33 @@
+{
+  "description": "Recall memory before each prompt and save it after",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/scripts/session-start.sh", "args": [], "timeout": 15}
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/scripts/recall.sh", "args": [], "timeout": 10}
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/scripts/save-nudge.sh", "args": [], "timeout": 5}
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/scripts/precompact.sh", "args": [], "timeout": 120}
+        ]
+      }
+    ]
+  }
+}
