@@ -13,6 +13,7 @@ import (
 	"github.com/jamesl33/zk/cmd/lint"
 	"github.com/jamesl33/zk/cmd/lsp"
 	"github.com/jamesl33/zk/cmd/mcp"
+	"github.com/jamesl33/zk/cmd/memory"
 	"github.com/jamesl33/zk/cmd/note"
 	"github.com/jamesl33/zk/cmd/notes"
 	"github.com/jamesl33/zk/cmd/tags"
@@ -65,6 +66,7 @@ func init() {
 		lint.NewLint(),
 		lsp.NewLSP(),
 		mcp.NewMCP(),
+		memory.NewMemory(),
 		note.NewNote(),
 		notes.NewNotes(),
 		tags.NewTags(),

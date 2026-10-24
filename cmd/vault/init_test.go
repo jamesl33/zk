@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +17,7 @@ func TestInitRun(t *testing.T) {
 
 	require.NoError(t, i.Run(tmp))
 
-	for _, dir := range append([]string{".zk"}, directories...) {
+	for _, dir := range append([]string{".zk"}, vault.Directories...) {
 		assert.DirExists(t, filepath.Join(tmp, dir))
 	}
 

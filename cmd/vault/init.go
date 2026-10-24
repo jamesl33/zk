@@ -2,22 +2,9 @@
 package vault
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-
+	"github.com/jamesl33/zk/internal/vault"
 	"github.com/spf13/cobra"
 )
-
-// directories is the PARA layout created in every new vault.
-var directories = []string{
-	"0 Inbox",
-	"1 Projects",
-	"2 Areas",
-	"3 Resources",
-	"4 Archives",
-	"5 Bibliography",
-}
 
 // InitOptions defines the options for the init command.
 type InitOptions struct{}
@@ -49,12 +36,5 @@ func NewInit() *cobra.Command {
 
 // Run creates the vault in the given directory, which is created if required.
 func (i *Init) Run(path string) error {
-	for _, dir := range append([]string{".zk"}, directories...) {
-		err := os.MkdirAll(filepath.Join(path, dir), 0o755)
-		if err != nil {
-			return fmt.Errorf("failed to create '%s': %w", dir, err)
-		}
-	}
-
-	return nil
+	return vault.Init(path)
 }
