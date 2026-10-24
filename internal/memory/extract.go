@@ -14,6 +14,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/linter"
 )
 
@@ -43,7 +44,9 @@ func ClaudeRunner(model string) Runner {
 		cmd := exec.CommandContext(ctx, "claude", "-p", "--model", model, "--no-session-persistence", "--allowedTools", allowedTools)
 		cmd.Dir = vault
 		cmd.Stdin = strings.NewReader(prompt)
-		cmd.Env = append(withoutEnv(os.Environ(), "ZK_VAULT"), SavingEnv+"=1")
+		env := hs.Filter(os.Environ(), func(e string) bool { return !strings.HasPrefix(e, "ZK_VAULT=") })
+
+		cmd.Env = append(env, SavingEnv+"=1")
 
 		out, err := cmd.CombinedOutput()
 		if err != nil {
@@ -52,18 +55,6 @@ func ClaudeRunner(model string) Runner {
 
 		return nil
 	}
-}
-
-func withoutEnv(env []string, name string) []string {
-	var kept []string
-
-	for _, e := range env {
-		if !strings.HasPrefix(e, name+"=") {
-			kept = append(kept, e)
-		}
-	}
-
-	return kept
 }
 
 // Detach starts this executable again with the arguments, in its own session with the saving flag set, and doesn't wait
