@@ -186,6 +186,22 @@ func TestExtractSkipsWithoutUserText(t *testing.T) {
 	require.Equal(t, 1, Offset(vault, "s"))
 }
 
+func TestExtractCommitsLeftoversWithoutUserText(t *testing.T) {
+	vault := withVault(t)
+
+	require.NoError(t, os.WriteFile(filepath.Join(vault, "3 Resources", "left.md"), []byte("x"), 0o644))
+
+	var r recorder
+
+	transcript := writeTranscript(t, `{"type":"assistant","message":{"content":[{"type":"text","text":"hi"}]}}`)
+
+	require.NoError(t, Extract(context.Background(), Extraction{Vault: vault, Session: "s", Transcript: transcript, Run: r.run}))
+
+	out, err := exec.Command("git", "-C", vault, "status", "--porcelain").Output()
+	require.NoError(t, err)
+	require.Empty(t, string(out))
+}
+
 func TestRenderSkipsMetaLines(t *testing.T) {
 	require.Empty(t, render([]byte(`{"type":"user","isMeta":true,"message":{"content":"Base directory for this skill"}}`)))
 	require.Contains(t, render([]byte(userLine("hi"))), "user: hi")

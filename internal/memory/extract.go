@@ -123,7 +123,13 @@ func Extract(ctx context.Context, e Extraction) error {
 	}
 
 	if !hasUserText(entries) {
-		return SetOffset(e.Vault, e.Session, total) // Nothing the user said, so nothing to learn
+		// Nothing the user said, so nothing to learn; still commit what an earlier failed commit left staged
+		err = commit(e.Vault)
+		if err != nil {
+			return err
+		}
+
+		return SetOffset(e.Vault, e.Session, total)
 	}
 
 	chunks := chunk(entries)
