@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/jamesl33/zk/internal/memory"
@@ -35,19 +36,32 @@ func hookCommand(short, use string, fn func(context.Context, memory.Input, io.Wr
 				return nil // The headless save run mustn't trigger hooks
 			}
 
-			in, err := memory.ReadInput(cmd.InOrStdin())
+			err := runHook(cmd, fn)
 			if err != nil {
-				return nil
-			}
-
-			err = fn(cmd.Context(), in, cmd.OutOrStdout())
-			if err != nil {
-				if vault, verr := memory.VaultPath(); verr == nil {
-					memory.Logf(vault, "%s: %v", use, err)
-				}
+				logHook(use, err)
 			}
 
 			return nil
 		},
 	}
+}
+
+// runHook reads the hook's input and runs fn with it.
+func runHook(cmd *cobra.Command, fn func(context.Context, memory.Input, io.Writer) error) error {
+	in, err := memory.ReadInput(cmd.InOrStdin())
+	if err != nil {
+		return fmt.Errorf("failed to read input: %w", err)
+	}
+
+	return fn(cmd.Context(), in, cmd.OutOrStdout())
+}
+
+// logHook records a hook's failure in the vault, when there is one.
+func logHook(use string, err error) {
+	vault, verr := memory.VaultPath()
+	if verr != nil {
+		return
+	}
+
+	memory.Logf(vault, "%s: %v", use, err)
 }
