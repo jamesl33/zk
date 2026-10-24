@@ -33,14 +33,14 @@ hits=$(timeout 3 zk --vault "$V" notes find --json --limit 5 --max-distance "$MA
 recalled="$V/.zk/state/$session.recalled"
 touch "$recalled"
 
-context=$(printf %s "$hits" | jq -r '[.path, .frontmatter.title] | @tsv' | while IFS="$(printf '\t')" read -r path title; do
+context=$(printf %s "$hits" | jq -r '[.path, .frontmatter.date // "unknown", .frontmatter.title] | @tsv' | while IFS="$(printf '\t')" read -r path date title; do
 	grep -Fxq -- "$path" "$recalled" && continue
 	printf '%s\n' "$path" >>"$recalled"
-	printf '### %s (%s)\n' "$title" "$path"
+	printf '### %s (%s, saved %s)\n' "$title" "$path" "$date"
 	awk 'body {print; next} /^---$/ && ++markers == 2 {body = 1}' "$V/$path"
 done | head -c 2000)
 
 [ -n "$context" ] || exit 0
 
-printf '<memory>\nNotes from Claude'"'"'s memory vault that may be relevant:\n\n%s\n</memory>' "$context" |
+printf '<memory>\nNotes from Claude'"'"'s memory vault that may be relevant. Older notes may be stale: verify anything about code or state before relying on it. If a note is wrong or outdated, say so in the form "Memory note <path> is stale: <what is wrong>" so it is removed.\n\n%s\n</memory>' "$context" |
 	jq -Rs '{hookSpecificOutput: {hookEventName: "UserPromptSubmit", additionalContext: .}}'
