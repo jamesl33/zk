@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/jamesl33/zk/internal/hs"
 	"github.com/jamesl33/zk/internal/linter"
@@ -30,6 +31,10 @@ const (
 	// clipSize is the most characters kept of a tool call or result.
 	clipSize = 500
 
+	// runTimeout is the longest one headless run may take. Extract holds the vault lock throughout, so a hung run would block
+	// every later save.
+	runTimeout = 5 * time.Minute
+
 	// allowedTools lets the headless run use the zk skills and both zk MCP servers: 'zk' (resolving to the memory vault, as
 	// the run starts there) and 'zk-memory'.
 	allowedTools = "mcp__plugin_zk_zk__*,mcp__plugin_zk-memory_zk-memory__*,Skill"
@@ -42,6 +47,9 @@ type Runner func(ctx context.Context, vault, prompt string) error
 // own hooks do nothing, and ZK_VAULT is dropped so 'zk' resolves the vault from where it runs.
 func ClaudeRunner(model string) Runner {
 	return func(ctx context.Context, vault, prompt string) error {
+		ctx, cancel := context.WithTimeout(ctx, runTimeout)
+		defer cancel()
+
 		cmd := exec.CommandContext(ctx, "claude", "-p", "--model", model, "--no-session-persistence", "--allowedTools", allowedTools)
 		cmd.Dir = vault
 		cmd.Stdin = strings.NewReader(prompt)
