@@ -185,3 +185,8 @@ func TestExtractSkipsWithoutUserText(t *testing.T) {
 	require.Empty(t, r.prompts)
 	require.Equal(t, 1, Offset(vault, "s"))
 }
+
+func TestRenderSkipsMetaLines(t *testing.T) {
+	require.Empty(t, render([]byte(`{"type":"user","isMeta":true,"message":{"content":"Base directory for this skill"}}`)))
+	require.Contains(t, render([]byte(userLine("hi"))), "user: hi")
+}

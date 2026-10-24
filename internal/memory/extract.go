@@ -297,6 +297,7 @@ func chunk(entries []entry) []segment {
 
 type transcriptLine struct {
 	Type    string `json:"type"`
+	IsMeta  bool   `json:"isMeta"`
 	Message struct {
 		Content json.RawMessage `json:"content"`
 	} `json:"message"`
@@ -311,11 +312,11 @@ type block struct {
 }
 
 // render turns a transcript line into text, keeping tool calls and results (they hold the gotchas) but clipped. Lines
-// which aren't a user or assistant message render as nothing.
+// which aren't a user or assistant message, or which the harness injected (skill bodies, caveats), render as nothing.
 func render(line []byte) string {
 	var tl transcriptLine
 
-	if json.Unmarshal(line, &tl) != nil || (tl.Type != "user" && tl.Type != "assistant") {
+	if json.Unmarshal(line, &tl) != nil || tl.IsMeta || (tl.Type != "user" && tl.Type != "assistant") {
 		return ""
 	}
 
