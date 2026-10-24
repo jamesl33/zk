@@ -1,29 +1,54 @@
 # zk
 
-`zk` allows interacting, searching and updating a Markdown Zettelkasten; it's designed to allow command composition.
+A composable CLI for a Markdown Zettelkasten, with semantic search, an LSP server and an MCP server. Commands print paths and metadata so they pipe into `fzf`, your editor and shell functions.
 
-# Usage
+- Notes get unique names, so links survive renames and moves.
+- Search by fixed string, glob, regex or meaning (local embeddings).
+- An MCP server, skills and hooks let Claude Code read and write the vault, and give it persistent memory ([zk-memory](#zk-memory)).
 
-I use `zk` to mange my notes, which are organized to follow [PARA](https://fortelabs.com/blog/para).
+# Install
+
+```
+go install github.com/jamesl33/zk@latest
+zk init ~/notes
+```
+
+`zk init [directory]` creates `.zk` and the PARA layout, leaving anything that exists untouched. Run commands from inside a vault, or point at one with `--vault <directory>` (env `ZK_VAULT`).
 
 ```
 .
-├── .zk
+├── .zk            # Index and cache (disposable, gitignore it)
 ├── 0 Inbox        # Flat, fleeting notes
-├── 1 Projects     # Directories containing a flat hierarchy of "project" notes
-├── 2 Areas        # Directories containing a flat hierarchy "area" notes
-├── 3 Resources    # Directories containing a flat hierarchy "resource" notes
-├── 4 Archives     # Directories/notes that are not longer required
-└── 5 Bibliography # Notes which link to books/articals
+├── 1 Projects     # One directory per project
+├── 2 Areas        # One directory per area
+├── 3 Resources    # One directory per topic
+├── 4 Archives     # Finished or inactive
+└── 5 Bibliography # Notes linking to books/articles
 ```
 
-## CLI
+# Commands
 
-The `zk` command exposes useful commands to enable finding notes that are required; see [#Aliases/Functions](#aliasesfunctions) for some usage examples.
+| Command | Does |
+|---|---|
+| `zk note create <type>` | New `fleeting`, `permanent`, `literature`, `index` or `bibliographic` note; prints its path |
+| `zk note update <path>` | Open in `$EDITOR` (`-` reads paths from stdin) |
+| `zk note find <path>` | Notes semantically similar to a note |
+| `zk note links <path> [--to\|--from]` | Notes linked to/from a note |
+| `zk note summarize <path>` | Summarize with Gemini |
+| `zk note delete <path>` | Delete a note |
+| `zk notes list [dir] [--fixed\|--glob\|--regex]` | List notes by title; `list tagged --with/--without` filters by tag |
+| `zk notes search [dir] [--fixed\|--glob\|--regex]` | Search titles and content |
+| `zk notes find <query> [--limit] [--max-distance]` | Semantic search from plain text |
+| `zk notes pick` | Pick a note from `zk` output with `fzf` |
+| `zk tags list\|generate\|delete` | List tags, generate them with Gemini, remove one everywhere |
+| `zk links rewrite` | Rewrite links to use note titles |
+| `zk lint [dir] [--archives]` | Lint notes |
+| `zk lsp` | LSP server |
+| `zk mcp` | MCP server over stdio |
 
-### Aliases/Functions
+## Shell
 
-The tool is designed to be compostable, allow aliases/functions which improve overall functionality.
+Every command prints paths, so the pattern is list, pick, open (fish):
 
 ```fish
 function zkfn -d "Finds notes related to a given note, then picks and opens one"
@@ -141,8 +166,6 @@ end
 ```
 
 ## NeoVim
-
-In a similar way that functions/aliases can be used to improve `zk`, the same can be done in NeoVim.
 
 ```lua
 -- Edit the given file
@@ -282,40 +305,77 @@ vim.keymap.set(
 
 # AI
 
-`zk` has some AI-assisted features, backed by the Gemini API for generation (requires a `GEMINI_API_KEY`) and a local [Ollama](https://ollama.com) instance for embedding (embedding is called far more often, via vector search, so it's kept local for cost/speed):
+| Feature | Backend | Setup |
+|---|---|---|
+| Embeddings: `notes find`, `note find`, `semantic_search_notes`, `find_related_notes` | Local [Ollama](https://ollama.com) | `ollama serve` and `ollama pull embeddinggemma`; `OLLAMA_HOST` for a remote instance |
+| Generation: `note summarize`, `tags generate` | Gemini | `GEMINI_API_KEY` |
 
-- `zk note summarize <path>` and `zk tags generate [directory | path]` use Gemini to summarize a note or generate its tags. Vector search (`semantic_search_notes`, `find_related_notes`) embeds notes/queries via Ollama; run `ollama serve` and `ollama pull embeddinggemma` first, or point `OLLAMA_HOST` at a remote instance. Both cache prompts/responses/embeddings in `.zk/zk.sqlite3`, keyed on a checksum of the input; if you need a different model, set `ZK_GEMINI_MODEL` and/or `ZK_OLLAMA_EMBED_MODEL` before switching, since the cache doesn't key on model and won't notice a change on its own.
-- `zk mcp` runs `zk` as a standard [MCP](https://modelcontextprotocol.io) server over stdio, so any MCP-speaking client can search, read and write your vault. It exposes: `list_notes`, `lint_notes`, `regex_search_notes`, `semantic_search_notes`, `find_related_notes`, `find_notes_linked_to`, `find_notes_linked_from`, `read_note`, `create_note`, `update_note`.
-- `zk initialize claude` writes `ZK.md` (the Zettelkasten/PARA conventions the assistant should follow) and makes `@ZK.md` the first line of `CLAUDE.md`, creating the file if needed. It never touches `.claude/`, so your own skills and settings are safe. Run it again to refresh `ZK.md`.
-- The skills (workflows like archiving a project or converting fleeting notes into permanent ones) and the `zk mcp` server ship as a Claude Code plugin from this repo. Install it from within Claude Code with `/plugin marketplace add jamesl33/zk` then `/plugin install zk@zk`.
-- `zk init [directory]` creates a vault (`.zk` and the PARA directories), leaving anything that exists untouched. `--vault <directory>` (or `ZK_VAULT`) runs any command against that vault instead of the current directory. `zk notes find` takes `--limit`, `--max-distance` and `--json`.
-- The `zk-memory` plugin (`/plugin install zk-memory@zk`, needs `zk` on `PATH`) replaces Claude Code's built-in auto-memory with its own vault, `~/.claude/zk-memory` (override with `ZK_MEMORY_VAULT`), created on first use. Set `"autoMemoryEnabled": false` in `~/.claude/settings.json`, as a plugin can't. Notes are project-scoped (`1 Projects/<repo>`) or cross-project (`3 Resources`, `2 Areas`). A `SessionStart` hook injects save guidance and a digest of note titles (again after compaction), a `UserPromptSubmit` hook injects the notes relevant to each prompt (needs Ollama; fails open; errors go to `.zk/state/hooks.log`), and `PreCompact`/`SessionEnd` hooks run a detached headless Claude (`ZK_MEMORY_MODEL`, default `haiku`) to save what the session missed. Notes are recalled within a cosine distance of `0.65` of the prompt (override with `ZK_MEMORY_MAX_DISTANCE`). Install `zk-memory` globally and `zk` per repo. Never export `ZK_VAULT` globally.
-- Suggested vault `.gitignore`. `ZK.md` is regenerated by `zk initialize claude`, so ignore it and commit `CLAUDE.md`:
+Embeddings run locally because they are called far more often than generation. Prompts, responses and embeddings are cached in `.zk/zk.sqlite3`, keyed on a checksum of the input. The cache does not key on model, so set `ZK_GEMINI_MODEL` or `ZK_OLLAMA_EMBED_MODEL` before switching, or stale results survive.
+
+## Claude Code
+
+Install the plugin from within Claude Code:
+
+```
+/plugin marketplace add jamesl33/zk
+/plugin install zk@zk
+```
+
+It ships the skills (archive a project, turn fleeting notes into permanent ones, and so on) and the `zk mcp` server.
+
+- **MCP tools:** `list_notes`, `lint_notes`, `regex_search_notes`, `semantic_search_notes`, `find_related_notes`, `find_notes_linked_to`, `find_notes_linked_from`, `read_note`, `create_note`, `update_note`, `delete_note`.
+- **Per vault:** `zk initialize claude` writes `ZK.md` (the Zettelkasten/PARA conventions) and puts `@ZK.md` first in `CLAUDE.md`. It never touches `.claude/`. Rerun it to refresh `ZK.md`.
+- **Vault `.gitignore`:** commit `CLAUDE.md`, ignore the generated files.
 
   ```
-  # Ignore the index/metadata directory
   .zk/
-
-  # zk initialize claude
   ZK.md
   .claude/settings.local.json
   ```
 
-  `.claude/` is not ignored wholesale because it can hold your own skills and settings.
+Install the plugin globally and `zk initialize claude` per vault. Never export `ZK_VAULT` globally.
 
-# Performance
+# zk-memory
 
-For the amount of notes I have, the performance hasn't been a problem although admittedly it wasn't designed with performance as a key consideration; there's room for optimization in the future, if required.
+A second plugin that replaces Claude Code's built-in auto-memory with a zk vault. Memory becomes notes you can search, link, lint, edit and diff in git.
 
-# Design
+```
+/plugin install zk-memory@zk
+```
 
-- Composable commands, each simple, in conjunction allowing more complex behavior
-- Improve "discoverability" of notes, via fixed string, glob, regex and similarly search
-- Unique naming to allow links to survive renames/moves (e.g. between directories)
+Needs `zk` on `PATH` and Ollama running. Set `"autoMemoryEnabled": false` in `~/.claude/settings.json`, because a plugin cannot.
 
-# Why?
+## How it works
 
-I've used multiple tools for this process in the past, and struggled to find anything that fit my desired usage in a way that has stood the test of time.
+The vault is `~/.claude/zk-memory` (override with `ZK_MEMORY_VAULT`), a git repo created on first use.
+
+| Hook | Does |
+|---|---|
+| `SessionStart` (also after compaction) | Injects save guidance and a digest of note titles: this project's notes, plus `user` and `feedback` notes from any project |
+| `UserPromptSubmit` | Injects notes semantically close to the prompt, once per session each |
+| `PreCompact`, `SessionEnd` | Start a detached headless Claude that saves what the session missed, then lints and commits the vault |
+
+- **Scope:** project notes live in `1 Projects/<repo>` (the repo name, shared by every worktree). Notes useful anywhere go in `3 Resources` or `2 Areas`.
+- **Recall:** notes within cosine distance `0.65` of the prompt, up to 15 notes and 64 KB. Prompts under three words and `/` commands are skipped.
+- **Saving:** only the transcript since the last save is read, and sessions where the user said nothing are skipped. The model is told to save only material learnings (preferences, corrections, non-obvious gotchas, decisions with reasons) and to update rather than duplicate.
+- **Failure:** hooks fail open and never block Claude. Errors go to `.zk/state/hooks.log`. A failed save keeps its place and retries next time.
+
+| Env var | Default | Sets |
+|---|---|---|
+| `ZK_MEMORY_VAULT` | `~/.claude/zk-memory` | Vault location |
+| `ZK_MEMORY_MODEL` | `haiku` | Model for the save run |
+| `ZK_MEMORY_MAX_DISTANCE` | `0.65` | Recall cutoff |
+
+# Development
+
+```
+make build    # build/zk
+make test     # PACKAGE=cmd/note TESTS=TestFoo to narrow
+```
+
+# Why
+
+I tried many note tools and none stood the test of time. `zk` favours small composable commands over a single app. It was not designed for performance and has been fast enough for my vault.
 
 # TODO
 
