@@ -46,7 +46,15 @@ func NewSave() *cobra.Command {
 func (s *Save) Run(ctx context.Context) error {
 	vault, err := enter()
 	if err != nil {
+		logHook("save", err)
+
 		return err
+	}
+
+	if s.Session == "" || s.Transcript == "" {
+		memory.Logf(vault, "save: --session and --transcript are required")
+
+		return nil
 	}
 
 	model := os.Getenv("ZK_MEMORY_MODEL")
