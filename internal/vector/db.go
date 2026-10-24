@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"maps"
+	"math"
 	"slices"
 	"strings"
 
@@ -164,7 +165,17 @@ func (d *DB) upsert(ctx context.Context, tx *sql.Tx, name string, checksum []byt
 }
 
 // Find some similar notes to the one provided.
-func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
+func (d *DB) Find(ctx context.Context, n *note.Note, opts ...func(*FindOptions)) ([]*note.Note, error) {
+	var o FindOptions
+
+	for _, opt := range opts {
+		opt(&o)
+	}
+
+	limit := cmp.Or(o.limit, 15)
+
+	maxDistance := cmp.Or(o.maxDistance, math.MaxFloat32)
+
 	embeddings, err := d.query(ctx, n)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate embedding: %w", err)
@@ -180,7 +191,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	distances := make(map[string]float32)
 
 	for i, embedding := range embeddings {
-		err := d.search(ctx, embedding, n.Name(), distances)
+		err := d.search(ctx, embedding, n.Name(), maxDistance, limit, distances)
 		if err != nil {
 			return nil, fmt.Errorf("failed to search with chunk %d/%d: %w", i+1, len(embeddings), err)
 		}
@@ -192,7 +203,7 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 		return cmp.Or(cmp.Compare(distances[a], distances[b]), cmp.Compare(a, b))
 	})
 
-	names = names[:min(15, len(names))]
+	names = names[:min(limit, len(names))]
 
 	// No notes, return an empty iterator.
 	if len(names) == 0 {
@@ -232,9 +243,16 @@ func (d *DB) Find(ctx context.Context, n *note.Note) ([]*note.Note, error) {
 	return notes, nil
 }
 
-// search finds the notes closest to the embedding, lowering the distance of each in distances if it is closer than the
-// one already there.
-func (d *DB) search(ctx context.Context, embedding []byte, exclude string, distances map[string]float32) error {
+// search finds the limit notes closest to the embedding (no further than maxDistance), lowering the distance of each in
+// distances if it is closer than the one already there.
+func (d *DB) search(
+	ctx context.Context,
+	embedding []byte,
+	exclude string,
+	maxDistance float32,
+	limit int,
+	distances map[string]float32,
+) error {
 	// query to find some similar notes; a note may have multiple chunk rows, so collapse to one distance per note using
 	// its closest-matching chunk.
 	const query = `
@@ -247,12 +265,14 @@ func (d *DB) search(ctx context.Context, embedding []byte, exclude string, dista
 	  name != ?
 	GROUP BY
 	  name
+	HAVING
+	  distance <= ?
 	ORDER BY
 	  distance
-	LIMIT 15
+	LIMIT ?
 	`
 
-	rows, err := d.db.QueryContext(ctx, query, embedding, exclude)
+	rows, err := d.db.QueryContext(ctx, query, embedding, exclude, maxDistance, limit)
 	if err != nil {
 		return fmt.Errorf("failed to execute query: %w", err)
 	}

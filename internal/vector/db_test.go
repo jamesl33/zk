@@ -435,6 +435,68 @@ func TestDBFindSuccess(t *testing.T) {
 	assert.Equal(t, n2.Name(), results[0].Name())
 }
 
+func TestDBFindBounds(t *testing.T) {
+	tests := []struct {
+		name string
+		opts []func(*FindOptions)
+		want []string
+	}{
+		{name: "no bounds", want: []string{"near", "far"}},
+		{name: "limit", opts: []func(*FindOptions){WithLimit(1)}, want: []string{"near"}},
+		{name: "max distance", opts: []func(*FindOptions){WithMaxDistance(0.5)}, want: []string{"near"}},
+		{name: "max distance excludes all", opts: []func(*FindOptions){WithMaxDistance(0.0001)}, want: []string{}},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var (
+				tmp     = t.TempDir()
+				ctrl    = gomock.NewController(t)
+				mclient = mock_ai.NewMockEmbedder(ctrl)
+			)
+
+			// Find lists within the vault root, so we must be within that directory
+			cwd, err := os.Getwd()
+			require.NoError(t, err)
+
+			require.NoError(t, os.Chdir(tmp))
+			defer os.Chdir(cwd)
+
+			require.NoError(t, os.Mkdir(filepath.Join(tmp, ".zk"), 0o755))
+
+			db, err := sql.Open("sqlite3", ":memory:")
+			require.NoError(t, err)
+			defer db.Close()
+
+			vdb := &DB{client: mclient, db: db}
+
+			require.NoError(t, vdb.init(t.Context()))
+
+			// Distances from the query are ~0.005 (near) and ~0.995 (far)
+			for name, embedding := range map[string][]float32{"near": {1.0, 0.0}, "far": {0.0, 1.0}} {
+				n := newNote(t, tmp, name, "---\ntitle: "+name+"\n---\nBody")
+
+				mclient.EXPECT().Embed(gomock.Any(), gomock.Any()).Return(embedding, nil)
+				require.NoError(t, vdb.Upsert(t.Context(), n))
+			}
+
+			query := newNote(t, tmp, "query", "---\ntitle: Query\n---\nBody")
+
+			mclient.EXPECT().Embed(gomock.Any(), gomock.Any()).Return([]float32{1.0, 0.1}, nil)
+
+			results, err := vdb.Find(t.Context(), query, test.opts...)
+			require.NoError(t, err)
+
+			got := make([]string, 0, len(results))
+			for _, r := range results {
+				got = append(got, r.Name())
+			}
+
+			assert.Equal(t, test.want, got)
+		})
+	}
+}
+
 func TestDBFindCollapsesToClosestChunk(t *testing.T) {
 	var (
 		tmp     = t.TempDir()
