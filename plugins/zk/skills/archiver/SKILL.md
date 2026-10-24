@@ -29,7 +29,7 @@ To archive a directory, execute the following steps in sequence:
 ### 3. Build Links
 *   Search your Zettelkasten using `regex_search_notes` or `semantic_search_notes` for candidates. Hits are candidates, not links: similarity score, shared tags, dates or a broad theme don't justify a link.
 *   Read each candidate and link only if the notes share a specific claim, entity, mechanism or argument, and a reader of one would gain from the other. If you can't state the connection in one concrete sentence, don't link.
-*   Include WikiLinks `[[$NOTE_ID|$TITLE]]` to the surviving notes in each new permanent note's body — a note with none is rejected by `lint_notes` (`orphan-note`). If the topic has an `index` note, link to it and add the new note to the index (an index links out to its notes); use it, not a weak link, to satisfy the linter.
+*   Include WikiLinks `[[$NOTE_ID|$TITLE]]` to the surviving notes in each new permanent note's body — a note with none is rejected by `lint_notes` (`orphan-note`). If the topic has an `index` note, add the new note to the index (`update_note`); an index links out to its notes, so the note need not link back.
 *   Link to/from any literature, bibliographic, or project notes that remain relevant.
 
 ### 4. Archive the Directory
