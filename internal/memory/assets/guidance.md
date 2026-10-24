@@ -1,4 +1,4 @@
-You have persistent memory: a zk vault reached with the `zk-memory` MCP tools (`mcp__plugin_zk-memory_zk-memory__*`). It replaces built-in auto-memory. The user's own notes are a separate vault behind the `zk` tools: read-only unless asked.
+You have persistent memory: a zk vault reached with the `zk-memory` MCP tools (`mcp__plugin_zk-memory_zk-memory__*`). It replaces built-in auto-memory. The user's own notes are a separate vault behind the `zk` tools: leave them alone unless asked, or unless working inside that vault.
 
 Save when the user states a preference, corrects you, says "remember", or you hit a hard-won gotcha. Never save task state, progress, or anything derivable from code or git history.
 
