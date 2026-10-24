@@ -2,9 +2,7 @@ package notes
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/jamesl33/zk/internal/note"
 	"github.com/jamesl33/zk/internal/notes"
@@ -20,9 +18,6 @@ type FindOptions struct {
 
 	// MaxDistance is the maximum cosine distance a note may be from the query.
 	MaxDistance float32
-
-	// JSON outputs each note as a JSON line.
-	JSON bool
 }
 
 // Find defines the struct for the find command.
@@ -43,7 +38,6 @@ func NewFind() *cobra.Command {
 
 	cmd.Flags().IntVar(&find.Limit, "limit", 0, "Maximum number of notes to find (default 15)")
 	cmd.Flags().Float32Var(&find.MaxDistance, "max-distance", 0, "Maximum cosine distance from the query (default unbounded)")
-	cmd.Flags().BoolVar(&find.JSON, "json", false, "Output each note as a JSON line")
 
 	return &cmd
 }
@@ -65,15 +59,11 @@ func (f *Find) Run(ctx context.Context, query string) error {
 		vector.WithMaxDistance(f.MaxDistance),
 	}
 
-	return notes.Find(ctx, n, f.output, opts...)
+	return notes.Find(ctx, n, output, opts...)
 }
 
-// output prints the note, as a JSON line if requested.
-func (f *Find) output(n *note.Note) error {
-	if f.JSON {
-		return json.NewEncoder(os.Stdout).Encode(n)
-	}
-
+// output prints the note.
+func output(n *note.Note) error {
 	fmt.Println(n.String())
 
 	return nil
