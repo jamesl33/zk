@@ -19,14 +19,14 @@
     "PreCompact": [
       {
         "hooks": [
-          {"type": "command", "command": "zk", "args": ["memory", "hook", "extract"], "timeout": 5}
+          {"type": "command", "command": "zk", "args": ["memory", "hook", "extract"], "timeout": 10}
         ]
       }
     ],
     "SessionEnd": [
       {
         "hooks": [
-          {"type": "command", "command": "zk", "args": ["memory", "hook", "extract"], "timeout": 5}
+          {"type": "command", "command": "zk", "args": ["memory", "hook", "extract"], "timeout": 10}
         ]
       }
     ]
