@@ -74,7 +74,7 @@ tags:
 -   **`bibliographic`**: A reference to a source (book, article, etc.). Contains the title and a link. **Must be placed in `5 Bibliography`**.
 -   **`literature`**: Raw, copy-pasted quotes and complementary summaries/ideas from external resources, linked to a `bibliographic` note. Direct quotes are placed in blockquotes (`>`), while your summaries/analyses live outside them.
 -   **`permanent`**: Your own atomic, well-developed ideas, insights, or knowledge. This is the core of the Zettelkasten.
--   **`index`**: A note that serves as a hub, linking to multiple other notes on a single topic.
+-   **`index`**: A note that serves as a hub, linking *out* to every note on a single topic. The index lists its notes; a note linking to the index does not add it to the list. Whenever you create a note on a topic with an index, link the index from the note *and* add the note to the index (`update_note`).
 
 ## 4. Core Methodologies
 
