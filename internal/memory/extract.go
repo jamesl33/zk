@@ -129,7 +129,12 @@ func Extract(ctx context.Context, e Extraction) error {
 			return err
 		}
 
-		return SetOffset(e.Vault, e.Session, total)
+		err = SetOffset(e.Vault, e.Session, total)
+		if err != nil {
+			return fmt.Errorf("failed to record offset: %w", err)
+		}
+
+		return nil
 	}
 
 	chunks := chunk(entries)

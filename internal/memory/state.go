@@ -37,7 +37,7 @@ func Recalled(vault, session string) (map[string]bool, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, err // Purposefully not wrapped
 	}
 	defer file.Close()
 
@@ -48,20 +48,20 @@ func Recalled(vault, session string) (map[string]bool, error) {
 		recalled[scanner.Text()] = true
 	}
 
-	return recalled, scanner.Err()
+	return recalled, scanner.Err() // Purposefully not wrapped
 }
 
 // MarkRecalled records notes as injected into the session.
 func MarkRecalled(vault, session string, paths ...string) error {
 	file, err := os.OpenFile(sessionFile(vault, session, "recalled"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
-		return err
+		return err // Purposefully not wrapped
 	}
 	defer file.Close()
 
 	_, err = file.WriteString(strings.Join(paths, "\n") + "\n")
 
-	return err
+	return err // Purposefully not wrapped
 }
 
 // ResetRecalled forgets what was injected into the session, as compaction drops it from context.
@@ -71,7 +71,7 @@ func ResetRecalled(vault, session string) error {
 		return nil
 	}
 
-	return err
+	return err // Purposefully not wrapped
 }
 
 // Offset returns the number of transcript lines already extracted for the session.
@@ -91,14 +91,16 @@ func Offset(vault, session string) int {
 
 // SetOffset records the number of transcript lines extracted for the session.
 func SetOffset(vault, session string, offset int) error {
-	return os.WriteFile(sessionFile(vault, session, "offset"), []byte(strconv.Itoa(offset)), 0o644)
+	err := os.WriteFile(sessionFile(vault, session, "offset"), []byte(strconv.Itoa(offset)), 0o644)
+
+	return err // Purposefully not wrapped
 }
 
 // Prune removes state which hasn't been touched recently. The log is kept.
 func Prune(vault string) error {
 	entries, err := os.ReadDir(stateDir(vault))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read state directory: %w", err)
 	}
 
 	for _, entry := range entries {
