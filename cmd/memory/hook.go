@@ -28,21 +28,23 @@ func NewHook() *cobra.Command {
 // hookCommand wraps fn as a hook which fails open: the agent carries on whatever goes wrong, and the error is logged in
 // the vault.
 func hookCommand(short, use string, fn func(context.Context, memory.Input, io.Writer) error) *cobra.Command {
+	run := func(cmd *cobra.Command, _ []string) error {
+		if memory.Saving() {
+			return nil // The headless save run mustn't trigger hooks
+		}
+
+		err := runHook(cmd, fn)
+		if err != nil {
+			logHook(use, err)
+		}
+
+		return nil
+	}
+
 	cmd := cobra.Command{
 		Short: short,
 		Use:   use,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			if memory.Saving() {
-				return nil // The headless save run mustn't trigger hooks
-			}
-
-			err := runHook(cmd, fn)
-			if err != nil {
-				logHook(use, err)
-			}
-
-			return nil
-		},
+		RunE:  run,
 	}
 
 	return &cmd

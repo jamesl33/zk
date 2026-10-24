@@ -50,7 +50,7 @@ type Runner func(ctx context.Context, vault, prompt string) error
 // ClaudeRunner returns the Runner which executes 'claude -p' with the given model. The run is told it's saving so that its
 // own hooks do nothing, and ZK_VAULT is dropped so 'zk' resolves the vault from where it runs.
 func ClaudeRunner(model string) Runner {
-	return func(ctx context.Context, vault, prompt string) error {
+	run := func(ctx context.Context, vault, prompt string) error {
 		ctx, cancel := context.WithTimeout(ctx, runTimeout)
 		defer cancel()
 
@@ -68,6 +68,8 @@ func ClaudeRunner(model string) Runner {
 
 		return nil
 	}
+
+	return run
 }
 
 // Detach starts this executable again with the arguments, in its own session with the saving flag set, and doesn't wait
