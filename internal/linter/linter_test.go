@@ -321,3 +321,27 @@ func TestLinterLintContextCanceled(t *testing.T) {
 	_, err := l.Lint(ctx, tmp)
 	assert.Error(t, err)
 }
+
+func TestLinterLintLinkFormat(t *testing.T) {
+	var (
+		tmp   = t.TempDir()
+		note1 = filepath.Join(tmp, "20240101000001.md")
+		note2 = filepath.Join(tmp, "20240101000002.md")
+	)
+
+	body := "---\ntitle: Note 1\ndate: \"2024-01-01\"\n---\nSee [Two](1 Projects/20240101000002.md), [[20240101000002]] and [ext](https://example.com/20240101000003)"
+
+	err := os.WriteFile(note1, []byte(body), 0o644)
+	require.NoError(t, err)
+
+	err = os.WriteFile(note2, []byte("---\ntitle: Note 2\ndate: \"2024-01-01\"\n---\nBody 2"), 0o644)
+	require.NoError(t, err)
+
+	errors, err := NewLinter().Lint(t.Context(), tmp)
+	require.NoError(t, err)
+	require.Len(t, errors, 1)
+	assert.Equal(t, note1, errors[0].Path)
+	assert.Equal(t, `Link "1 Projects/20240101000002.md" should be a WikiLink (link-format)`, errors[0].Message)
+	assert.Equal(t, 5, errors[0].Line)
+	assert.Equal(t, 5, errors[0].Column)
+}

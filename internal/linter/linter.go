@@ -77,6 +77,13 @@ func (l *Linter) Lint(ctx context.Context, path string, opts ...func(*LintOption
 
 	errors = append(errors, linkErrors...)
 
+	formatErrors, err := lintLinkFormat(ctx, path)
+	if err != nil {
+		return nil, err
+	}
+
+	errors = append(errors, formatErrors...)
+
 	if !o.archives {
 		errors = slices.DeleteFunc(errors, func(e *LintError) bool { return inArchive(e.Path) })
 	}
@@ -215,6 +222,63 @@ func lintBrokenLinks(ctx context.Context, path string, paths map[string][]string
 				Line:    line,
 				Column:  col,
 				Message: fmt.Sprintf("Link %q is broken (linkcheck)", name),
+			}
+
+			errors = append(errors, &err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list notes: %w", err)
+	}
+
+	return errors, nil
+}
+
+// lintLinkFormat lists every note under path, flagging markdown links to notes (link-format). Links
+// to notes must be WikiLinks, otherwise they're missed when finding backlinks.
+func lintLinkFormat(ctx context.Context, path string) ([]*LintError, error) {
+	errors := make([]*LintError, 0)
+
+	entire, err := matcher.Entire("", "", regex.MarkdownNoteLink.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create entire matcher: %w", err)
+	}
+
+	lstr, err := lister.NewLister(
+		lister.WithPath(path),
+		lister.WithMatcher(entire),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create lister: %w", err)
+	}
+
+	idx := regex.MarkdownNoteLink.SubexpIndex("target")
+
+	err = iterator.ForEach2(lstr.Many(ctx), func(n *note.Note) error {
+		raw, err := os.ReadFile(n.Path)
+		if err != nil {
+			return fmt.Errorf("failed to read note: %w", err)
+		}
+
+		body := string(raw)
+
+		for _, match := range regex.MarkdownNoteLink.FindAllStringSubmatchIndex(body, -1) {
+			target := body[match[2*idx]:match[2*idx+1]]
+
+			// External links may contain a 14 digit number without referring to a note.
+			if strings.Contains(target, "://") {
+				continue
+			}
+
+			line, col := position(body, match[0])
+
+			err := LintError{
+				Path:    n.Path,
+				Line:    line,
+				Column:  col,
+				Message: fmt.Sprintf("Link %q should be a WikiLink (link-format)", target),
 			}
 
 			errors = append(errors, &err)
