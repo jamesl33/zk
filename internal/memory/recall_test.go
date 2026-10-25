@@ -22,7 +22,7 @@ func TestRecallInjectsOnceThenDedups(t *testing.T) {
 	got, err := Recall(context.Background(), vault, "s", prompt, find, MaxDistance)
 	require.NoError(t, err)
 	require.Contains(t, got, "<memory>")
-	require.Contains(t, got, "Tests need -shuffle (3 Resources/a.md, saved 2026-01-02)")
+	require.Contains(t, got, "[[a|Tests need -shuffle]] (3 Resources/a.md, saved 2026-01-02)")
 	require.Contains(t, got, "Run go test with -shuffle=on.")
 
 	got, err = Recall(context.Background(), vault, "s", prompt, find, MaxDistance)
@@ -97,7 +97,7 @@ func TestRecallTruncatesOversizedNote(t *testing.T) {
 
 	got, err := Recall(context.Background(), vault, "s", prompt, finderOf(t, 0.1, big), MaxDistance)
 	require.NoError(t, err)
-	require.Contains(t, got, "### Big")
+	require.Contains(t, got, "### [[big|Big]]")
 	require.Contains(t, got, `full note: read_note "3 Resources/big.md"`)
 	require.True(t, utf8.ValidString(got))
 	require.Less(t, len(got), recallMax+500)

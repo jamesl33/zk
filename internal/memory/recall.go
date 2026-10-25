@@ -96,7 +96,7 @@ func format(n *note.Note) (string, error) {
 		return "", fmt.Errorf("failed to read note: %w", err)
 	}
 
-	return fmt.Sprintf("### %s (%s, saved %s)\n%s\n\n", n.Frontmatter.Title, n.Path, n.Frontmatter.Date, strings.TrimSpace(body)), nil
+	return fmt.Sprintf("### [[%s|%s]] (%s, saved %s)\n%s\n\n", n.Name(), n.Frontmatter.Title, n.Path, n.Frontmatter.Date, strings.TrimSpace(body)), nil
 }
 
 // truncateEntry shortens an entry to at most max bytes, keeping its start and saying where the full note is, as the model

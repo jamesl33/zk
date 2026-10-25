@@ -24,8 +24,8 @@ func TestDigest(t *testing.T) {
 
 	require.Contains(t, got, Guidance)
 	require.Contains(t, got, "Project key: mine (save project notes in `1 Projects/mine`)")
-	require.Contains(t, got, "- Mine note (1 Projects/mine/a.md)")
-	require.Contains(t, got, "- Prefers tabs (3 Resources/c.md)")
+	require.Contains(t, got, "- [[a|Mine note]] (1 Projects/mine/a.md)")
+	require.Contains(t, got, "- [[c|Prefers tabs]] (3 Resources/c.md)")
 	require.NotContains(t, got, "Other project note")
 	require.NotContains(t, got, "Plain fact")
 }

@@ -31,7 +31,7 @@ func Digest(ctx context.Context, key string) (string, error) {
 			return "", fmt.Errorf("failed to list notes: %w", err)
 		}
 
-		l := listing{date: n.Frontmatter.Date, line: fmt.Sprintf("- %s (%s)", n.Frontmatter.Title, n.Path)}
+		l := listing{date: n.Frontmatter.Date, line: fmt.Sprintf("- [[%s|%s]] (%s)", n.Name(), n.Frontmatter.Title, n.Path)}
 
 		switch {
 		case inProject(n.Path, key):
